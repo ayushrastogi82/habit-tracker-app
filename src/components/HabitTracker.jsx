@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Check, TrendingUp, Calendar, ChevronDown } from 'lucide-react';
+import { Plus, Check, TrendingUp, Calendar, ChevronDown, Info } from 'lucide-react';
 
 export default function HabitTracker() {
   const [habits, setHabits] = useState([]);
@@ -15,8 +15,25 @@ export default function HabitTracker() {
   const [isReorderMode, setIsReorderMode] = useState(false);
   const [viewMode, setViewMode] = useState('2col');
   const [viewModeBeforeManage, setViewModeBeforeManage] = useState(null);
+  const [tourStep, setTourStep] = useState(null);
+
+  const TOUR_STEPS = [
+    { icon: '➕', title: 'Add a Habit', description: 'Tap "Add Habit" to create a new habit you want to track daily.' },
+    { icon: '✅', title: 'Log Your Day', description: 'Tap "Log" each day you complete a habit. Tap "Done" again to unlog if you made a mistake.' },
+    { icon: '📈', title: 'Track Progress', description: 'The tracker pill shows logged vs total days. Tap it to expand your 30-day heatmap and toggle individual days.' },
+    { icon: '🔥', title: 'Streak & Gap Badges', description: 'Green badge = active streak. Amber/red badge = days missed. Keep the fire alive!' },
+    { icon: '✏️', title: 'Manage Habits', description: 'Tap the pencil icon to enter manage mode — rename habits by tapping their name, reorder with arrows, or delete.' },
+  ];
 
   useEffect(() => { loadHabits(); }, []);
+  useEffect(() => {
+    if (!localStorage.getItem('habit-tour-seen')) setTourStep(0);
+  }, []);
+
+  const endTour = () => {
+    localStorage.setItem('habit-tour-seen', '1');
+    setTourStep(null);
+  };
 
   const showFeedback = (message) => {
     setFeedback(message);
@@ -232,6 +249,33 @@ export default function HabitTracker() {
         </div>
       )}
 
+      {/* Tour overlay */}
+      {tourStep !== null && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex flex-col justify-end">
+          <div className="bg-white rounded-t-3xl p-6 shadow-2xl">
+            <div className="text-4xl mb-3 text-center">{TOUR_STEPS[tourStep].icon}</div>
+            <h2 className="text-xl font-bold text-gray-800 text-center mb-2">{TOUR_STEPS[tourStep].title}</h2>
+            <p className="text-gray-500 text-center text-sm mb-6">{TOUR_STEPS[tourStep].description}</p>
+            <div className="flex justify-center gap-1.5 mb-6">
+              {TOUR_STEPS.map((_, i) => (
+                <div key={i} className={`h-1.5 rounded-full transition-all ${i === tourStep ? 'w-6 bg-indigo-600' : 'w-1.5 bg-gray-300'}`} />
+              ))}
+            </div>
+            <div className="flex gap-3">
+              <button onClick={endTour} className="flex-1 py-3 rounded-xl text-gray-500 font-medium border border-gray-200 hover:bg-gray-50">
+                Skip
+              </button>
+              <button
+                onClick={() => tourStep < TOUR_STEPS.length - 1 ? setTourStep(tourStep + 1) : endTour()}
+                className="flex-2 flex-grow-[2] py-3 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700"
+              >
+                {tourStep < TOUR_STEPS.length - 1 ? 'Next →' : 'Got it!'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Undo toast */}
       {undoToast && (
         <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-3 rounded-xl shadow-lg z-50 flex items-center gap-3">
@@ -291,6 +335,12 @@ export default function HabitTracker() {
             ) : <div />}
 
             <div className="flex gap-2">
+              <button
+                onClick={() => setTourStep(0)}
+                className="px-3 py-2 rounded-xl bg-white text-gray-500 hover:bg-gray-50 shadow-md"
+                title="Help tour"
+              ><Info className="w-5 h-5" /></button>
+
               <button
                 onClick={() => setViewMode(v => v === '1col' ? '2col' : '1col')}
                 disabled={isReorderMode}
