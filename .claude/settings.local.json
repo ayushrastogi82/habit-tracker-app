@@ -16,7 +16,10 @@
       "Bash(curl -s http://localhost:5173)",
       "Bash(pkill -f vite)",
       "Bash(cd \"/Users/ayushrastogi/Claude/My Projects/habit-tracker-app\" && pkill -f vite 2>/dev/null; sleep 1 && npm run dev > /tmp/vite.log 2>&1 & sleep 4 && grep -E \"error|ready|Error\" /tmp/vite.log | head -10)",
-      "Bash(cd \"/Users/ayushrastogi/Claude/My Projects/habit-tracker-app\" && pkill -f vite 2>/dev/null; sleep 1 && npm run dev > /tmp/vite.log 2>&1 & sleep 4 && grep -E \"error|ready|Error\" /tmp/vite.log | head -5)"
+      "Bash(cd \"/Users/ayushrastogi/Claude/My Projects/habit-tracker-app\" && pkill -f vite 2>/dev/null; sleep 1 && npm run dev > /tmp/vite.log 2>&1 & sleep 4 && grep -E \"error|ready|Error\" /tmp/vite.log | head -5)",
+      "Bash(/opt/homebrew/bin/gh repo *)",
+      "Bash(git remote *)",
+      "Bash(git push *)"
     ]
   }
 }
