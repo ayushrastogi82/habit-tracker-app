@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import confetti from 'canvas-confetti';
 import { Plus, Check, TrendingUp, Calendar, ChevronDown, Info, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function HabitTracker() {
@@ -16,6 +17,7 @@ export default function HabitTracker() {
   const [viewMode, setViewMode] = useState('2col');
   const [viewModeBeforeManage, setViewModeBeforeManage] = useState(null);
   const [tourStep, setTourStep] = useState(null);
+  const [feedbackFading, setFeedbackFading] = useState(false);
   const [heatmapMode, setHeatmapMode] = useState(() => localStorage.getItem('heatmap-mode') || 'month');
   const [monthOffset, setMonthOffset] = useState(0);
 
@@ -39,7 +41,9 @@ export default function HabitTracker() {
 
   const showFeedback = (message) => {
     setFeedback(message);
-    setTimeout(() => setFeedback(''), 3000);
+    setFeedbackFading(false);
+    setTimeout(() => setFeedbackFading(true), 700);
+    setTimeout(() => { setFeedback(''); setFeedbackFading(false); }, 1000);
   };
 
   const loadHabits = async () => {
@@ -90,14 +94,13 @@ export default function HabitTracker() {
   const logToday = async (habitId) => {
     const now = new Date();
     const today = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-    showFeedback('⏳ Logging...');
     const updated = habits.map(h =>
       h.id === habitId && !h.dates.includes(today)
         ? { ...h, dates: [...h.dates, today].sort().reverse() }
         : h
     );
     const saved = await saveHabits(updated);
-    if (saved) showFeedback('✅ Logged!');
+    if (saved) confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
   };
 
   const deleteHabit = (habitId) => {
@@ -247,7 +250,7 @@ export default function HabitTracker() {
 
       {/* Feedback toast */}
       {feedback && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-white px-6 py-3 rounded-xl shadow-lg z-50 font-semibold text-gray-800">
+        <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 bg-white px-6 py-3 rounded-xl shadow-lg z-50 font-semibold text-gray-800 transition-opacity duration-300 ${feedbackFading ? 'opacity-0' : 'opacity-100'}`}>
           {feedback}
         </div>
       )}
