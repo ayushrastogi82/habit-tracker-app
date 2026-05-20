@@ -423,12 +423,12 @@ export default function HabitTracker() {
             return (
               <div key={habit.id} className={`relative bg-white overflow-visible transition-all ${viewMode === '2col' ? 'rounded-xl shadow-lg hover:shadow-xl' : 'rounded-2xl shadow-xl hover:shadow-2xl'}`}>
                 {streak.current > 1 && (
-                  <div className="absolute -top-4 -right-2 bg-gradient-to-r from-green-400 to-green-600 text-white text-sm font-bold px-3 py-1.5 rounded-full shadow-md flex items-center gap-1 z-10">
+                  <div className="absolute -top-4 -right-2 bg-gradient-to-r from-green-400 to-green-600 text-white text-sm font-normal px-3 py-1.5 rounded-full shadow-md flex items-center gap-1 z-10">
                     🔥 {streak.current}d
                   </div>
                 )}
                 {streak.current <= 1 && daysSince !== null && daysSince > 0 && (
-                  <div className={`absolute -top-4 -right-2 text-white text-sm font-bold px-3 py-1.5 rounded-full shadow-md flex items-center gap-1 z-10 bg-gradient-to-r ${
+                  <div className={`absolute -top-4 -right-2 text-white text-sm font-normal px-3 py-1.5 rounded-full shadow-md flex items-center gap-1 z-10 bg-gradient-to-r ${
                     daysSince <= 3 ? 'from-amber-400 to-amber-600' :
                     daysSince <= 10 ? 'from-orange-400 to-orange-600' :
                     'from-red-400 to-red-600'
@@ -471,13 +471,13 @@ export default function HabitTracker() {
                         loggedToday ? toggleDate(habit.id, todayStr, true) : logToday(habit.id);
                       }}
                       disabled={isRenaming}
-                      className={`w-full px-3 py-2 rounded-lg font-semibold transition-all text-sm mb-2 shadow-md hover:shadow-lg ${
+                      className={`w-full px-3 py-2 rounded-lg font-normal transition-all text-sm mb-2 shadow-md hover:shadow-lg ${
                         isRenaming ? 'bg-gray-300 text-gray-500 cursor-not-allowed' :
                         loggedToday ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white active:scale-95' :
                         'bg-gradient-to-r from-indigo-500 to-blue-600 text-white active:scale-95'
                       }`}
                     >
-                      {loggedToday ? <span className="flex items-center justify-center gap-1"><Check className="w-4 h-4" />Done</span> : 'Log'}
+                      {loggedToday ? <span className="flex items-center justify-center gap-1"><Check className="w-4 h-4" />Done</span> : 'Log today'}
                     </button>
                   )}
 
@@ -486,7 +486,7 @@ export default function HabitTracker() {
                     <div className="flex items-center gap-2 mb-1">
                       <button
                         onClick={() => toggleHabitExpansion(habit.id)}
-                        className={`w-1/2 px-3 py-2 rounded-full text-sm font-semibold inline-flex items-center justify-between border transition-colors ${
+                        className={`w-1/2 px-3 py-2 rounded-full text-sm font-normal inline-flex items-center justify-between border transition-colors ${
                           isExpanded ? 'bg-gradient-to-r from-indigo-400 to-blue-400 text-white border-transparent' : 'bg-white border-indigo-300 text-indigo-700 hover:bg-indigo-50'
                         }`}
                       >
@@ -501,13 +501,13 @@ export default function HabitTracker() {
                           loggedToday ? toggleDate(habit.id, todayStr, true) : logToday(habit.id);
                         }}
                         disabled={isRenaming}
-                        className={`w-1/2 py-2 rounded-lg font-semibold transition-all text-sm flex items-center justify-center gap-1 ${
+                        className={`w-1/2 py-2 rounded-lg font-normal transition-all text-sm flex items-center justify-center gap-1 ${
                           isRenaming ? 'bg-gray-300 text-gray-500 cursor-not-allowed' :
                           loggedToday ? 'bg-green-500 text-white hover:bg-green-600 active:scale-95' :
                           'bg-indigo-600 text-white hover:bg-indigo-700 active:scale-95'
                         }`}
                       >
-                        {loggedToday ? <><Check className="w-4 h-4" />Done</> : 'Log'}
+                        {loggedToday ? <><Check className="w-4 h-4" />Done</> : 'Log today'}
                       </button>
                     </div>
                   ) : (
@@ -515,7 +515,7 @@ export default function HabitTracker() {
                       <button
                         onClick={() => !isReorderMode && toggleHabitExpansion(habit.id)}
                         disabled={isReorderMode}
-                        className={`w-full px-3 py-1.5 rounded-full text-sm font-semibold inline-flex items-center justify-between border transition-colors ${
+                        className={`w-full px-3 py-1.5 rounded-full text-sm font-normal inline-flex items-center justify-between border transition-colors ${
                           isExpanded ? 'bg-gradient-to-r from-indigo-400 to-blue-400 text-white border-transparent' : 'bg-white border-indigo-300 text-indigo-700 hover:bg-indigo-50'
                         }`}
                       >
