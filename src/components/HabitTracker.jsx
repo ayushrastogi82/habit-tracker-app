@@ -477,7 +477,7 @@ export default function HabitTracker() {
                         'bg-gradient-to-r from-indigo-500 to-blue-600 text-white active:scale-95'
                       }`}
                     >
-                      {loggedToday ? <span className="flex items-center justify-center gap-1"><Check className="w-4 h-4" />Done</span> : 'Log today'}
+                      {loggedToday ? <span className="flex items-center justify-center gap-1"><Check className="w-4 h-4" />Done</span> : 'Log'}
                     </button>
                   )}
 
@@ -503,11 +503,11 @@ export default function HabitTracker() {
                         disabled={isRenaming}
                         className={`w-1/2 py-2 rounded-lg font-normal transition-all text-sm flex items-center justify-center gap-1 ${
                           isRenaming ? 'bg-gray-300 text-gray-500 cursor-not-allowed' :
-                          loggedToday ? 'bg-green-500 text-white hover:bg-green-600 active:scale-95' :
-                          'bg-indigo-600 text-white hover:bg-indigo-700 active:scale-95'
+                          loggedToday ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white active:scale-95' :
+                          'bg-gradient-to-r from-indigo-500 to-blue-600 text-white active:scale-95'
                         }`}
                       >
-                        {loggedToday ? <><Check className="w-4 h-4" />Done</> : 'Log today'}
+                        {loggedToday ? <><Check className="w-4 h-4" />Done</> : 'Log'}
                       </button>
                     </div>
                   ) : (
