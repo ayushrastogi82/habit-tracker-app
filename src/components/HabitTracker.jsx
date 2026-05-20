@@ -218,12 +218,10 @@ export default function HabitTracker() {
 
   const getTotalDays = (habitId, dates) => {
     const today = new Date(); today.setHours(0, 0, 0, 0);
-    const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
     const creationDate = new Date(parseInt(habitId)); creationDate.setHours(0, 0, 0, 0);
     const earliestLog = dates.length ? new Date([...dates].sort()[0] + 'T00:00:00') : creationDate;
     const start = earliestLog < creationDate ? earliestLog : creationDate;
-    const pastDays = Math.max(0, Math.floor((yesterday - start) / 86400000) + 1);
-    return pastDays + (isLoggedToday(dates) ? 1 : 0);
+    return Math.floor((today - start) / 86400000) + 1;
   };
 
   const isLoggedToday = (dates) => {
@@ -239,14 +237,14 @@ export default function HabitTracker() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-gray-600">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 sm:p-8">
+    <div className="min-h-screen bg-gray-50 p-4 sm:p-8">
 
       {/* Feedback toast */}
       {feedback && (
@@ -333,7 +331,7 @@ export default function HabitTracker() {
             {!isAddingHabit ? (
               <button
                 onClick={() => setIsAddingHabit(true)}
-                className="px-4 py-2 bg-white text-indigo-600 rounded-xl hover:bg-indigo-50 transition-colors inline-flex items-center gap-2 shadow-md"
+                className="px-4 py-2 bg-white text-indigo-600 rounded-xl hover:bg-indigo-50 transition-all inline-flex items-center gap-2 shadow-md hover:shadow-lg"
               >
                 <Plus className="w-5 h-5" />
                 Add Habit
@@ -344,7 +342,7 @@ export default function HabitTracker() {
               <button
                 onClick={() => setViewMode(v => v === '1col' ? '2col' : '1col')}
                 disabled={isReorderMode}
-                className={`px-3 py-2 rounded-xl transition-colors shadow-md ${isReorderMode ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+                className={`px-3 py-2 rounded-xl transition-all shadow-md hover:shadow-lg ${isReorderMode ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
                 title={viewMode === '1col' ? 'Switch to grid view' : 'Switch to list view'}
               >
                 {viewMode === '1col' ? (
@@ -371,13 +369,11 @@ export default function HabitTracker() {
                   setIsReorderMode(false);
                 }
               }}
-                className={`px-3 py-2 rounded-xl transition-colors inline-flex items-center gap-2 shadow-md ${
-                  isReorderMode ? 'bg-indigo-600 text-white hover:bg-indigo-700' : 'bg-white text-gray-600 hover:bg-gray-50'
+                className={`px-3 py-2 rounded-xl transition-all inline-flex items-center gap-2 shadow-md hover:shadow-lg ${
+                  isReorderMode ? 'bg-gradient-to-r from-indigo-500 to-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
                 }`}
               >
-              {isReorderMode ? (
-                <><Check className="w-4 h-4" />Done</>
-              ) : (
+              {isReorderMode ? 'Finish' : (
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                   <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
@@ -406,7 +402,7 @@ export default function HabitTracker() {
                 className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none text-base"
                 autoFocus
               />
-              <button type="submit" className="px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-semibold">
+              <button type="submit" className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-blue-600 text-white rounded-xl font-semibold shadow-md hover:shadow-lg transition-all active:scale-95">
                 Add
               </button>
             </div>
@@ -425,7 +421,7 @@ export default function HabitTracker() {
             const loggedDays = habit.dates.length;
 
             return (
-              <div key={habit.id} className={`relative bg-white overflow-visible ${viewMode === '2col' ? 'rounded-xl shadow-md' : 'rounded-2xl shadow-lg'}`}>
+              <div key={habit.id} className={`relative bg-white overflow-visible transition-all ${viewMode === '2col' ? 'rounded-xl shadow-lg hover:shadow-xl' : 'rounded-2xl shadow-xl hover:shadow-2xl'}`}>
                 {streak.current > 1 && (
                   <div className="absolute -top-4 -right-2 bg-gradient-to-r from-green-400 to-green-600 text-white text-sm font-bold px-3 py-1.5 rounded-full shadow-md flex items-center gap-1 z-10">
                     🔥 {streak.current}d
@@ -475,7 +471,7 @@ export default function HabitTracker() {
                         loggedToday ? toggleDate(habit.id, todayStr, true) : logToday(habit.id);
                       }}
                       disabled={isRenaming}
-                      className={`w-full px-3 py-2 rounded-lg font-semibold transition-all text-sm mb-2 ${
+                      className={`w-full px-3 py-2 rounded-lg font-semibold transition-all text-sm mb-2 shadow-md hover:shadow-lg ${
                         isRenaming ? 'bg-gray-300 text-gray-500 cursor-not-allowed' :
                         loggedToday ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white active:scale-95' :
                         'bg-gradient-to-r from-indigo-500 to-blue-600 text-white active:scale-95'
