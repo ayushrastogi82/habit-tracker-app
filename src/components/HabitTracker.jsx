@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Check, TrendingUp, Calendar, ChevronDown, Info } from 'lucide-react';
+import { Plus, Check, TrendingUp, Calendar, ChevronDown, Info, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function HabitTracker() {
   const [habits, setHabits] = useState([]);
@@ -16,6 +16,8 @@ export default function HabitTracker() {
   const [viewMode, setViewMode] = useState('2col');
   const [viewModeBeforeManage, setViewModeBeforeManage] = useState(null);
   const [tourStep, setTourStep] = useState(null);
+  const [heatmapMode, setHeatmapMode] = useState(() => localStorage.getItem('heatmap-mode') || '30d');
+  const [monthOffset, setMonthOffset] = useState(0);
 
   const TOUR_STEPS = [
     { icon: '➕', title: 'Add a Habit', description: 'Tap "Add Habit" to create a new habit you want to track daily.' },
@@ -212,12 +214,13 @@ export default function HabitTracker() {
   };
 
   const getTotalDays = (habitId, dates) => {
-    const today = new Date(); today.setHours(0,0,0,0);
-    const start = dates.length
-      ? new Date([...dates].sort()[0]+'T00:00:00')
-      : new Date(parseInt(habitId));
-    start.setHours(0,0,0,0);
-    return Math.floor((today - start) / 86400000) + 1;
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
+    const creationDate = new Date(parseInt(habitId)); creationDate.setHours(0, 0, 0, 0);
+    const earliestLog = dates.length ? new Date([...dates].sort()[0] + 'T00:00:00') : creationDate;
+    const start = earliestLog < creationDate ? earliestLog : creationDate;
+    const pastDays = Math.max(0, Math.floor((yesterday - start) / 86400000) + 1);
+    return pastDays + (isLoggedToday(dates) ? 1 : 0);
   };
 
   const isLoggedToday = (dates) => {
@@ -335,12 +338,6 @@ export default function HabitTracker() {
             ) : <div />}
 
             <div className="flex gap-2">
-              <button
-                onClick={() => setTourStep(0)}
-                className="px-3 py-2 rounded-xl bg-white text-gray-500 hover:bg-gray-50 shadow-md"
-                title="Help tour"
-              ><Info className="w-5 h-5" /></button>
-
               <button
                 onClick={() => setViewMode(v => v === '1col' ? '2col' : '1col')}
                 disabled={isReorderMode}
@@ -466,8 +463,8 @@ export default function HabitTracker() {
                     )}
                   </div>
 
-                  {/* Row 2: Log button */}
-                  {!isReorderMode && (
+                  {/* Log button — hidden in manage mode */}
+                  {!isReorderMode && viewMode === '2col' && (
                     <button
                       onClick={() => {
                         const now = new Date();
@@ -481,53 +478,113 @@ export default function HabitTracker() {
                         'bg-indigo-600 text-white hover:bg-indigo-700 active:scale-95'
                       }`}
                     >
-                      {loggedToday ? (
-                        <span className="flex items-center justify-center gap-1">
-                          <Check className="w-4 h-4" />Done
-                        </span>
-                      ) : 'Log'}
+                      {loggedToday ? <span className="flex items-center justify-center gap-1"><Check className="w-4 h-4" />Done</span> : 'Log'}
                     </button>
                   )}
 
-                  {/* Row 3: Tracker + streak/gap pills */}
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      onClick={() => !isReorderMode && toggleHabitExpansion(habit.id)}
-                      disabled={isReorderMode}
-                      className={`w-full px-3 py-1.5 rounded-full text-sm font-semibold inline-flex items-center justify-between border transition-colors ${
-                        isExpanded
-                          ? 'bg-indigo-600 text-white border-indigo-600'
-                          : 'bg-white border-indigo-300 text-indigo-700 hover:bg-indigo-50'
-                      }`}
-                    >
-                      <TrendingUp className="w-3.5 h-3.5" />
-                      {loggedDays}/{totalDays} days
-                      <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
-                    </button>
-
-                  </div>
+                  {/* Tracker pill + log (1col side by side; 2col full width; manage mode: tracker only) */}
+                  {viewMode === '1col' && !isReorderMode ? (
+                    <div className="flex items-center gap-2 mb-1">
+                      <button
+                        onClick={() => toggleHabitExpansion(habit.id)}
+                        className={`w-1/2 px-3 py-2 rounded-full text-sm font-semibold inline-flex items-center justify-between border transition-colors ${
+                          isExpanded ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white border-indigo-300 text-indigo-700 hover:bg-indigo-50'
+                        }`}
+                      >
+                        <TrendingUp className="w-3.5 h-3.5" />
+                        {loggedDays} of {totalDays} days
+                        <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+                      </button>
+                      <button
+                        onClick={() => {
+                          const now = new Date();
+                          const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+                          loggedToday ? toggleDate(habit.id, todayStr, true) : logToday(habit.id);
+                        }}
+                        disabled={isRenaming}
+                        className={`w-1/2 py-2 rounded-lg font-semibold transition-all text-sm flex items-center justify-center gap-1 ${
+                          isRenaming ? 'bg-gray-300 text-gray-500 cursor-not-allowed' :
+                          loggedToday ? 'bg-green-500 text-white hover:bg-green-600 active:scale-95' :
+                          'bg-indigo-600 text-white hover:bg-indigo-700 active:scale-95'
+                        }`}
+                      >
+                        {loggedToday ? <><Check className="w-4 h-4" />Done</> : 'Log'}
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center">
+                      <button
+                        onClick={() => !isReorderMode && toggleHabitExpansion(habit.id)}
+                        disabled={isReorderMode}
+                        className={`w-full px-3 py-1.5 rounded-full text-sm font-semibold inline-flex items-center justify-between border transition-colors ${
+                          isExpanded ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white border-indigo-300 text-indigo-700 hover:bg-indigo-50'
+                        }`}
+                      >
+                        <TrendingUp className="w-3.5 h-3.5" />
+                        {loggedDays} of {totalDays} days
+                        <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+                      </button>
+                    </div>
+                  )}
 
                   {/* Heatmap */}
                   {!isReorderMode && isExpanded && (() => {
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-                    const days = Array.from({ length: 30 }, (_, i) => {
-                      const d = new Date(today);
-                      d.setDate(today.getDate() - (29 - i));
-                      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-                    });
+                    const today = new Date(); today.setHours(0, 0, 0, 0);
                     const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
-                    const streakStart = new Date(today);
-                    streakStart.setDate(today.getDate() - (streak.current - 1));
-                    const streakStartStr = `${streakStart.getFullYear()}-${String(streakStart.getMonth()+1).padStart(2,'0')}-${String(streakStart.getDate()).padStart(2,'0')}`;
+
+                    let days = [];
+                    let leadingBlanks = 0;
+                    let monthLabel = null;
+
+                    if (heatmapMode === '30d') {
+                      days = Array.from({ length: 30 }, (_, i) => {
+                        const d = new Date(today);
+                        d.setDate(today.getDate() - (29 - i));
+                        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+                      });
+                    } else {
+                      const ref = new Date(today.getFullYear(), today.getMonth() + monthOffset, 1);
+                      const year = ref.getFullYear();
+                      const month = ref.getMonth();
+                      const daysInMonth = new Date(year, month + 1, 0).getDate();
+                      const isCurrentYear = year === today.getFullYear();
+                      monthLabel = ref.toLocaleDateString('en-US', isCurrentYear ? { month: 'short' } : { month: 'short', year: 'numeric' });
+                      leadingBlanks = new Date(year, month, 1).getDay();
+                      days = Array.from({ length: daysInMonth }, (_, i) =>
+                        `${year}-${String(month+1).padStart(2,'0')}-${String(i+1).padStart(2,'0')}`
+                      );
+                    }
+
                     return (
                       <div className="mt-2 bg-gray-50 rounded-lg p-2">
+                        {heatmapMode === 'month' && (
+                          <div className="flex items-center justify-between mb-2">
+                            <button onClick={() => setMonthOffset(o => o - 1)} className="p-1 rounded hover:bg-gray-200 text-gray-500">
+                              <ChevronLeft className="w-3.5 h-3.5" />
+                            </button>
+                            <span className="text-xs font-semibold text-gray-600">
+                              {monthLabel} ({days.filter(d => habit.dates.includes(d)).length}d)
+                            </span>
+                            <button onClick={() => setMonthOffset(o => o + 1)} disabled={monthOffset >= 0} className="p-1 rounded hover:bg-gray-200 text-gray-500 disabled:opacity-30">
+                              <ChevronRight className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        )}
+                        {heatmapMode === 'month' && (
+                          <div className="grid grid-cols-7 gap-1 mb-1">
+                            {['S','M','T','W','T','F','S'].map((d, i) => (
+                              <div key={i} className="text-center text-[8px] font-semibold text-gray-400">{d}</div>
+                            ))}
+                          </div>
+                        )}
                         <div className="grid grid-cols-7 gap-1">
+                          {heatmapMode === 'month' && Array.from({ length: leadingBlanks }, (_, i) => (
+                            <div key={`blank-${i}`} />
+                          ))}
                           {days.map(dateStr => {
                             const isLogged = habit.dates.includes(dateStr);
                             const isFuture = dateStr > todayStr;
                             const isToday = dateStr === todayStr;
-                            const isInStreak = streak.current > 1 && isLogged && dateStr >= streakStartStr && dateStr <= todayStr;
                             return (
                               <button
                                 key={dateStr}
@@ -565,7 +622,7 @@ export default function HabitTracker() {
                     </div>
                     <button
                       onClick={(e) => { e.stopPropagation(); deleteHabit(habit.id); }}
-                      className="text-red-600 hover:text-red-700 text-xs font-medium active:scale-95"
+                      className="text-red-600 hover:text-red-700 text-sm font-semibold active:scale-95"
                     >Delete</button>
                   </div>
                 )}
