@@ -16,7 +16,7 @@ export default function HabitTracker() {
   const [viewMode, setViewMode] = useState('2col');
   const [viewModeBeforeManage, setViewModeBeforeManage] = useState(null);
   const [tourStep, setTourStep] = useState(null);
-  const [heatmapMode, setHeatmapMode] = useState(() => localStorage.getItem('heatmap-mode') || '30d');
+  const [heatmapMode, setHeatmapMode] = useState(() => localStorage.getItem('heatmap-mode') || 'month');
   const [monthOffset, setMonthOffset] = useState(0);
 
   const TOUR_STEPS = [
