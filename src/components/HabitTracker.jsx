@@ -13,9 +13,9 @@ export default function HabitTracker() {
   const [editName, setEditName] = useState('');
   const [confirmDialog, setConfirmDialog] = useState(null);
   const [undoToast, setUndoToast] = useState(null);
+  const [undoCountdown, setUndoCountdown] = useState(4);
   const [isReorderMode, setIsReorderMode] = useState(false);
-  const [viewMode, setViewMode] = useState('2col');
-  const [viewModeBeforeManage, setViewModeBeforeManage] = useState(null);
+  const viewMode = '1col';
   const [tourStep, setTourStep] = useState(null);
   const [feedbackFading, setFeedbackFading] = useState(false);
   const [heatmapMode, setHeatmapMode] = useState(() => localStorage.getItem('heatmap-mode') || 'month');
@@ -33,6 +33,14 @@ export default function HabitTracker() {
   useEffect(() => {
     if (!localStorage.getItem('habit-tour-seen')) setTourStep(0);
   }, []);
+  useEffect(() => {
+    if (!undoToast?.showTimer) { setUndoCountdown(undoToast?.duration || 4); return; }
+    setUndoCountdown(undoToast.duration);
+    const interval = setInterval(() => {
+      setUndoCountdown(c => (c <= 1 ? (clearInterval(interval), 0) : c - 1));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [undoToast]);
 
   const endTour = () => {
     localStorage.setItem('habit-tour-seen', '1');
@@ -103,13 +111,36 @@ export default function HabitTracker() {
     if (saved) confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
   };
 
+  const resetHabit = (habitId) => {
+    setConfirmDialog({
+      message: 'Reset this habit? All logged dates will be lost and it will start fresh.',
+      confirmLabel: 'Reset',
+      confirmColor: 'bg-amber-500 hover:bg-amber-600',
+      onConfirm: async () => {
+        const prev = habits.find(h => h.id === habitId);
+        const saved = await saveHabits(habits.map(h => h.id === habitId ? { ...h, dates: [], startDate: Date.now().toString() } : h));
+        setConfirmDialog(null);
+        if (saved) {
+          if (undoToast?.timeoutId) clearTimeout(undoToast.timeoutId);
+          const timeoutId = setTimeout(() => setUndoToast(null), 5000);
+          setUndoToast({ type: 'reset', habitId, prevDates: prev.dates, prevStartDate: prev.startDate, message: 'Habit reset', showTimer: true, duration: 5, timeoutId });
+        }
+      }
+    });
+  };
+
   const deleteHabit = (habitId) => {
     setConfirmDialog({
       message: 'Delete this habit? All logged dates will be lost.',
       onConfirm: async () => {
+        const prev = habits.find(h => h.id === habitId);
         const saved = await saveHabits(habits.filter(h => h.id !== habitId));
-        if (saved) showFeedback('✅ Habit deleted');
         setConfirmDialog(null);
+        if (saved) {
+          if (undoToast?.timeoutId) clearTimeout(undoToast.timeoutId);
+          const timeoutId = setTimeout(() => setUndoToast(null), 5000);
+          setUndoToast({ type: 'delete', habit: prev, message: 'Habit deleted', showTimer: true, duration: 5, timeoutId });
+        }
       }
     });
   };
@@ -119,10 +150,12 @@ export default function HabitTracker() {
   const saveRename = async (habitId) => {
     const trimmedName = editName.trim();
     if (!trimmedName) { showFeedback('⚠️ Name cannot be empty'); setRenamingHabit(null); return; }
-    const updated = habits.map(h => h.id === habitId ? { ...h, name: trimmedName } : h);
-    await saveHabits(updated);
+    const original = habits.find(h => h.id === habitId)?.name;
     setRenamingHabit(null);
     setEditName('');
+    if (trimmedName === original) return;
+    const updated = habits.map(h => h.id === habitId ? { ...h, name: trimmedName } : h);
+    await saveHabits(updated);
     showFeedback('✅ Renamed!');
   };
 
@@ -135,7 +168,7 @@ export default function HabitTracker() {
       await saveHabits(updated);
       if (undoToast?.timeoutId) clearTimeout(undoToast.timeoutId);
       const timeoutId = setTimeout(() => setUndoToast(null), 4000);
-      setUndoToast({ habitId, date: dateStr, timeoutId });
+      setUndoToast({ type: 'date', habitId, date: dateStr, message: 'Date removed', timeoutId });
     } else {
       // Add date
       const updated = habits.map(h =>
@@ -148,12 +181,17 @@ export default function HabitTracker() {
   const handleUndo = async () => {
     if (!undoToast) return;
     clearTimeout(undoToast.timeoutId);
-    const updated = habits.map(h =>
-      h.id === undoToast.habitId
-        ? { ...h, dates: [...h.dates, undoToast.date].sort().reverse() }
-        : h
-    );
-    await saveHabits(updated);
+    if (undoToast.type === 'delete') {
+      await saveHabits([...habits, undoToast.habit].sort((a, b) => a.id.localeCompare(b.id)));
+    } else if (undoToast.type === 'reset') {
+      await saveHabits(habits.map(h =>
+        h.id === undoToast.habitId ? { ...h, dates: undoToast.prevDates, startDate: undoToast.prevStartDate } : h
+      ));
+    } else {
+      await saveHabits(habits.map(h =>
+        h.id === undoToast.habitId ? { ...h, dates: [...h.dates, undoToast.date].sort().reverse() } : h
+      ));
+    }
     setUndoToast(null);
   };
 
@@ -216,9 +254,9 @@ export default function HabitTracker() {
     return missed > 0 ? missed : null;
   };
 
-  const getTotalDays = (habitId, dates) => {
+  const getTotalDays = (habitId, dates, startDate) => {
     const today = new Date(); today.setHours(0, 0, 0, 0);
-    const creationDate = new Date(parseInt(habitId)); creationDate.setHours(0, 0, 0, 0);
+    const creationDate = new Date(parseInt(startDate || habitId)); creationDate.setHours(0, 0, 0, 0);
     const earliestLog = dates.length ? new Date([...dates].sort()[0] + 'T00:00:00') : creationDate;
     const start = earliestLog < creationDate ? earliestLog : creationDate;
     return Math.floor((today - start) / 86400000) + 1;
@@ -282,8 +320,9 @@ export default function HabitTracker() {
 
       {/* Undo toast */}
       {undoToast && (
-        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-3 rounded-xl shadow-lg z-50 flex items-center gap-3">
-          <span className="text-sm">Date removed</span>
+        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-3 rounded-xl shadow-lg z-50 flex items-center gap-3 whitespace-nowrap">
+          {undoToast.showTimer && <span className="w-6 h-6 rounded-full border-2 border-gray-500 text-gray-400 text-xs flex items-center justify-center shrink-0">{undoCountdown}</span>}
+          <span className="text-sm">{undoToast.message}</span>
           <button onClick={handleUndo} className="text-indigo-400 font-semibold text-sm hover:text-indigo-300">Undo</button>
         </div>
       )}
@@ -294,7 +333,7 @@ export default function HabitTracker() {
           <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6">
             <p className="text-gray-800 text-lg mb-6">{confirmDialog.message}</p>
             <div className="flex gap-3">
-              <button onClick={confirmDialog.onConfirm} className="flex-1 px-6 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 font-semibold">Delete</button>
+              <button onClick={confirmDialog.onConfirm} className={`flex-1 px-6 py-3 text-white rounded-xl font-semibold ${confirmDialog.confirmColor || 'bg-red-600 hover:bg-red-700'}`}>{confirmDialog.confirmLabel || 'Delete'}</button>
               <button onClick={() => setConfirmDialog(null)} className="flex-1 px-6 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 font-semibold">Cancel</button>
             </div>
           </div>
@@ -328,10 +367,10 @@ export default function HabitTracker() {
         {/* Toolbar */}
         {habits.length > 0 && (
           <div className="mb-6 flex justify-between items-center gap-2">
-            {!isAddingHabit ? (
+            {!isAddingHabit && !isReorderMode ? (
               <button
                 onClick={() => setIsAddingHabit(true)}
-                className="px-4 py-2 bg-white text-indigo-600 rounded-xl hover:bg-indigo-50 transition-all inline-flex items-center gap-2 shadow-md hover:shadow-lg"
+                className="px-4 h-10 bg-white text-indigo-600 rounded-xl hover:bg-indigo-50 transition-all inline-flex items-center gap-2 shadow-md hover:shadow-lg"
               >
                 <Plus className="w-5 h-5" />
                 Add Habit
@@ -339,37 +378,9 @@ export default function HabitTracker() {
             ) : <div />}
 
             <div className="flex gap-2">
-              <button
-                onClick={() => setViewMode(v => v === '1col' ? '2col' : '1col')}
-                disabled={isReorderMode}
-                className={`px-3 py-2 rounded-xl transition-all shadow-md hover:shadow-lg ${isReorderMode ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
-                title={viewMode === '1col' ? 'Switch to grid view' : 'Switch to list view'}
-              >
-                {viewMode === '1col' ? (
-                  <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                    <rect x="2" y="2" width="7" height="7" rx="1"/><rect x="11" y="2" width="7" height="7" rx="1"/>
-                    <rect x="2" y="11" width="7" height="7" rx="1"/><rect x="11" y="11" width="7" height="7" rx="1"/>
-                  </svg>
-                ) : (
-                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
-                    <line x1="3" y1="5" x2="17" y2="5"/><line x1="3" y1="10" x2="17" y2="10"/><line x1="3" y1="15" x2="17" y2="15"/>
-                  </svg>
-                )}
-              </button>
-
-              <button
-                onClick={() => {
-                if (!isReorderMode) {
-                  setViewModeBeforeManage(viewMode);
-                  setViewMode('1col');
-                  setIsReorderMode(true);
-                } else {
-                  setViewMode(viewModeBeforeManage || '2col');
-                  setViewModeBeforeManage(null);
-                  setIsReorderMode(false);
-                }
-              }}
-                className={`px-3 py-2 rounded-xl transition-all inline-flex items-center gap-2 shadow-md hover:shadow-lg ${
+              {!isAddingHabit && <button
+                onClick={() => { setIsAddingHabit(false); setIsReorderMode(v => !v); }}
+                className={`px-3 h-10 rounded-xl transition-all inline-flex items-center gap-2 shadow-md hover:shadow-lg ${
                   isReorderMode ? 'bg-gradient-to-r from-indigo-500 to-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
                 }`}
               >
@@ -379,55 +390,52 @@ export default function HabitTracker() {
                   <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                 </svg>
               )}
-              </button>
+              </button>}
             </div>
           </div>
         )}
 
         {/* Add habit form */}
         {isAddingHabit && (
-          <form onSubmit={addHabit} className="bg-white rounded-2xl shadow-lg p-6 mb-6 relative">
-            <button
-              type="button"
-              onClick={() => { setIsAddingHabit(false); setNewHabit(''); }}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl font-bold leading-none"
-            >×</button>
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">New Habit</h3>
-            <div className="flex gap-3">
-              <input
-                type="text"
-                value={newHabit}
-                onChange={(e) => setNewHabit(e.target.value)}
-                placeholder="e.g., Yoga, Clean Eating, Workout..."
-                className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none text-base"
-                autoFocus
-              />
-              <button type="submit" className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-blue-600 text-white rounded-xl font-semibold shadow-md hover:shadow-lg transition-all active:scale-95">
-                Add
-              </button>
-            </div>
+          <form onSubmit={addHabit} className="bg-white rounded-xl shadow-md px-3 py-2.5 mb-4 flex items-center gap-2">
+            <input
+              type="text"
+              value={newHabit}
+              onChange={(e) => setNewHabit(e.target.value)}
+              placeholder="Habit name (max 15 chars)"
+              maxLength={15}
+              style={{ fontSize: '16px' }}
+              className="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg focus:border-indigo-500 focus:outline-none text-sm"
+              autoFocus
+            />
+            <button type="submit" className="px-3 py-1.5 bg-gradient-to-r from-indigo-500 to-blue-600 text-white rounded-lg text-sm font-semibold shadow-sm hover:shadow-md transition-all active:scale-95 shrink-0">
+              Add
+            </button>
+            <button type="button" onClick={() => { setIsAddingHabit(false); setNewHabit(''); }} className="text-gray-400 hover:text-gray-600 text-xl font-bold leading-none shrink-0">×</button>
           </form>
         )}
 
         {/* Habits grid */}
-        <div className={viewMode === '2col' ? 'grid grid-cols-2 gap-x-3 gap-y-6' : 'space-y-6'}>
+        <div className={viewMode === '2col' ? 'grid grid-cols-2 gap-x-3 gap-y-6' : 'space-y-1.5'}>
           {habits.map((habit, index) => {
             const streak = getStreakInfo(habit.dates);
             const daysSince = getDaysSinceLastLog(habit.dates);
             const loggedToday = isLoggedToday(habit.dates);
             const isExpanded = expandedHabits.has(habit.id);
             const isRenaming = renamingHabit === habit.id;
-            const totalDays = getTotalDays(habit.id, habit.dates);
+            const totalDays = getTotalDays(habit.id, habit.dates, habit.startDate);
             const loggedDays = habit.dates.length;
 
             return (
-              <div key={habit.id} className={`relative bg-white overflow-visible transition-all ${viewMode === '2col' ? 'rounded-xl shadow-lg hover:shadow-xl' : 'rounded-2xl shadow-xl hover:shadow-2xl'}`}>
-                {streak.current > 1 && (
+              <div key={habit.id} className={`relative overflow-visible transition-all ${viewMode === '2col' ? 'bg-white rounded-xl shadow-lg hover:shadow-xl' : isReorderMode ? 'bg-indigo-50/50 rounded-xl border border-indigo-100' : 'bg-white rounded-xl shadow-sm hover:shadow-md'}`}>
+
+                {/* 2-col: floating streak/gap badge */}
+                {viewMode === '2col' && streak.current > 1 && (
                   <div className="absolute -top-4 -right-2 bg-gradient-to-r from-green-400 to-green-600 text-white text-sm font-normal px-3 py-1.5 rounded-full shadow-md flex items-center gap-1 z-10">
                     🔥 {streak.current}d
                   </div>
                 )}
-                {streak.current <= 1 && daysSince !== null && daysSince > 0 && (
+                {viewMode === '2col' && streak.current <= 1 && daysSince !== null && daysSince > 0 && (
                   <div className={`absolute -top-4 -right-2 text-white text-sm font-normal px-3 py-1.5 rounded-full shadow-md flex items-center gap-1 z-10 bg-gradient-to-r ${
                     daysSince <= 3 ? 'from-amber-400 to-amber-600' :
                     daysSince <= 10 ? 'from-orange-400 to-orange-600' :
@@ -437,33 +445,196 @@ export default function HabitTracker() {
                   </div>
                 )}
 
-                {/* Card front */}
-                <div className={viewMode === '2col' ? 'p-3' : 'p-5'}>
+                {/* 1-col manage mode */}
+                {viewMode === '1col' && isReorderMode && (() => {
+                  const now = new Date(); now.setHours(0,0,0,0);
+                  const creationDate = new Date(parseInt(habit.startDate || habit.id)); creationDate.setHours(0,0,0,0);
+                  const earliestLog = habit.dates.length ? new Date([...habit.dates].sort()[0] + 'T00:00:00') : creationDate;
+                  const start = earliestLog < creationDate ? earliestLog : creationDate;
+                  const sinceLabel = start.toLocaleDateString('en-US', start.getFullYear() === now.getFullYear() ? { month: 'short', day: 'numeric' } : { month: 'short', day: 'numeric', year: 'numeric' });
+                  const displayName = habit.name.length > 15 ? habit.name.slice(0, 15) + '…' : habit.name;
+                  return (
+                    <div className="flex items-center gap-2 px-3 py-2.5">
+                      {isRenaming ? (
+                        <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)}
+                          onBlur={() => saveRename(habit.id)} onKeyPress={(e) => e.key === 'Enter' && e.target.blur()}
+                          maxLength={15}
+                          style={{ fontSize: '16px' }}
+                          className="flex-1 px-2 py-1 border-2 border-indigo-500 rounded-lg focus:outline-none font-bold" autoFocus
+                        />
+                      ) : (
+                        <span onClick={() => startRenaming(habit)} className="flex-1 font-bold text-gray-800 truncate text-sm cursor-pointer hover:text-indigo-600">{displayName}</span>
+                      )}
+                      <span className="text-xs font-bold text-indigo-600 whitespace-nowrap">{loggedDays} of {totalDays}d since {sinceLabel}</span>
+                    </div>
+                  );
+                })()}
 
-                  {/* Habit name */}
+                {/* 1-col: dense row */}
+                {viewMode === '1col' && !isReorderMode && (() => {
+                  const now = new Date();
+                  const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+                  const daysThisMonth = habit.dates.filter(d => d.startsWith(currentMonthStr)).length;
+                  return (
+                    <div
+                      onClick={() => toggleHabitExpansion(habit.id)}
+                      className={`flex items-center gap-2 px-3 py-2.5 cursor-pointer transition-colors ${isExpanded ? 'bg-indigo-50/50 rounded-t-xl' : ''}`}
+                    >
+                      {/* Habit name */}
+                      <span className="flex-1 min-w-0 font-bold text-gray-800 truncate text-sm">{habit.name}</span>
+
+                      {/* Streak or gap pill */}
+                      <div className="w-16 flex justify-center shrink-0">
+                        {streak.current > 1 ? (
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-gradient-to-r from-green-400 to-green-600 text-white whitespace-nowrap">🔥 {streak.current}d</span>
+                        ) : daysSince !== null && daysSince > 0 ? (
+                          <span className={`text-xs px-2 py-0.5 rounded-full text-white whitespace-nowrap bg-gradient-to-r ${
+                            daysSince <= 3 ? 'from-amber-400 to-amber-600' :
+                            daysSince <= 10 ? 'from-orange-400 to-orange-600' :
+                            'from-red-400 to-red-600'
+                          }`}>⚠️ {daysSince}d</span>
+                        ) : <span />}
+                      </div>
+
+                      {/* Tracker: days this month */}
+                      <div className="w-22 flex items-center gap-1 shrink-0 text-indigo-500">
+                        <TrendingUp className="w-3.5 h-3.5 shrink-0" />
+                        <span className="text-xs font-bold whitespace-nowrap">{daysThisMonth}d this mo</span>
+                      </div>
+
+                      {/* Log / Done button */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const now = new Date();
+                          const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+                          loggedToday ? toggleDate(habit.id, todayStr, true) : logToday(habit.id);
+                        }}
+                        className={`shrink-0 w-14 py-1.5 rounded-lg text-xs font-normal transition-all flex items-center justify-center gap-1 ${
+                          loggedToday ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white active:scale-95' :
+                          'bg-gradient-to-r from-indigo-500 to-blue-600 text-white active:scale-95'
+                        }`}
+                      >
+                        {loggedToday ? <><Check className="w-3.5 h-3.5" />Done</> : 'Done?'}
+                      </button>
+                    </div>
+                  );
+                })()}
+
+                {/* 1-col: expanded heatmap */}
+                {viewMode === '1col' && !isReorderMode && isExpanded && (
+                  <div className="px-3 pb-3">
+                    <div className="h-px bg-gray-100 mb-2" />
+                    {/* Stats row */}
+                    {(() => {
+                      const now = new Date(); now.setHours(0,0,0,0);
+                      const creationDate = new Date(parseInt(habit.startDate || habit.id)); creationDate.setHours(0,0,0,0);
+                      const earliestLog = habit.dates.length ? new Date([...habit.dates].sort()[0] + 'T00:00:00') : creationDate;
+                      const start = earliestLog < creationDate ? earliestLog : creationDate;
+                      const totalDaysVal = Math.floor((now - start) / 86400000) + 1;
+                      const sinceLabel = start.toLocaleDateString('en-US', start.getFullYear() === now.getFullYear() ? { month: 'short', day: 'numeric' } : { month: 'short', day: 'numeric', year: 'numeric' });
+                      const last30Dates = Array.from({ length: 30 }, (_, i) => {
+                        const d = new Date(now); d.setDate(now.getDate() - i);
+                        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+                      });
+                      const last30Logged = habit.dates.filter(d => last30Dates.includes(d)).length;
+                      const last30Pct = Math.round((last30Logged / 30) * 100);
+                      const overallPct = totalDaysVal > 0 ? Math.round((loggedDays / totalDaysVal) * 100) : 0;
+                      return (
+                        <div className="grid grid-cols-3 gap-1.5 mb-2">
+                          <div className="bg-white rounded-xl p-2 text-center border border-gray-100 shadow-sm">
+                            <div className="text-sm font-bold text-indigo-600">{loggedDays} of {totalDaysVal}d</div>
+                            <div className="text-[10px] text-gray-400 leading-tight mt-0.5">since {sinceLabel}</div>
+                          </div>
+                          <div className="bg-white rounded-xl p-2 text-center border border-gray-100 shadow-sm">
+                            <div className="text-sm font-bold text-indigo-600">{last30Logged}d</div>
+                            <div className="text-[10px] text-gray-400 leading-tight mt-0.5">in last 30 days</div>
+                          </div>
+                          <div className="bg-white rounded-xl p-2 text-center border border-gray-100 shadow-sm">
+                            <div className="text-sm font-bold text-amber-500">🏆 {streak.longest}d</div>
+                            <div className="text-[10px] text-gray-400 leading-tight mt-0.5">best streak</div>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                    {(() => {
+                      const today = new Date(); today.setHours(0, 0, 0, 0);
+                      const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+                      let days = [], leadingBlanks = 0, monthLabel = null;
+                      if (heatmapMode === '30d') {
+                        days = Array.from({ length: 30 }, (_, i) => {
+                          const d = new Date(today); d.setDate(today.getDate() - (29 - i));
+                          return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+                        });
+                      } else {
+                        const ref = new Date(today.getFullYear(), today.getMonth() + monthOffset, 1);
+                        const year = ref.getFullYear(); const month = ref.getMonth();
+                        const daysInMonth = new Date(year, month + 1, 0).getDate();
+                        const isCurrentYear = year === today.getFullYear();
+                        monthLabel = ref.toLocaleDateString('en-US', isCurrentYear ? { month: 'short' } : { month: 'short', year: 'numeric' });
+                        leadingBlanks = new Date(year, month, 1).getDay();
+                        days = Array.from({ length: daysInMonth }, (_, i) =>
+                          `${year}-${String(month+1).padStart(2,'0')}-${String(i+1).padStart(2,'0')}`
+                        );
+                      }
+                      return (
+                        <div className="bg-gray-50 rounded-lg p-1.5">
+                          {heatmapMode === 'month' && (
+                            <div className="flex items-center justify-between mb-1.5">
+                              <button onClick={(e) => { e.stopPropagation(); setMonthOffset(o => o - 1); }} className="p-0.5 rounded hover:bg-gray-200 text-gray-500"><ChevronLeft className="w-3 h-3" /></button>
+                              <span className="text-xs font-semibold text-gray-600">{monthLabel} ({days.filter(d => habit.dates.includes(d)).length}d)</span>
+                              <button onClick={(e) => { e.stopPropagation(); setMonthOffset(o => o + 1); }} disabled={monthOffset >= 0} className="p-0.5 rounded hover:bg-gray-200 text-gray-500 disabled:opacity-30"><ChevronRight className="w-3 h-3" /></button>
+                            </div>
+                          )}
+                          {heatmapMode === 'month' && (
+                            <div className="grid grid-cols-7 gap-0.5 mb-0.5">
+                              {['S','M','T','W','T','F','S'].map((d, i) => <div key={i} className="text-center text-[8px] font-semibold text-gray-400">{d}</div>)}
+                            </div>
+                          )}
+                          <div className="grid grid-cols-7 gap-0.5">
+                            {heatmapMode === 'month' && Array.from({ length: leadingBlanks }, (_, i) => <div key={`b-${i}`} />)}
+                            {days.map(dateStr => {
+                              const isLogged = habit.dates.includes(dateStr);
+                              const isFuture = dateStr > todayStr;
+                              const isToday = dateStr === todayStr;
+                              return (
+                                <button key={dateStr} disabled={isFuture}
+                                  onClick={(e) => { e.stopPropagation(); !isFuture && toggleDate(habit.id, dateStr, isLogged); }}
+                                  title={formatDate(dateStr)}
+                                  className={`aspect-square rounded-sm transition-colors flex items-center justify-center ${
+                                    isFuture ? 'bg-gray-100 cursor-default text-gray-300' :
+                                    isLogged ? 'bg-indigo-500 hover:bg-indigo-600 text-white' :
+                                    'bg-gray-200 hover:bg-gray-300 text-gray-500'
+                                  } ${isToday ? 'ring-2 ring-indigo-400 ring-offset-1' : ''}`}
+                                >
+                                  <span className="text-[8px] font-medium leading-none select-none">{parseInt(dateStr.split('-')[2])}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
+
+                {/* 2-col card front */}
+                {viewMode === '2col' && (
+                <div className="p-3">
                   <div className="mb-2">
                     {isRenaming ? (
-                      <input
-                        type="text"
-                        value={editName}
-                        onChange={(e) => setEditName(e.target.value)}
-                        onBlur={() => saveRename(habit.id)}
-                        onKeyPress={(e) => e.key === 'Enter' && e.target.blur()}
-                        className="w-full px-2 py-1 text-base border-2 border-indigo-500 rounded-lg focus:outline-none font-bold"
-                        autoFocus
+                      <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)}
+                        onBlur={() => saveRename(habit.id)} onKeyPress={(e) => e.key === 'Enter' && e.target.blur()}
+                        className="w-full px-2 py-1 text-base border-2 border-indigo-500 rounded-lg focus:outline-none font-bold" autoFocus
                       />
                     ) : (
-                      <h3
-                        onClick={() => isReorderMode && startRenaming(habit)}
-                        className={`font-bold text-gray-800 truncate ${viewMode === '2col' ? 'text-base' : 'text-xl'} ${isReorderMode ? 'cursor-pointer hover:text-indigo-600' : ''} transition-colors`}
-                      >
+                      <h3 onClick={() => isReorderMode && startRenaming(habit)}
+                        className={`font-bold text-gray-800 truncate text-base ${isReorderMode ? 'cursor-pointer hover:text-indigo-600' : ''} transition-colors`}>
                         {habit.name}
                       </h3>
                     )}
                   </div>
-
-                  {/* Log button — hidden in manage mode */}
-                  {!isReorderMode && viewMode === '2col' && (
+                  {!isReorderMode && (
                     <button
                       onClick={() => {
                         const now = new Date();
@@ -480,51 +651,19 @@ export default function HabitTracker() {
                       {loggedToday ? <span className="flex items-center justify-center gap-1"><Check className="w-4 h-4" />Done</span> : 'Log'}
                     </button>
                   )}
-
-                  {/* Tracker pill + log (1col side by side; 2col full width; manage mode: tracker only) */}
-                  {viewMode === '1col' && !isReorderMode ? (
-                    <div className="flex items-center gap-2 mb-1">
-                      <button
-                        onClick={() => toggleHabitExpansion(habit.id)}
-                        className={`w-1/2 px-3 py-2 rounded-full text-sm font-normal inline-flex items-center justify-between border transition-colors ${
-                          isExpanded ? 'bg-gradient-to-r from-indigo-400 to-blue-400 text-white border-transparent' : 'bg-white border-indigo-300 text-indigo-700 hover:bg-indigo-50'
-                        }`}
-                      >
-                        <TrendingUp className="w-3.5 h-3.5" />
-                        {loggedDays} of {totalDays} days
-                        <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
-                      </button>
-                      <button
-                        onClick={() => {
-                          const now = new Date();
-                          const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-                          loggedToday ? toggleDate(habit.id, todayStr, true) : logToday(habit.id);
-                        }}
-                        disabled={isRenaming}
-                        className={`w-1/2 py-2 rounded-lg font-normal transition-all text-sm flex items-center justify-center gap-1 ${
-                          isRenaming ? 'bg-gray-300 text-gray-500 cursor-not-allowed' :
-                          loggedToday ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white active:scale-95' :
-                          'bg-gradient-to-r from-indigo-500 to-blue-600 text-white active:scale-95'
-                        }`}
-                      >
-                        {loggedToday ? <><Check className="w-4 h-4" />Done</> : 'Log'}
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="flex items-center">
-                      <button
-                        onClick={() => !isReorderMode && toggleHabitExpansion(habit.id)}
-                        disabled={isReorderMode}
-                        className={`w-full px-3 py-1.5 rounded-full text-sm font-normal inline-flex items-center justify-between border transition-colors ${
-                          isExpanded ? 'bg-gradient-to-r from-indigo-400 to-blue-400 text-white border-transparent' : 'bg-white border-indigo-300 text-indigo-700 hover:bg-indigo-50'
-                        }`}
-                      >
-                        <TrendingUp className="w-3.5 h-3.5" />
-                        {loggedDays} of {totalDays} days
-                        <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
-                      </button>
-                    </div>
-                  )}
+                  <div className="flex items-center">
+                    <button
+                      onClick={() => !isReorderMode && toggleHabitExpansion(habit.id)}
+                      disabled={isReorderMode}
+                      className={`w-full px-3 py-1.5 rounded-full text-sm font-normal inline-flex items-center justify-between border transition-colors ${
+                        isExpanded ? 'bg-gradient-to-r from-indigo-400 to-blue-400 text-white border-transparent' : 'bg-white border-indigo-300 text-indigo-700 hover:bg-indigo-50'
+                      }`}
+                    >
+                      <TrendingUp className="w-3.5 h-3.5" />
+                      {loggedDays} of {totalDays} days
+                      <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+                    </button>
+                  </div>
 
                   {/* Heatmap */}
                   {!isReorderMode && isExpanded && (() => {
@@ -607,22 +746,29 @@ export default function HabitTracker() {
                     );
                   })()}
                 </div>
+                )}
 
                 {/* Reorder footer */}
                 {isReorderMode && (
                   <div className="bg-gray-50 px-3 py-2 flex justify-between items-center border-t border-gray-200">
                     <div className="flex gap-2">
                       {index > 0 && (
-                        <button onClick={() => moveHabitUp(index)} className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-100 active:scale-95 font-bold">↑</button>
+                        <button onClick={() => moveHabitUp(index)} className="px-3 py-1 rounded-lg text-xs font-semibold bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 active:scale-95 transition-all">↑</button>
                       )}
                       {index < habits.length - 1 && (
-                        <button onClick={() => moveHabitDown(index)} className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-100 active:scale-95 font-bold">↓</button>
+                        <button onClick={() => moveHabitDown(index)} className="px-3 py-1 rounded-lg text-xs font-semibold bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 active:scale-95 transition-all">↓</button>
                       )}
                     </div>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); deleteHabit(habit.id); }}
-                      className="text-red-600 hover:text-red-700 text-sm font-semibold active:scale-95"
-                    >Delete</button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); resetHabit(habit.id); }}
+                        className="px-3 py-1 rounded-lg text-xs font-semibold bg-amber-100 text-amber-700 hover:bg-amber-200 active:scale-95 transition-all"
+                      >Reset</button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); deleteHabit(habit.id); }}
+                        className="px-3 py-1 rounded-lg text-xs font-semibold bg-red-100 text-red-700 hover:bg-red-200 active:scale-95 transition-all"
+                      >Delete</button>
+                    </div>
                   </div>
                 )}
 
