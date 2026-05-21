@@ -366,8 +366,23 @@ export default function HabitTracker() {
 
         {/* Toolbar */}
         {habits.length > 0 && (
-          <div className="mb-6 flex justify-between items-center gap-2">
-            {!isAddingHabit && !isReorderMode ? (
+          <div className="mb-4 flex items-center gap-2">
+            {isAddingHabit ? (
+              <form onSubmit={addHabit} className="flex-1 bg-white rounded-xl shadow-md px-3 py-2 flex items-center gap-2">
+                <input
+                  type="text"
+                  value={newHabit}
+                  onChange={(e) => setNewHabit(e.target.value)}
+                  placeholder="Habit name (max 15 chars)"
+                  maxLength={15}
+                  style={{ fontSize: '16px' }}
+                  className="flex-1 px-2 py-1 border border-gray-200 rounded-lg focus:border-indigo-500 focus:outline-none text-sm"
+                  autoFocus
+                />
+                <button type="submit" className="px-4 py-1.5 bg-gradient-to-r from-indigo-500 to-blue-600 text-white rounded-lg text-sm font-semibold shadow-sm active:scale-95 shrink-0">Add</button>
+                <button type="button" onClick={() => { setIsAddingHabit(false); setNewHabit(''); }} className="ml-2 text-gray-400 hover:text-gray-600 text-xl font-bold leading-none shrink-0">×</button>
+              </form>
+            ) : !isReorderMode ? (
               <button
                 onClick={() => setIsAddingHabit(true)}
                 className="px-4 h-10 bg-white text-indigo-600 rounded-xl hover:bg-indigo-50 transition-all inline-flex items-center gap-2 shadow-md hover:shadow-lg"
@@ -376,43 +391,22 @@ export default function HabitTracker() {
                 Add Habit
               </button>
             ) : <div />}
-
-            <div className="flex gap-2">
-              {!isAddingHabit && <button
-                onClick={() => { setIsAddingHabit(false); setIsReorderMode(v => !v); }}
-                className={`px-3 h-10 rounded-xl transition-all inline-flex items-center gap-2 shadow-md hover:shadow-lg ${
+            {!isAddingHabit && (
+              <button
+                onClick={() => setIsReorderMode(v => !v)}
+                className={`ml-auto px-3 h-10 rounded-xl transition-all inline-flex items-center gap-2 shadow-md hover:shadow-lg ${
                   isReorderMode ? 'bg-gradient-to-r from-indigo-500 to-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
                 }`}
               >
-              {isReorderMode ? 'Finish' : (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                </svg>
-              )}
-              </button>}
-            </div>
+                {isReorderMode ? 'Finish' : (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                )}
+              </button>
+            )}
           </div>
-        )}
-
-        {/* Add habit form */}
-        {isAddingHabit && (
-          <form onSubmit={addHabit} className="bg-white rounded-xl shadow-md px-3 py-2.5 mb-4 flex items-center gap-2">
-            <input
-              type="text"
-              value={newHabit}
-              onChange={(e) => setNewHabit(e.target.value)}
-              placeholder="Habit name (max 15 chars)"
-              maxLength={15}
-              style={{ fontSize: '16px' }}
-              className="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg focus:border-indigo-500 focus:outline-none text-sm"
-              autoFocus
-            />
-            <button type="submit" className="px-3 py-1.5 bg-gradient-to-r from-indigo-500 to-blue-600 text-white rounded-lg text-sm font-semibold shadow-sm hover:shadow-md transition-all active:scale-95 shrink-0">
-              Add
-            </button>
-            <button type="button" onClick={() => { setIsAddingHabit(false); setNewHabit(''); }} className="text-gray-400 hover:text-gray-600 text-xl font-bold leading-none shrink-0">×</button>
-          </form>
         )}
 
         {/* Habits grid */}
