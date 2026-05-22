@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
-import { Plus, Check, TrendingUp, Calendar, ChevronDown, Info, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Check, TrendingUp, Calendar, ChevronDown, ChevronLeft, ChevronRight, Rocket, Undo2 } from 'lucide-react';
 
 export default function HabitTracker() {
   const [habits, setHabits] = useState([]);
@@ -15,11 +15,17 @@ export default function HabitTracker() {
   const [undoToast, setUndoToast] = useState(null);
   const [undoCountdown, setUndoCountdown] = useState(4);
   const [isReorderMode, setIsReorderMode] = useState(false);
+  const [newHabitType, setNewHabitType] = useState('daily');
+  const [newHabitWeeklyTarget, setNewHabitWeeklyTarget] = useState(3);
+  const [newHabitMonthlyTarget, setNewHabitMonthlyTarget] = useState(1);
   const viewMode = '1col';
+  const habitsRef = React.useRef(habits);
+  React.useEffect(() => { habitsRef.current = habits; }, [habits]);
   const [tourStep, setTourStep] = useState(null);
   const [feedbackFading, setFeedbackFading] = useState(false);
   const [heatmapMode, setHeatmapMode] = useState(() => localStorage.getItem('heatmap-mode') || 'month');
   const [monthOffset, setMonthOffset] = useState(0);
+  const [nameError, setNameError] = useState(false);
 
   const TOUR_STEPS = [
     { icon: '➕', title: 'Add a Habit', description: 'Tap "Add Habit" to create a new habit you want to track daily.' },
@@ -73,6 +79,8 @@ export default function HabitTracker() {
   };
 
   const saveHabits = async (updatedHabits) => {
+    habitsRef.current = updatedHabits;
+    setHabits(updatedHabits);
     let success = false;
     try {
       if (window.storage) {
@@ -84,25 +92,34 @@ export default function HabitTracker() {
       localStorage.setItem('habits-data', JSON.stringify(updatedHabits));
       success = true;
     } catch (e) {}
-    if (success) { setHabits(updatedHabits); return true; }
-    showFeedback('❌ Failed to save');
-    return false;
+    if (!success) { showFeedback('❌ Failed to save'); return false; }
+    return true;
   };
 
   const addHabit = async (e) => {
     if (e) e.preventDefault();
     const habitName = newHabit.trim();
-    if (!habitName) { showFeedback('⚠️ Please enter a habit name'); return; }
+    if (!habitName) { setNameError(true); return; }
+    setNameError(false);
     showFeedback('⏳ Adding...');
-    const habit = { id: Date.now().toString(), name: habitName, dates: [] };
+    const habit = {
+      id: Date.now().toString(), name: habitName, dates: [],
+      type: newHabitType,
+      ...(newHabitType === 'weekly' ? { weeklyTarget: newHabitWeeklyTarget } : {}),
+      ...(newHabitType === 'monthly' ? { monthlyTarget: newHabitMonthlyTarget } : {})
+    };
     const saved = await saveHabits([...habits, habit]);
-    if (saved) { showFeedback('✅ Habit added!'); setNewHabit(''); setIsAddingHabit(false); }
+    if (saved) {
+      showFeedback('✅ Habit added!');
+      setNewHabit(''); setIsAddingHabit(false);
+      setNewHabitType('daily'); setNewHabitWeeklyTarget(3); setNewHabitMonthlyTarget(1);
+    }
   };
 
   const logToday = async (habitId) => {
     const now = new Date();
     const today = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-    const updated = habits.map(h =>
+    const updated = habitsRef.current.map(h =>
       h.id === habitId && !h.dates.includes(today)
         ? { ...h, dates: [...h.dates, today].sort().reverse() }
         : h
@@ -145,6 +162,15 @@ export default function HabitTracker() {
     });
   };
 
+  const updateHabitType = async (habitId, type, target) => {
+    const updated = habits.map(h => h.id === habitId ? {
+      ...h, type,
+      ...(type === 'weekly' ? { weeklyTarget: target ?? 3 } : {}),
+      ...(type === 'monthly' ? { monthlyTarget: target ?? 1 } : {})
+    } : h);
+    await saveHabits(updated);
+  };
+
   const startRenaming = (habit) => { setRenamingHabit(habit.id); setEditName(habit.name); };
 
   const saveRename = async (habitId) => {
@@ -161,17 +187,12 @@ export default function HabitTracker() {
 
   const toggleDate = async (habitId, dateStr, isLogged) => {
     if (isLogged) {
-      // Remove and show undo toast
-      const updated = habits.map(h =>
+      const updated = habitsRef.current.map(h =>
         h.id === habitId ? { ...h, dates: h.dates.filter(d => d !== dateStr) } : h
       );
       await saveHabits(updated);
-      if (undoToast?.timeoutId) clearTimeout(undoToast.timeoutId);
-      const timeoutId = setTimeout(() => setUndoToast(null), 4000);
-      setUndoToast({ type: 'date', habitId, date: dateStr, message: 'Date removed', timeoutId });
     } else {
-      // Add date
-      const updated = habits.map(h =>
+      const updated = habitsRef.current.map(h =>
         h.id === habitId ? { ...h, dates: [...h.dates, dateStr].sort().reverse() } : h
       );
       await saveHabits(updated);
@@ -186,10 +207,6 @@ export default function HabitTracker() {
     } else if (undoToast.type === 'reset') {
       await saveHabits(habits.map(h =>
         h.id === undoToast.habitId ? { ...h, dates: undoToast.prevDates, startDate: undoToast.prevStartDate } : h
-      ));
-    } else {
-      await saveHabits(habits.map(h =>
-        h.id === undoToast.habitId ? { ...h, dates: [...h.dates, undoToast.date].sort().reverse() } : h
       ));
     }
     setUndoToast(null);
@@ -221,6 +238,109 @@ export default function HabitTracker() {
     });
   };
 
+  // ── Weekly helpers ──────────────────────────────────────────────
+  const getWeekStart = (date) => {
+    const d = new Date(date); d.setDate(d.getDate() - d.getDay()); d.setHours(0,0,0,0); return d;
+  };
+  const toDateStr = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+
+  const isWeekGoalMet = (dates, target, weekStart) => {
+    const ws = toDateStr(weekStart);
+    const we = toDateStr(new Date(weekStart.getTime() + 6 * 86400000));
+    return dates.filter(d => d >= ws && d <= we).length >= target;
+  };
+
+  const getWeeklyStreakInfo = (dates, target) => {
+    if (!dates.length) return { current: 0, longest: 0 };
+    const today = new Date(); today.setHours(0,0,0,0);
+    const curWeek = getWeekStart(today);
+    let current = 0, w = new Date(curWeek);
+    if (isWeekGoalMet(dates, target, w)) {
+      current++; w.setDate(w.getDate() - 7);
+      while (isWeekGoalMet(dates, target, w)) { current++; w.setDate(w.getDate() - 7); }
+    } else {
+      w.setDate(w.getDate() - 7);
+      while (isWeekGoalMet(dates, target, w)) { current++; w.setDate(w.getDate() - 7); }
+    }
+    const earliest = getWeekStart(new Date([...dates].sort()[0] + 'T00:00:00'));
+    let longest = 0, temp = 0, ww = new Date(earliest);
+    while (ww <= curWeek) {
+      if (isWeekGoalMet(dates, target, ww)) { temp++; longest = Math.max(longest, temp); }
+      else temp = 0;
+      ww.setDate(ww.getDate() + 7);
+    }
+    return { current, longest };
+  };
+
+  const getWeeklyGap = (dates, target) => {
+    if (!dates.length) return null;
+    const today = new Date(); today.setHours(0,0,0,0);
+    const curWeek = getWeekStart(today);
+    const curWeekEnd = new Date(curWeek.getTime() + 6 * 86400000);
+    if (dates.some(d => d >= toDateStr(curWeek) && d <= toDateStr(curWeekEnd))) return null;
+    let w = new Date(curWeek); w.setDate(w.getDate() - 7); let gap = 0;
+    for (let i = 0; i < 52; i++) {
+      if (isWeekGoalMet(dates, target, w)) return gap > 0 ? gap : null;
+      gap++; w.setDate(w.getDate() - 7);
+    }
+    return null;
+  };
+
+  const prevMonthStr = (monthStr) => {
+    const [y, m] = monthStr.split('-').map(Number);
+    const d = new Date(y, m - 2, 1);
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  };
+  const nextMonthStr = (monthStr) => {
+    const [y, m] = monthStr.split('-').map(Number);
+    const d = new Date(y, m, 1);
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  };
+  const isMonthGoalMet = (dates, target, monthStr) =>
+    dates.filter(d => d.startsWith(monthStr)).length >= target;
+
+  const getMonthlyStreakInfo = (dates, target) => {
+    if (!dates.length) return { current: 0, longest: 0 };
+    const today = new Date();
+    const curMonth = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}`;
+    let current = 0, m = curMonth;
+    if (isMonthGoalMet(dates, target, m)) {
+      current++; m = prevMonthStr(m);
+      while (isMonthGoalMet(dates, target, m)) { current++; m = prevMonthStr(m); }
+    } else {
+      m = prevMonthStr(m);
+      while (isMonthGoalMet(dates, target, m)) { current++; m = prevMonthStr(m); }
+    }
+    const earliest = [...dates].sort()[0].slice(0, 7);
+    let longest = 0, temp = 0, mm = earliest;
+    while (mm <= curMonth) {
+      if (isMonthGoalMet(dates, target, mm)) { temp++; longest = Math.max(longest, temp); }
+      else temp = 0;
+      mm = nextMonthStr(mm);
+    }
+    return { current, longest };
+  };
+
+  const getMonthlyGap = (dates, target) => {
+    if (!dates.length) return null;
+    const today = new Date();
+    const curMonth = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}`;
+    if (dates.some(d => d.startsWith(curMonth))) return null;
+    let m = prevMonthStr(curMonth), gap = 0;
+    for (let i = 0; i < 24; i++) {
+      if (isMonthGoalMet(dates, target, m)) return gap > 0 ? gap : null;
+      gap++; m = prevMonthStr(m);
+    }
+    return null;
+  };
+
+  const getCurrentWeekDays = () => {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const ws = getWeekStart(today);
+    return Array.from({ length: 7 }, (_, i) => { const d = new Date(ws); d.setDate(ws.getDate() + i); return toDateStr(d); });
+  };
+  // ────────────────────────────────────────────────────────────────
+
   const getStreakInfo = (dates) => {
     if (!dates.length) return { current: 0, longest: 0 };
     const sorted = [...dates].sort().reverse();
@@ -229,37 +349,47 @@ export default function HabitTracker() {
     const yesterday = new Date(now);
     yesterday.setDate(now.getDate() - 1);
     const yesterdayStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth()+1).padStart(2,'0')}-${String(yesterday.getDate()).padStart(2,'0')}`;
+    const dayDiff = (a, b) => {
+      const [ay, am, ad] = a.split('-').map(Number);
+      const [by, bm, bd] = b.split('-').map(Number);
+      return (Date.UTC(ay, am-1, ad) - Date.UTC(by, bm-1, bd)) / 86400000;
+    };
     let current = 0;
     if (sorted[0] === today || sorted[0] === yesterdayStr) {
       current = 1;
       for (let i = 1; i < sorted.length; i++) {
-        const diff = (new Date(sorted[i-1]+'T00:00:00') - new Date(sorted[i]+'T00:00:00')) / 86400000;
-        if (diff === 1) current++; else break;
+        if (dayDiff(sorted[i-1], sorted[i]) === 1) current++; else break;
       }
     }
     let longest = 0, temp = 1;
     for (let i = 1; i < sorted.length; i++) {
-      const diff = (new Date(sorted[i-1]+'T00:00:00') - new Date(sorted[i]+'T00:00:00')) / 86400000;
-      if (diff === 1) temp++; else { longest = Math.max(longest, temp); temp = 1; }
+      if (dayDiff(sorted[i-1], sorted[i]) === 1) temp++; else { longest = Math.max(longest, temp); temp = 1; }
     }
     longest = Math.max(longest, temp);
     return { current, longest };
   };
 
+  const dateToUTC = (dateStr) => {
+    const [y, m, d] = dateStr.split('-').map(Number);
+    return Date.UTC(y, m-1, d);
+  };
+  const todayUTC = () => {
+    const n = new Date();
+    return Date.UTC(n.getFullYear(), n.getMonth(), n.getDate());
+  };
+
   const getDaysSinceLastLog = (dates) => {
     if (!dates.length) return null;
-    const last = new Date(dates[0]+'T00:00:00');
-    const today = new Date(); today.setHours(0,0,0,0);
-    const missed = Math.floor((today - last) / 86400000) - 1;
+    const missed = (todayUTC() - dateToUTC(dates[0])) / 86400000 - 1;
     return missed > 0 ? missed : null;
   };
 
   const getTotalDays = (habitId, dates, startDate) => {
-    const today = new Date(); today.setHours(0, 0, 0, 0);
-    const creationDate = new Date(parseInt(startDate || habitId)); creationDate.setHours(0, 0, 0, 0);
-    const earliestLog = dates.length ? new Date([...dates].sort()[0] + 'T00:00:00') : creationDate;
-    const start = earliestLog < creationDate ? earliestLog : creationDate;
-    return Math.floor((today - start) / 86400000) + 1;
+    const creation = new Date(parseInt(startDate || habitId));
+    const creationUTC = Date.UTC(creation.getFullYear(), creation.getMonth(), creation.getDate());
+    const earliestUTC = dates.length ? dateToUTC([...dates].sort()[0]) : creationUTC;
+    const startUTC = Math.min(earliestUTC, creationUTC);
+    return (todayUTC() - startUTC) / 86400000 + 1;
   };
 
   const isLoggedToday = (dates) => {
@@ -323,7 +453,7 @@ export default function HabitTracker() {
         <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-3 rounded-xl shadow-lg z-50 flex items-center gap-3 whitespace-nowrap">
           {undoToast.showTimer && <span className="w-6 h-6 rounded-full border-2 border-gray-500 text-gray-400 text-xs flex items-center justify-center shrink-0">{undoCountdown}</span>}
           <span className="text-sm">{undoToast.message}</span>
-          <button onClick={handleUndo} className="text-indigo-400 font-semibold text-sm hover:text-indigo-300">Undo</button>
+          <button onClick={handleUndo} className="flex items-center gap-1.5 bg-indigo-500 hover:bg-indigo-400 text-white px-3 py-1.5 rounded-lg font-semibold text-sm transition-colors shrink-0"><Undo2 className="w-3.5 h-3.5" />Undo</button>
         </div>
       )}
 
@@ -349,18 +479,65 @@ export default function HabitTracker() {
         </div>
 
         {/* Empty state */}
-        {habits.length === 0 && !isAddingHabit && (
-          <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
-            <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h2 className="text-2xl font-semibold text-gray-700 mb-2">Start Your Journey</h2>
-            <p className="text-gray-500 mb-6">Add your first habit to begin tracking</p>
-            <button
-              onClick={() => setIsAddingHabit(true)}
-              className="px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors inline-flex items-center gap-2"
-            >
-              <Plus className="w-5 h-5" />
-              Add Habit
-            </button>
+        {habits.length === 0 && (
+          <div className={`bg-white rounded-2xl shadow-lg text-center ${isAddingHabit ? 'p-6' : 'p-12'}`}>
+            {isAddingHabit ? (
+              <form onSubmit={addHabit} className="flex flex-col gap-3 text-left">
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={newHabit}
+                      onChange={(e) => { setNewHabit(e.target.value); if (nameError) setNameError(false); }}
+                      placeholder="Habit name (max 15 chars)"
+                      maxLength={15}
+                      style={{ fontSize: '16px' }}
+                      className={`flex-1 px-3 py-2 border rounded-lg focus:outline-none text-sm ${nameError ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-indigo-500'}`}
+                      autoFocus
+                    />
+                    <button type="submit" className="px-4 py-2 bg-gradient-to-r from-indigo-500 to-blue-600 text-white rounded-lg text-sm font-semibold shadow-sm active:scale-95 shrink-0">Add</button>
+                    <button type="button" onClick={() => { setIsAddingHabit(false); setNewHabit(''); setNameError(false); setNewHabitType('daily'); setNewHabitWeeklyTarget(3); setNewHabitMonthlyTarget(1); }} className="ml-1 text-gray-400 hover:text-gray-600 text-xl font-bold leading-none shrink-0">×</button>
+                  </div>
+                  {nameError && <p className="text-red-500 text-xs px-1">Please enter a habit name</p>}
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="flex rounded-lg border border-gray-200 overflow-hidden text-xs">
+                    <button type="button" onClick={() => setNewHabitType('daily')} className={`px-3 py-1 transition-colors ${newHabitType === 'daily' ? 'bg-indigo-500 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}>Daily</button>
+                    <button type="button" onClick={() => setNewHabitType('weekly')} className={`px-3 py-1 transition-colors ${newHabitType === 'weekly' ? 'bg-indigo-500 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}>Weekly</button>
+                    <button type="button" onClick={() => setNewHabitType('monthly')} className={`px-3 py-1 transition-colors ${newHabitType === 'monthly' ? 'bg-indigo-500 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}>Monthly</button>
+                  </div>
+                  {newHabitType === 'weekly' && (
+                    <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                      <button type="button" onClick={() => setNewHabitWeeklyTarget(t => Math.max(1, t - 1))} className="w-5 h-5 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-bold">−</button>
+                      <span className="w-4 text-center font-semibold">{newHabitWeeklyTarget}</span>
+                      <button type="button" onClick={() => setNewHabitWeeklyTarget(t => Math.min(7, t + 1))} className="w-5 h-5 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-bold">+</button>
+                      <span className="text-gray-400">days/wk</span>
+                    </div>
+                  )}
+                  {newHabitType === 'monthly' && (
+                    <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                      <button type="button" onClick={() => setNewHabitMonthlyTarget(t => Math.max(1, t - 1))} className="w-5 h-5 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-bold">−</button>
+                      <span className="w-4 text-center font-semibold">{newHabitMonthlyTarget}</span>
+                      <button type="button" onClick={() => setNewHabitMonthlyTarget(t => Math.min(30, t + 1))} className="w-5 h-5 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-bold">+</button>
+                      <span className="text-gray-400">days/mo</span>
+                    </div>
+                  )}
+                </div>
+              </form>
+            ) : (
+              <>
+                <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <h2 className="text-2xl font-semibold text-gray-700 mb-2">Start Your Journey</h2>
+                <p className="text-gray-500 mb-6">Add your first habit to begin tracking</p>
+                <button
+                  onClick={() => setIsAddingHabit(true)}
+                  className="px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors inline-flex items-center gap-2"
+                >
+                  <Plus className="w-5 h-5" />
+                  Add Habit
+                </button>
+              </>
+            )}
           </div>
         )}
 
@@ -368,19 +545,47 @@ export default function HabitTracker() {
         {habits.length > 0 && (
           <div className="mb-4 flex items-center gap-2">
             {isAddingHabit ? (
-              <form onSubmit={addHabit} className="flex-1 bg-white rounded-xl shadow-md px-3 py-2 flex items-center gap-2">
-                <input
-                  type="text"
-                  value={newHabit}
-                  onChange={(e) => setNewHabit(e.target.value)}
-                  placeholder="Habit name (max 15 chars)"
-                  maxLength={15}
-                  style={{ fontSize: '16px' }}
-                  className="flex-1 px-2 py-1 border border-gray-200 rounded-lg focus:border-indigo-500 focus:outline-none text-sm"
-                  autoFocus
-                />
-                <button type="submit" className="px-4 py-1.5 bg-gradient-to-r from-indigo-500 to-blue-600 text-white rounded-lg text-sm font-semibold shadow-sm active:scale-95 shrink-0">Add</button>
-                <button type="button" onClick={() => { setIsAddingHabit(false); setNewHabit(''); }} className="ml-2 text-gray-400 hover:text-gray-600 text-xl font-bold leading-none shrink-0">×</button>
+              <form onSubmit={addHabit} className="flex-1 bg-white rounded-xl shadow-md px-3 py-2 flex flex-col gap-2">
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={newHabit}
+                      onChange={(e) => { setNewHabit(e.target.value); if (nameError) setNameError(false); }}
+                      placeholder="Habit name (max 15 chars)"
+                      maxLength={15}
+                      style={{ fontSize: '16px' }}
+                      className={`flex-1 px-2 py-1 border rounded-lg focus:outline-none text-sm ${nameError ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-indigo-500'}`}
+                      autoFocus
+                    />
+                    <button type="submit" className="px-4 py-1.5 bg-gradient-to-r from-indigo-500 to-blue-600 text-white rounded-lg text-sm font-semibold shadow-sm active:scale-95 shrink-0">Add</button>
+                    <button type="button" onClick={() => { setIsAddingHabit(false); setNewHabit(''); setNameError(false); setNewHabitType('daily'); setNewHabitWeeklyTarget(3); setNewHabitMonthlyTarget(1); }} className="ml-2 text-gray-400 hover:text-gray-600 text-xl font-bold leading-none shrink-0">×</button>
+                  </div>
+                  {nameError && <p className="text-red-500 text-xs px-1">Please enter a habit name</p>}
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="flex rounded-lg border border-gray-200 overflow-hidden text-xs">
+                    <button type="button" onClick={() => setNewHabitType('daily')} className={`px-3 py-1 transition-colors ${newHabitType === 'daily' ? 'bg-indigo-500 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}>Daily</button>
+                    <button type="button" onClick={() => setNewHabitType('weekly')} className={`px-3 py-1 transition-colors ${newHabitType === 'weekly' ? 'bg-indigo-500 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}>Weekly</button>
+                    <button type="button" onClick={() => setNewHabitType('monthly')} className={`px-3 py-1 transition-colors ${newHabitType === 'monthly' ? 'bg-indigo-500 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}>Monthly</button>
+                  </div>
+                  {newHabitType === 'weekly' && (
+                    <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                      <button type="button" onClick={() => setNewHabitWeeklyTarget(t => Math.max(1, t - 1))} className="w-5 h-5 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-bold">−</button>
+                      <span className="w-4 text-center font-semibold">{newHabitWeeklyTarget}</span>
+                      <button type="button" onClick={() => setNewHabitWeeklyTarget(t => Math.min(7, t + 1))} className="w-5 h-5 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-bold">+</button>
+                      <span className="text-gray-400">days/wk</span>
+                    </div>
+                  )}
+                  {newHabitType === 'monthly' && (
+                    <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                      <button type="button" onClick={() => setNewHabitMonthlyTarget(t => Math.max(1, t - 1))} className="w-5 h-5 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-bold">−</button>
+                      <span className="w-4 text-center font-semibold">{newHabitMonthlyTarget}</span>
+                      <button type="button" onClick={() => setNewHabitMonthlyTarget(t => Math.min(30, t + 1))} className="w-5 h-5 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-bold">+</button>
+                      <span className="text-gray-400">days/mo</span>
+                    </div>
+                  )}
+                </div>
               </form>
             ) : !isReorderMode ? (
               <button
@@ -395,7 +600,7 @@ export default function HabitTracker() {
               <button
                 onClick={() => setIsReorderMode(v => !v)}
                 className={`ml-auto px-3 h-10 rounded-xl transition-all inline-flex items-center gap-2 shadow-md hover:shadow-lg ${
-                  isReorderMode ? 'bg-gradient-to-r from-indigo-500 to-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
+                  isReorderMode ? 'bg-gradient-to-r from-indigo-500 to-blue-600 text-white' : 'bg-white text-indigo-600 hover:bg-indigo-50'
                 }`}
               >
                 {isReorderMode ? 'Finish' : (
@@ -421,7 +626,7 @@ export default function HabitTracker() {
             const loggedDays = habit.dates.length;
 
             return (
-              <div key={habit.id} className={`relative overflow-visible transition-all ${viewMode === '2col' ? 'bg-white rounded-xl shadow-lg hover:shadow-xl' : isReorderMode ? 'bg-indigo-50/50 rounded-xl border border-indigo-100' : 'bg-white rounded-xl shadow-sm hover:shadow-md'}`}>
+              <div key={habit.id} className={`relative overflow-visible transition-all ${viewMode === '2col' ? 'bg-white rounded-xl shadow-lg hover:shadow-xl' : isReorderMode ? 'bg-indigo-50/50 rounded-xl border border-indigo-100' : isExpanded ? 'bg-indigo-50/40 rounded-xl shadow-sm border border-indigo-200' : 'bg-white rounded-xl shadow-sm hover:shadow-md border border-gray-200'}`}>
 
                 {/* 2-col: floating streak/gap badge */}
                 {viewMode === '2col' && streak.current > 1 && (
@@ -441,76 +646,199 @@ export default function HabitTracker() {
 
                 {/* 1-col manage mode */}
                 {viewMode === '1col' && isReorderMode && (() => {
-                  const now = new Date(); now.setHours(0,0,0,0);
-                  const creationDate = new Date(parseInt(habit.startDate || habit.id)); creationDate.setHours(0,0,0,0);
-                  const earliestLog = habit.dates.length ? new Date([...habit.dates].sort()[0] + 'T00:00:00') : creationDate;
-                  const start = earliestLog < creationDate ? earliestLog : creationDate;
-                  const sinceLabel = start.toLocaleDateString('en-US', start.getFullYear() === now.getFullYear() ? { month: 'short', day: 'numeric' } : { month: 'short', day: 'numeric', year: 'numeric' });
+                  const now = new Date();
+                  const creation = new Date(parseInt(habit.startDate || habit.id));
+                  const creationUTC = Date.UTC(creation.getFullYear(), creation.getMonth(), creation.getDate());
+                  const earliestUTC = habit.dates.length ? dateToUTC([...habit.dates].sort()[0]) : creationUTC;
+                  const startUTC = Math.min(earliestUTC, creationUTC);
+                  const start = new Date(startUTC);
+                  const sinceLabel = start.toLocaleDateString('en-US', start.getUTCFullYear() === now.getFullYear() ? { month: 'short', day: 'numeric', timeZone: 'UTC' } : { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
                   const displayName = habit.name.length > 15 ? habit.name.slice(0, 15) + '…' : habit.name;
+                  const habitType = habit.type || 'daily';
+                  const habitTarget = habit.weeklyTarget || 3;
+                  const monthlyHabitTarget = habit.monthlyTarget || 1;
                   return (
-                    <div className="flex items-center gap-2 px-3 py-2.5">
-                      {isRenaming ? (
-                        <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)}
-                          onBlur={() => saveRename(habit.id)} onKeyPress={(e) => e.key === 'Enter' && e.target.blur()}
-                          maxLength={15}
-                          style={{ fontSize: '16px' }}
-                          className="flex-1 px-2 py-1 border-2 border-indigo-500 rounded-lg focus:outline-none font-bold" autoFocus
-                        />
-                      ) : (
-                        <span onClick={() => startRenaming(habit)} className="flex-1 font-bold text-gray-800 truncate text-sm cursor-pointer hover:text-indigo-600">{displayName}</span>
-                      )}
-                      <span className="text-xs font-bold text-indigo-600 whitespace-nowrap">{loggedDays} of {totalDays}d since {sinceLabel}</span>
+                    <div>
+                      <div className="flex items-center gap-2 px-3 pt-2.5 pb-1">
+                        {isRenaming ? (
+                          <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)}
+                            onBlur={() => saveRename(habit.id)} onKeyPress={(e) => e.key === 'Enter' && e.target.blur()}
+                            maxLength={15} style={{ fontSize: '16px' }}
+                            className="flex-1 px-2 py-1 border-2 border-indigo-500 rounded-lg focus:outline-none font-bold" autoFocus
+                          />
+                        ) : (
+                          <span onClick={() => startRenaming(habit)} className="flex-1 font-bold text-gray-800 truncate text-sm cursor-pointer hover:text-indigo-600">{displayName}</span>
+                        )}
+                        <span className="text-xs font-bold text-indigo-600 whitespace-nowrap">{loggedDays} of {totalDays}d since {sinceLabel}</span>
+                      </div>
+                      {/* Type editor */}
+                      <div className="flex items-center gap-2 px-3 pb-2">
+                        <div className="flex rounded-lg border border-gray-200 overflow-hidden text-[10px]">
+                          <button onClick={() => updateHabitType(habit.id, 'daily')} className={`px-2.5 py-0.5 transition-colors ${habitType === 'daily' ? 'bg-indigo-500 text-white' : 'bg-white text-gray-500'}`}>Daily</button>
+                          <button onClick={() => updateHabitType(habit.id, 'weekly', habitTarget)} className={`px-2.5 py-0.5 transition-colors ${habitType === 'weekly' ? 'bg-indigo-500 text-white' : 'bg-white text-gray-500'}`}>Weekly</button>
+                          <button onClick={() => updateHabitType(habit.id, 'monthly', monthlyHabitTarget)} className={`px-2.5 py-0.5 transition-colors ${habitType === 'monthly' ? 'bg-indigo-500 text-white' : 'bg-white text-gray-500'}`}>Monthly</button>
+                        </div>
+                        {habitType === 'weekly' && (
+                          <div className="flex items-center gap-1 text-[10px] text-gray-600">
+                            <button onClick={() => updateHabitType(habit.id, 'weekly', Math.max(1, habitTarget - 1))} className="w-4 h-4 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-bold">−</button>
+                            <span className="w-3 text-center font-semibold">{habitTarget}</span>
+                            <button onClick={() => updateHabitType(habit.id, 'weekly', Math.min(7, habitTarget + 1))} className="w-4 h-4 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-bold">+</button>
+                            <span className="text-gray-400">days/wk</span>
+                          </div>
+                        )}
+                        {habitType === 'monthly' && (
+                          <div className="flex items-center gap-1 text-[10px] text-gray-600">
+                            <button onClick={() => updateHabitType(habit.id, 'monthly', Math.max(1, monthlyHabitTarget - 1))} className="w-4 h-4 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-bold">−</button>
+                            <span className="w-3 text-center font-semibold">{monthlyHabitTarget}</span>
+                            <button onClick={() => updateHabitType(habit.id, 'monthly', Math.min(30, monthlyHabitTarget + 1))} className="w-4 h-4 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-bold">+</button>
+                            <span className="text-gray-400">days/mo</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   );
                 })()}
 
                 {/* 1-col: dense row */}
                 {viewMode === '1col' && !isReorderMode && (() => {
-                  const now = new Date();
+                  const habitType = habit.type || 'daily';
+                  const isWeekly = habitType === 'weekly';
+                  const isMonthly = habitType === 'monthly';
+                  const wTarget = habit.weeklyTarget || 3;
+                  const mTarget = habit.monthlyTarget || 1;
+                  const now = new Date(); now.setHours(0,0,0,0);
+                  const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
                   const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+
+                  // Weekly-specific
+                  const weeklyStreak = isWeekly ? getWeeklyStreakInfo(habit.dates, wTarget) : null;
+                  const weeklyGap = isWeekly ? getWeeklyGap(habit.dates, wTarget) : null;
+                  const weekDays = isWeekly ? getCurrentWeekDays() : null;
+                  const weekGoalMet = isWeekly && weekDays && habit.dates.filter(d => weekDays.includes(d)).length >= wTarget;
+
+                  // Monthly-specific
+                  const monthlyStreak = isMonthly ? getMonthlyStreakInfo(habit.dates, mTarget) : null;
+                  const monthlyGap = isMonthly ? getMonthlyGap(habit.dates, mTarget) : null;
                   const daysThisMonth = habit.dates.filter(d => d.startsWith(currentMonthStr)).length;
+                  const monthGoalMet = isMonthly && daysThisMonth >= mTarget;
+
+                  const goalAlreadyMet = (isWeekly && weekGoalMet) || (isMonthly && monthGoalMet);
+
+                  const logBtn = (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!loggedToday) logToday(habit.id);
+                      }}
+                      className={`shrink-0 w-14 py-1.5 rounded-lg text-xs font-normal transition-all flex items-center justify-center gap-1 ${
+                        loggedToday
+                          ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white cursor-default'
+                          : goalAlreadyMet
+                          ? 'bg-gradient-to-r from-amber-400 to-amber-500 text-white active:scale-95'
+                          : 'bg-gradient-to-r from-indigo-500 to-blue-600 text-white active:scale-95'
+                      }`}
+                    >
+                      {loggedToday ? <><Check className="w-3 h-3" strokeWidth={2.5} />Done</> : goalAlreadyMet ? 'More?' : 'Done?'}
+                    </button>
+                  );
+
                   return (
                     <div
                       onClick={() => toggleHabitExpansion(habit.id)}
-                      className={`flex items-center gap-2 px-3 py-2.5 cursor-pointer transition-colors ${isExpanded ? 'bg-indigo-50/50 rounded-t-xl' : ''}`}
+                      className="flex items-center gap-2 px-3 py-2.5 cursor-pointer"
                     >
-                      {/* Habit name */}
-                      <span className="flex-1 min-w-0 font-bold text-gray-800 truncate text-sm">{habit.name}</span>
-
-                      {/* Streak or gap pill */}
-                      <div className="w-16 flex justify-center shrink-0">
-                        {streak.current > 1 ? (
-                          <span className="text-xs px-2 py-0.5 rounded-full bg-gradient-to-r from-green-400 to-green-600 text-white whitespace-nowrap">🔥 {streak.current}d</span>
-                        ) : daysSince !== null && daysSince > 0 ? (
-                          <span className={`text-xs px-2 py-0.5 rounded-full text-white whitespace-nowrap bg-gradient-to-r ${
-                            daysSince <= 3 ? 'from-amber-400 to-amber-600' :
-                            daysSince <= 10 ? 'from-orange-400 to-orange-600' :
-                            'from-red-400 to-red-600'
-                          }`}>⚠️ {daysSince}d</span>
-                        ) : <span />}
+                      {/* Habit name + subtitle */}
+                      <div className="flex-1 min-w-0">
+                        <div className="font-bold text-gray-800 truncate text-sm">{habit.name}</div>
+                        <div className="text-[10px] text-gray-500 leading-tight">
+                          {isWeekly ? `Weekly · ${wTarget}/wk` : isMonthly ? `Monthly · ${mTarget}/mo` : 'Daily'}
+                        </div>
                       </div>
 
-                      {/* Tracker: days this month */}
-                      <div className="w-22 flex items-center gap-1 shrink-0 text-indigo-500">
-                        <TrendingUp className="w-3.5 h-3.5 shrink-0" />
-                        <span className="text-xs font-bold whitespace-nowrap">{daysThisMonth}d this mo</span>
-                      </div>
+                      {isWeekly ? (
+                        <>
+                          {/* Weekly streak/gap pill */}
+                          <div className="w-16 flex justify-center shrink-0">
+                            {weeklyStreak.current >= 1 ? (
+                              <span className={`w-full text-center text-xs px-2 py-0.5 rounded-full text-white flex items-center justify-center gap-0.5 bg-gradient-to-r ${
+                                weeklyStreak.current === weeklyStreak.longest ? 'from-amber-400 to-yellow-500' : 'from-green-400 to-green-600'
+                              }`}><Rocket className="w-2.5 h-2.5" />{weeklyStreak.current}w</span>
+                            ) : weeklyGap !== null && weeklyGap >= 1 ? (
+                              <span className={`w-full text-center text-xs px-2 py-0.5 rounded-full text-white bg-gradient-to-r ${
+                                weeklyGap === 1 ? 'from-amber-400 to-amber-600' :
+                                weeklyGap <= 3 ? 'from-orange-400 to-orange-600' :
+                                'from-red-400 to-red-600'
+                              }`}>{weeklyGap}w gap</span>
+                            ) : <span className="w-full" />}
+                          </div>
 
-                      {/* Log / Done button */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const now = new Date();
-                          const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-                          loggedToday ? toggleDate(habit.id, todayStr, true) : logToday(habit.id);
-                        }}
-                        className={`shrink-0 w-14 py-1.5 rounded-lg text-xs font-normal transition-all flex items-center justify-center gap-1 ${
-                          loggedToday ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white active:scale-95' :
-                          'bg-gradient-to-r from-indigo-500 to-blue-600 text-white active:scale-95'
-                        }`}
-                      >
-                        {loggedToday ? <><Check className="w-3.5 h-3.5" />Done</> : 'Done?'}
-                      </button>
+                          {/* 7-circle weekly tracker */}
+                          <div className="w-[90px] flex items-center justify-center gap-0.5 shrink-0 px-1 py-0.5 rounded-full">
+                            {weekDays.map((dateStr, i) => {
+                              const logged = habit.dates.includes(dateStr);
+                              const future = dateStr > todayStr;
+                              const isToday = dateStr === todayStr;
+                              return (
+                                <div key={i} className={`w-[10px] h-[10px] rounded-full flex items-center justify-center transition-all ${
+                                  logged ? (weekGoalMet ? 'bg-gradient-to-br from-green-400 to-emerald-500' : 'bg-gradient-to-br from-indigo-400 to-blue-500') :
+                                  !future ? 'bg-rose-100' :
+                                  isToday ? 'border-2 border-indigo-400 bg-white' :
+                                  'border border-gray-200 bg-white'
+                                }`}>
+                                  {logged && <Check className="w-1.5 h-1.5 text-white" strokeWidth={3} />}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </>
+                      ) : isMonthly ? (
+                        <>
+                          {/* Monthly streak/gap pill */}
+                          <div className="w-16 flex justify-center shrink-0">
+                            {monthlyStreak.current >= 1 ? (
+                              <span className={`w-full text-center text-xs px-2 py-0.5 rounded-full text-white flex items-center justify-center gap-0.5 bg-gradient-to-r ${
+                                monthlyStreak.current === monthlyStreak.longest ? 'from-amber-400 to-yellow-500' : 'from-green-400 to-green-600'
+                              }`}><Rocket className="w-2.5 h-2.5" />{monthlyStreak.current}m</span>
+                            ) : monthlyGap !== null && monthlyGap >= 1 ? (
+                              <span className={`w-full text-center text-xs px-2 py-0.5 rounded-full text-white bg-gradient-to-r ${
+                                monthlyGap === 1 ? 'from-amber-400 to-amber-600' :
+                                monthlyGap === 2 ? 'from-orange-400 to-orange-600' :
+                                'from-red-400 to-red-600'
+                              }`}>{monthlyGap}m gap</span>
+                            ) : <span className="w-full" />}
+                          </div>
+
+                          {/* Monthly tracker */}
+                          <div className={`w-[90px] flex items-center gap-1 shrink-0 px-1 py-0.5 rounded-full transition-all ${monthGoalMet ? 'text-green-500' : 'text-indigo-500'}`}>
+                            <TrendingUp className="w-3.5 h-3.5 shrink-0" />
+                            <span className="text-xs font-bold whitespace-nowrap">{daysThisMonth}d this mo</span>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          {/* Daily streak/gap pill */}
+                          <div className="w-16 flex justify-center shrink-0">
+                            {streak.current > 1 ? (
+                              <span className={`w-full text-center text-xs px-2 py-0.5 rounded-full text-white flex items-center justify-center gap-0.5 bg-gradient-to-r ${
+                                streak.current === streak.longest ? 'from-amber-400 to-yellow-500' : 'from-green-400 to-green-600'
+                              }`}><Rocket className="w-2.5 h-2.5" />{streak.current}d</span>
+                            ) : daysSince !== null && daysSince > 0 ? (
+                              <span className={`w-full text-center text-xs px-2 py-0.5 rounded-full text-white bg-gradient-to-r ${
+                                daysSince <= 3 ? 'from-amber-400 to-amber-600' :
+                                daysSince <= 10 ? 'from-orange-400 to-orange-600' :
+                                'from-red-400 to-red-600'
+                              }`}>{daysSince}d gap</span>
+                            ) : <span className="w-full" />}
+                          </div>
+
+                          {/* Daily tracker */}
+                          <div className={`w-[90px] flex items-center gap-1 shrink-0 transition-colors ${loggedToday ? 'text-green-500' : 'text-indigo-500'}`}>
+                            <TrendingUp className="w-3.5 h-3.5 shrink-0" />
+                            <span className="text-xs font-bold whitespace-nowrap">{daysThisMonth}d this mo</span>
+                          </div>
+                        </>
+                      )}
+                      {logBtn}
                     </div>
                   );
                 })()}
@@ -518,35 +846,62 @@ export default function HabitTracker() {
                 {/* 1-col: expanded heatmap */}
                 {viewMode === '1col' && !isReorderMode && isExpanded && (
                   <div className="px-3 pb-3">
-                    <div className="h-px bg-gray-100 mb-2" />
+                    <div className="h-px bg-indigo-100 mb-2" />
                     {/* Stats row */}
                     {(() => {
-                      const now = new Date(); now.setHours(0,0,0,0);
-                      const creationDate = new Date(parseInt(habit.startDate || habit.id)); creationDate.setHours(0,0,0,0);
-                      const earliestLog = habit.dates.length ? new Date([...habit.dates].sort()[0] + 'T00:00:00') : creationDate;
-                      const start = earliestLog < creationDate ? earliestLog : creationDate;
-                      const totalDaysVal = Math.floor((now - start) / 86400000) + 1;
-                      const sinceLabel = start.toLocaleDateString('en-US', start.getFullYear() === now.getFullYear() ? { month: 'short', day: 'numeric' } : { month: 'short', day: 'numeric', year: 'numeric' });
+                      const now = new Date();
+                      const creation = new Date(parseInt(habit.startDate || habit.id));
+                      const creationUTC = Date.UTC(creation.getFullYear(), creation.getMonth(), creation.getDate());
+                      const earliestUTC = habit.dates.length ? dateToUTC([...habit.dates].sort()[0]) : creationUTC;
+                      const startUTC = Math.min(earliestUTC, creationUTC);
+                      const totalDaysVal = todayUTC() / 86400000 - startUTC / 86400000 + 1;
+                      const start = new Date(startUTC);
+                      const sinceLabel = start.toLocaleDateString('en-US', start.getUTCFullYear() === now.getFullYear() ? { month: 'short', day: 'numeric', timeZone: 'UTC' } : { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
                       const last30Dates = Array.from({ length: 30 }, (_, i) => {
                         const d = new Date(now); d.setDate(now.getDate() - i);
                         return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
                       });
                       const last30Logged = habit.dates.filter(d => last30Dates.includes(d)).length;
                       const last30Pct = Math.round((last30Logged / 30) * 100);
-                      const overallPct = totalDaysVal > 0 ? Math.round((loggedDays / totalDaysVal) * 100) : 0;
+                      const isWeeklyHabit = habit.type === 'weekly';
+                      const isMonthlyHabit = habit.type === 'monthly';
+                      const wTarget = habit.weeklyTarget || 3;
+                      const mTargetExp = habit.monthlyTarget || 1;
+                      const wStreak = isWeeklyHabit ? getWeeklyStreakInfo(habit.dates, wTarget) : null;
+                      const mStreakExp = isMonthlyHabit ? getMonthlyStreakInfo(habit.dates, mTargetExp) : null;
+                      let weeksGoalMet = 0, totalWeeks = 0;
+                      if (isWeeklyHabit) {
+                        const startWeek = getWeekStart(new Date(startUTC));
+                        const curWeek = getWeekStart(new Date());
+                        totalWeeks = Math.round((curWeek.getTime() - startWeek.getTime()) / (7 * 86400000)) + 1;
+                        for (let w = new Date(startWeek); w.getTime() <= curWeek.getTime(); w.setDate(w.getDate() + 7)) {
+                          if (isWeekGoalMet(habit.dates, wTarget, new Date(w))) weeksGoalMet++;
+                        }
+                      }
+                      let monthsGoalMet = 0, totalMonths = 0;
+                      if (isMonthlyHabit) {
+                        const startMonthStr = `${start.getUTCFullYear()}-${String(start.getUTCMonth()+1).padStart(2,'0')}`;
+                        const curMonthStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+                        totalMonths = (now.getFullYear() * 12 + now.getMonth()) - (start.getUTCFullYear() * 12 + start.getUTCMonth()) + 1;
+                        let mm = startMonthStr;
+                        for (let i = 0; i < totalMonths; i++) {
+                          if (isMonthGoalMet(habit.dates, mTargetExp, mm)) monthsGoalMet++;
+                          mm = nextMonthStr(mm);
+                        }
+                      }
                       return (
                         <div className="grid grid-cols-3 gap-1.5 mb-2">
-                          <div className="bg-white rounded-xl p-2 text-center border border-gray-100 shadow-sm">
-                            <div className="text-sm font-bold text-indigo-600">{loggedDays} of {totalDaysVal}d</div>
-                            <div className="text-[10px] text-gray-400 leading-tight mt-0.5">since {sinceLabel}</div>
+                          <div className="bg-white rounded-xl p-2 text-center border border-gray-100 shadow-sm overflow-hidden">
+                            <div className="text-[13px] font-bold text-indigo-600 whitespace-nowrap">{loggedDays} of {totalDaysVal}d</div>
+                            <div className="text-[10px] text-gray-500 leading-tight mt-0.5 whitespace-nowrap">since {sinceLabel}</div>
                           </div>
-                          <div className="bg-white rounded-xl p-2 text-center border border-gray-100 shadow-sm">
-                            <div className="text-sm font-bold text-indigo-600">{last30Logged}d</div>
-                            <div className="text-[10px] text-gray-400 leading-tight mt-0.5">in last 30 days</div>
+                          <div className="bg-white rounded-xl p-2 text-center border border-gray-100 shadow-sm overflow-hidden">
+                            <div className="text-[13px] font-bold text-indigo-600 whitespace-nowrap">{isWeeklyHabit ? `${weeksGoalMet} of ${totalWeeks}w` : isMonthlyHabit ? `${monthsGoalMet} of ${totalMonths}m` : `${last30Logged}d`}</div>
+                            <div className="text-[10px] text-gray-500 leading-tight mt-0.5 whitespace-nowrap">{isWeeklyHabit || isMonthlyHabit ? `since ${sinceLabel}` : 'in last 30 days'}</div>
                           </div>
-                          <div className="bg-white rounded-xl p-2 text-center border border-gray-100 shadow-sm">
-                            <div className="text-sm font-bold text-amber-500">🏆 {streak.longest}d</div>
-                            <div className="text-[10px] text-gray-400 leading-tight mt-0.5">best streak</div>
+                          <div className="bg-white rounded-xl p-2 text-center border border-gray-100 shadow-sm overflow-hidden">
+                            <div className="text-[13px] font-bold text-amber-500 whitespace-nowrap">🏆 {isWeeklyHabit ? `${wStreak.longest}w` : isMonthlyHabit ? `${mStreakExp.longest}m` : `${streak.longest}d`}</div>
+                            <div className="text-[10px] text-gray-500 leading-tight mt-0.5">best streak</div>
                           </div>
                         </div>
                       );
@@ -609,6 +964,12 @@ export default function HabitTracker() {
                         </div>
                       );
                     })()}
+                    <button
+                      onClick={(e) => { e.stopPropagation(); toggleHabitExpansion(habit.id); }}
+                      className="mt-2 w-full flex items-center justify-center py-1 text-gray-300 hover:text-gray-500 transition-colors"
+                    >
+                      <ChevronDown className="w-4 h-4 rotate-180" />
+                    </button>
                   </div>
                 )}
 
