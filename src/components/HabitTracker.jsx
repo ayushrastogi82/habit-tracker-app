@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
-import { Plus, Check, TrendingUp, Calendar, ChevronDown, ChevronLeft, ChevronRight, Rocket, Undo2, Download, Upload, Share2 } from 'lucide-react';
-import ShareModal from './ShareModal';
+import { Plus, Check, TrendingUp, Calendar, ChevronDown, ChevronLeft, ChevronRight, Rocket, Undo2, Download, Upload } from 'lucide-react';
 
 export default function HabitTracker() {
   const [habits, setHabits] = useState([]);
@@ -27,7 +26,6 @@ export default function HabitTracker() {
   const [heatmapMode, setHeatmapMode] = useState(() => localStorage.getItem('heatmap-mode') || 'month');
   const [monthOffset, setMonthOffset] = useState(0);
   const [nameError, setNameError] = useState(false);
-  const [shareTarget, setShareTarget] = useState(null); // { habit } or { all: true }
   const fileInputRef = React.useRef(null);
 
   const TOUR_STEPS = [
@@ -659,10 +657,6 @@ export default function HabitTracker() {
             ) : <div />}
             {!isAddingHabit && !isReorderMode && (
               <div className="ml-auto flex items-center gap-2">
-                <button onClick={() => setShareTarget({ all: true })} title="Share progress"
-                  className="w-10 h-10 rounded-xl bg-white text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 transition-all inline-flex items-center justify-center shadow-md hover:shadow-lg">
-                  <Share2 className="w-4 h-4" />
-                </button>
                 <button onClick={exportBackup} title="Download backup"
                   className="w-10 h-10 rounded-xl bg-white text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 transition-all inline-flex items-center justify-center shadow-md hover:shadow-lg">
                   <Download className="w-4 h-4" />
@@ -1156,16 +1150,6 @@ export default function HabitTracker() {
                       </div>
                     );
                   })()}
-                  {/* Share button */}
-                  {isExpanded && (
-                    <button
-                      onClick={(e) => { e.stopPropagation(); setShareTarget({ habit }); }}
-                      className="mt-3 w-full py-2 rounded-xl text-xs font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 active:scale-95 transition-all flex items-center justify-center gap-1.5"
-                    >
-                      <Share2 className="w-3.5 h-3.5" />
-                      Share Progress
-                    </button>
-                  )}
                 </div>
                 )}
 
@@ -1175,15 +1159,6 @@ export default function HabitTracker() {
           })}
         </div>
       </div>
-
-      {/* Share Modal */}
-      {shareTarget && (
-        <ShareModal
-          habit={shareTarget.habit || null}
-          habits={habits}
-          onClose={() => setShareTarget(null)}
-        />
-      )}
     </div>
   );
 }
