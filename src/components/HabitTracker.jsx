@@ -132,7 +132,7 @@ export default function HabitTracker() {
     setConfirmDialog({
       message: 'Reset this habit? All logged dates will be lost and it will start fresh.',
       confirmLabel: 'Reset',
-      confirmColor: 'bg-amber-500 hover:bg-amber-600',
+      confirmColor: 'bg-red-500 hover:bg-red-600',
       onConfirm: async () => {
         const prev = habits.find(h => h.id === habitId);
         const saved = await saveHabits(habits.map(h => h.id === habitId ? { ...h, dates: [], startDate: Date.now().toString() } : h));
@@ -489,13 +489,13 @@ export default function HabitTracker() {
                       type="text"
                       value={newHabit}
                       onChange={(e) => { setNewHabit(e.target.value); if (nameError) setNameError(false); }}
-                      placeholder="Habit name (max 15 chars)"
-                      maxLength={15}
+                      placeholder="Habit name (max 12 chars)"
+                      maxLength={12}
                       style={{ fontSize: '16px' }}
                       className={`flex-1 px-3 py-2 border rounded-lg focus:outline-none text-sm ${nameError ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-indigo-500'}`}
                       autoFocus
                     />
-                    <button type="submit" className="px-4 py-2 bg-gradient-to-r from-indigo-500 to-blue-600 text-white rounded-lg text-sm font-semibold shadow-sm active:scale-95 shrink-0">Add</button>
+                    <button type="submit" className="px-4 py-2 bg-gradient-to-r from-indigo-500 to-blue-600 text-white rounded-lg text-sm font-semibold shadow-md active:scale-95 shrink-0">Add</button>
                     <button type="button" onClick={() => { setIsAddingHabit(false); setNewHabit(''); setNameError(false); setNewHabitType('daily'); setNewHabitWeeklyTarget(3); setNewHabitMonthlyTarget(1); }} className="ml-1 text-gray-400 hover:text-gray-600 text-xl font-bold leading-none shrink-0">×</button>
                   </div>
                   {nameError && <p className="text-red-500 text-xs px-1">Please enter a habit name</p>}
@@ -552,13 +552,13 @@ export default function HabitTracker() {
                       type="text"
                       value={newHabit}
                       onChange={(e) => { setNewHabit(e.target.value); if (nameError) setNameError(false); }}
-                      placeholder="Habit name (max 15 chars)"
-                      maxLength={15}
+                      placeholder="Habit name (max 12 chars)"
+                      maxLength={12}
                       style={{ fontSize: '16px' }}
                       className={`flex-1 px-2 py-1 border rounded-lg focus:outline-none text-sm ${nameError ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-indigo-500'}`}
                       autoFocus
                     />
-                    <button type="submit" className="px-4 py-1.5 bg-gradient-to-r from-indigo-500 to-blue-600 text-white rounded-lg text-sm font-semibold shadow-sm active:scale-95 shrink-0">Add</button>
+                    <button type="submit" className="px-4 py-1.5 bg-gradient-to-r from-indigo-500 to-blue-600 text-white rounded-lg text-sm font-semibold shadow-md active:scale-95 shrink-0">Add</button>
                     <button type="button" onClick={() => { setIsAddingHabit(false); setNewHabit(''); setNameError(false); setNewHabitType('daily'); setNewHabitWeeklyTarget(3); setNewHabitMonthlyTarget(1); }} className="ml-2 text-gray-400 hover:text-gray-600 text-xl font-bold leading-none shrink-0">×</button>
                   </div>
                   {nameError && <p className="text-red-500 text-xs px-1">Please enter a habit name</p>}
@@ -626,7 +626,7 @@ export default function HabitTracker() {
             const loggedDays = habit.dates.length;
 
             return (
-              <div key={habit.id} className={`relative overflow-visible transition-all ${viewMode === '2col' ? 'bg-white rounded-xl shadow-lg hover:shadow-xl' : isReorderMode ? 'bg-indigo-50/50 rounded-xl border border-indigo-100' : isExpanded ? 'bg-indigo-50/40 rounded-xl shadow-sm border border-indigo-200' : 'bg-white rounded-xl shadow-sm hover:shadow-md border border-gray-200'}`}>
+              <div key={habit.id} className={`relative overflow-visible transition-all ${viewMode === '2col' ? 'bg-white rounded-xl shadow-lg hover:shadow-xl' : isReorderMode ? 'bg-indigo-50/50 rounded-xl border border-indigo-100' : isExpanded ? 'bg-indigo-50/40 rounded-xl shadow-md border border-indigo-200' : 'bg-white rounded-xl shadow-md hover:shadow-md border border-gray-200'}`}>
 
                 {/* 2-col: floating streak/gap badge */}
                 {viewMode === '2col' && streak.current > 1 && (
@@ -635,66 +635,56 @@ export default function HabitTracker() {
                   </div>
                 )}
                 {viewMode === '2col' && streak.current <= 1 && daysSince !== null && daysSince > 0 && (
-                  <div className={`absolute -top-4 -right-2 text-white text-sm font-normal px-3 py-1.5 rounded-full shadow-md flex items-center gap-1 z-10 bg-gradient-to-r ${
-                    daysSince <= 3 ? 'from-amber-400 to-amber-600' :
-                    daysSince <= 10 ? 'from-orange-400 to-orange-600' :
-                    'from-red-400 to-red-600'
-                  }`}>
+                  <div className={`absolute -top-4 -right-2 text-white text-sm font-normal px-3 py-1.5 rounded-full shadow-md flex items-center gap-1 z-10 bg-gradient-to-r from-pink-300 to-red-400`}>
                     ⚠️ {daysSince}d
                   </div>
                 )}
 
-                {/* 1-col manage mode */}
+                {/* 1-col manage mode — single row */}
                 {viewMode === '1col' && isReorderMode && (() => {
-                  const now = new Date();
-                  const creation = new Date(parseInt(habit.startDate || habit.id));
-                  const creationUTC = Date.UTC(creation.getFullYear(), creation.getMonth(), creation.getDate());
-                  const earliestUTC = habit.dates.length ? dateToUTC([...habit.dates].sort()[0]) : creationUTC;
-                  const startUTC = Math.min(earliestUTC, creationUTC);
-                  const start = new Date(startUTC);
-                  const sinceLabel = start.toLocaleDateString('en-US', start.getUTCFullYear() === now.getFullYear() ? { month: 'short', day: 'numeric', timeZone: 'UTC' } : { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
-                  const displayName = habit.name.length > 15 ? habit.name.slice(0, 15) + '…' : habit.name;
                   const habitType = habit.type || 'daily';
                   const habitTarget = habit.weeklyTarget || 3;
                   const monthlyHabitTarget = habit.monthlyTarget || 1;
+                  const cycleType = () => {
+                    const next = habitType === 'daily' ? 'weekly' : habitType === 'weekly' ? 'monthly' : 'daily';
+                    updateHabitType(habit.id, next, next === 'weekly' ? 3 : next === 'monthly' ? 1 : undefined);
+                  };
+                  const currentTarget = habitType === 'weekly' ? habitTarget : monthlyHabitTarget;
+                  const maxTarget = habitType === 'weekly' ? 7 : 30;
                   return (
-                    <div>
-                      <div className="flex items-center gap-2 px-3 pt-2.5 pb-1">
-                        {isRenaming ? (
-                          <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)}
+                    <div className="flex items-center gap-1 px-2 py-2">
+                      {/* ↑↓ arrows */}
+                      {index > 0
+                        ? <button onClick={() => moveHabitUp(index)} className="w-6 h-6 shrink-0 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 text-xs font-bold active:scale-95">↑</button>
+                        : <span className="w-6 h-6 shrink-0" />}
+                      {index < habits.length - 1
+                        ? <button onClick={() => moveHabitDown(index)} className="w-6 h-6 shrink-0 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 text-xs font-bold active:scale-95">↓</button>
+                        : <span className="w-6 h-6 shrink-0" />}
+                      {/* Habit name */}
+                      {isRenaming
+                        ? <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)}
                             onBlur={() => saveRename(habit.id)} onKeyPress={(e) => e.key === 'Enter' && e.target.blur()}
-                            maxLength={15} style={{ fontSize: '16px' }}
-                            className="flex-1 px-2 py-1 border-2 border-indigo-500 rounded-lg focus:outline-none font-bold" autoFocus
-                          />
-                        ) : (
-                          <span onClick={() => startRenaming(habit)} className="flex-1 font-bold text-gray-800 truncate text-sm cursor-pointer hover:text-indigo-600">{displayName}</span>
-                        )}
-                        <span className="text-xs font-bold text-indigo-600 whitespace-nowrap">{loggedDays} of {totalDays}d since {sinceLabel}</span>
+                            maxLength={12} style={{ fontSize: '16px' }}
+                            className="flex-1 min-w-0 px-2 py-0.5 border-2 border-indigo-500 rounded-lg focus:outline-none text-sm" autoFocus />
+                        : <span onClick={() => startRenaming(habit)} className="flex-1 min-w-0 font-bold text-xs text-gray-700 truncate cursor-pointer hover:text-indigo-600">{habit.name}</span>}
+                      {/* Frequency chip — fixed-width column so all rows align */}
+                      <div className="w-20 shrink-0 flex items-center gap-0.5 mx-2">
+                        {habitType !== 'daily'
+                          ? <button onClick={(e) => { e.stopPropagation(); updateHabitType(habit.id, habitType, Math.max(1, currentTarget - 1)); }}
+                              className="w-5 h-5 shrink-0 rounded-full bg-indigo-100 hover:bg-indigo-200 flex items-center justify-center text-indigo-600 text-xs font-bold active:scale-95">−</button>
+                          : <span className="w-5 shrink-0" />}
+                        <button onClick={(e) => { e.stopPropagation(); cycleType(); }}
+                          className="flex-1 text-center py-0.5 rounded-full text-[10px] font-semibold bg-indigo-100 text-indigo-600 hover:bg-indigo-200 active:scale-95">
+                          {habitType === 'daily' ? 'Daily' : habitType === 'weekly' ? `${habitTarget}/wk` : `${monthlyHabitTarget}/mo`}
+                        </button>
+                        {habitType !== 'daily'
+                          ? <button onClick={(e) => { e.stopPropagation(); updateHabitType(habit.id, habitType, Math.min(maxTarget, currentTarget + 1)); }}
+                              className="w-5 h-5 shrink-0 rounded-full bg-indigo-100 hover:bg-indigo-200 flex items-center justify-center text-indigo-600 text-xs font-bold active:scale-95">+</button>
+                          : <span className="w-5 shrink-0" />}
                       </div>
-                      {/* Type editor */}
-                      <div className="flex items-center gap-2 px-3 pb-2">
-                        <div className="flex rounded-lg border border-gray-200 overflow-hidden text-[10px]">
-                          <button onClick={() => updateHabitType(habit.id, 'daily')} className={`px-2.5 py-0.5 transition-colors ${habitType === 'daily' ? 'bg-indigo-500 text-white' : 'bg-white text-gray-500'}`}>Daily</button>
-                          <button onClick={() => updateHabitType(habit.id, 'weekly', habitTarget)} className={`px-2.5 py-0.5 transition-colors ${habitType === 'weekly' ? 'bg-indigo-500 text-white' : 'bg-white text-gray-500'}`}>Weekly</button>
-                          <button onClick={() => updateHabitType(habit.id, 'monthly', monthlyHabitTarget)} className={`px-2.5 py-0.5 transition-colors ${habitType === 'monthly' ? 'bg-indigo-500 text-white' : 'bg-white text-gray-500'}`}>Monthly</button>
-                        </div>
-                        {habitType === 'weekly' && (
-                          <div className="flex items-center gap-1 text-[10px] text-gray-600">
-                            <button onClick={() => updateHabitType(habit.id, 'weekly', Math.max(1, habitTarget - 1))} className="w-4 h-4 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-bold">−</button>
-                            <span className="w-3 text-center font-semibold">{habitTarget}</span>
-                            <button onClick={() => updateHabitType(habit.id, 'weekly', Math.min(7, habitTarget + 1))} className="w-4 h-4 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-bold">+</button>
-                            <span className="text-gray-400">days/wk</span>
-                          </div>
-                        )}
-                        {habitType === 'monthly' && (
-                          <div className="flex items-center gap-1 text-[10px] text-gray-600">
-                            <button onClick={() => updateHabitType(habit.id, 'monthly', Math.max(1, monthlyHabitTarget - 1))} className="w-4 h-4 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-bold">−</button>
-                            <span className="w-3 text-center font-semibold">{monthlyHabitTarget}</span>
-                            <button onClick={() => updateHabitType(habit.id, 'monthly', Math.min(30, monthlyHabitTarget + 1))} className="w-4 h-4 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-bold">+</button>
-                            <span className="text-gray-400">days/mo</span>
-                          </div>
-                        )}
-                      </div>
+                      {/* Delete */}
+                      <button onClick={(e) => { e.stopPropagation(); deleteHabit(habit.id); }}
+                        className="shrink-0 w-14 py-1 rounded-lg text-[10px] font-semibold bg-red-100 text-red-700 hover:bg-red-200 active:scale-95 transition-all ml-1.5">Delete</button>
                     </div>
                   );
                 })()}
@@ -732,10 +722,10 @@ export default function HabitTracker() {
                       }}
                       className={`shrink-0 w-14 py-1.5 rounded-lg text-xs font-normal transition-all flex items-center justify-center gap-1 ${
                         loggedToday
-                          ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white cursor-default'
+                          ? 'bg-gradient-to-r from-green-200 to-green-300 text-green-700 cursor-default'
                           : goalAlreadyMet
-                          ? 'bg-gradient-to-r from-amber-400 to-amber-500 text-white active:scale-95'
-                          : 'bg-gradient-to-r from-indigo-500 to-blue-600 text-white active:scale-95'
+                          ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white active:scale-95 shadow-md'
+                          : 'bg-gradient-to-r from-indigo-500 to-blue-600 text-white active:scale-95 shadow-md'
                       }`}
                     >
                       {loggedToday ? <><Check className="w-3 h-3" strokeWidth={2.5} />Done</> : goalAlreadyMet ? 'More?' : 'Done?'}
@@ -760,15 +750,9 @@ export default function HabitTracker() {
                           {/* Weekly streak/gap pill */}
                           <div className="w-16 flex justify-center shrink-0">
                             {weeklyStreak.current >= 1 ? (
-                              <span className={`w-full text-center text-xs px-2 py-0.5 rounded-full text-white flex items-center justify-center gap-0.5 bg-gradient-to-r ${
-                                weeklyStreak.current === weeklyStreak.longest ? 'from-amber-400 to-yellow-500' : 'from-green-400 to-green-600'
-                              }`}><Rocket className="w-2.5 h-2.5" />{weeklyStreak.current}w</span>
+                              <span className={`w-full text-center text-xs px-2 py-0.5 rounded-full text-white flex items-center justify-center gap-0.5 bg-gradient-to-r from-green-300 to-green-500`}><Rocket className="w-2.5 h-2.5" />{weeklyStreak.current}w</span>
                             ) : weeklyGap !== null && weeklyGap >= 1 ? (
-                              <span className={`w-full text-center text-xs px-2 py-0.5 rounded-full text-white bg-gradient-to-r ${
-                                weeklyGap === 1 ? 'from-amber-400 to-amber-600' :
-                                weeklyGap <= 3 ? 'from-orange-400 to-orange-600' :
-                                'from-red-400 to-red-600'
-                              }`}>{weeklyGap}w gap</span>
+                              <span className={`w-full text-center text-xs px-2 py-0.5 rounded-full text-white bg-gradient-to-r from-pink-300 to-red-400`}>{weeklyGap}w gap</span>
                             ) : <span className="w-full" />}
                           </div>
 
@@ -796,15 +780,9 @@ export default function HabitTracker() {
                           {/* Monthly streak/gap pill */}
                           <div className="w-16 flex justify-center shrink-0">
                             {monthlyStreak.current >= 1 ? (
-                              <span className={`w-full text-center text-xs px-2 py-0.5 rounded-full text-white flex items-center justify-center gap-0.5 bg-gradient-to-r ${
-                                monthlyStreak.current === monthlyStreak.longest ? 'from-amber-400 to-yellow-500' : 'from-green-400 to-green-600'
-                              }`}><Rocket className="w-2.5 h-2.5" />{monthlyStreak.current}m</span>
+                              <span className={`w-full text-center text-xs px-2 py-0.5 rounded-full text-white flex items-center justify-center gap-0.5 bg-gradient-to-r from-green-300 to-green-500`}><Rocket className="w-2.5 h-2.5" />{monthlyStreak.current}m</span>
                             ) : monthlyGap !== null && monthlyGap >= 1 ? (
-                              <span className={`w-full text-center text-xs px-2 py-0.5 rounded-full text-white bg-gradient-to-r ${
-                                monthlyGap === 1 ? 'from-amber-400 to-amber-600' :
-                                monthlyGap === 2 ? 'from-orange-400 to-orange-600' :
-                                'from-red-400 to-red-600'
-                              }`}>{monthlyGap}m gap</span>
+                              <span className={`w-full text-center text-xs px-2 py-0.5 rounded-full text-white bg-gradient-to-r from-pink-300 to-red-400`}>{monthlyGap}m gap</span>
                             ) : <span className="w-full" />}
                           </div>
 
@@ -819,15 +797,9 @@ export default function HabitTracker() {
                           {/* Daily streak/gap pill */}
                           <div className="w-16 flex justify-center shrink-0">
                             {streak.current > 1 ? (
-                              <span className={`w-full text-center text-xs px-2 py-0.5 rounded-full text-white flex items-center justify-center gap-0.5 bg-gradient-to-r ${
-                                streak.current === streak.longest ? 'from-amber-400 to-yellow-500' : 'from-green-400 to-green-600'
-                              }`}><Rocket className="w-2.5 h-2.5" />{streak.current}d</span>
+                              <span className={`w-full text-center text-xs px-2 py-0.5 rounded-full text-white flex items-center justify-center gap-0.5 bg-gradient-to-r from-green-300 to-green-500`}><Rocket className="w-2.5 h-2.5" />{streak.current}d</span>
                             ) : daysSince !== null && daysSince > 0 ? (
-                              <span className={`w-full text-center text-xs px-2 py-0.5 rounded-full text-white bg-gradient-to-r ${
-                                daysSince <= 3 ? 'from-amber-400 to-amber-600' :
-                                daysSince <= 10 ? 'from-orange-400 to-orange-600' :
-                                'from-red-400 to-red-600'
-                              }`}>{daysSince}d gap</span>
+                              <span className={`w-full text-center text-xs px-2 py-0.5 rounded-full text-white bg-gradient-to-r from-pink-300 to-red-400`}>{daysSince}d gap</span>
                             ) : <span className="w-full" />}
                           </div>
 
@@ -844,7 +816,12 @@ export default function HabitTracker() {
                 })()}
 
                 {/* 1-col: expanded heatmap */}
-                {viewMode === '1col' && !isReorderMode && isExpanded && (
+                {viewMode === '1col' && !isReorderMode && (
+                  <div
+                    style={{ display: 'grid', gridTemplateRows: isExpanded ? '1fr' : '0fr' }}
+                    className="transition-[grid-template-rows] duration-300 ease-in-out"
+                  >
+                  <div className={`overflow-hidden transition-opacity duration-300 ${isExpanded ? 'opacity-100' : 'opacity-0'}`}>
                   <div className="px-3 pb-3">
                     <div className="h-px bg-indigo-100 mb-2" />
                     {/* Stats row */}
@@ -891,15 +868,15 @@ export default function HabitTracker() {
                       }
                       return (
                         <div className="grid grid-cols-3 gap-1.5 mb-2">
-                          <div className="bg-white rounded-xl p-2 text-center border border-gray-100 shadow-sm overflow-hidden">
+                          <div className="bg-white rounded-xl p-2 text-center border border-gray-100 shadow-md overflow-hidden">
                             <div className="text-[13px] font-bold text-indigo-600 whitespace-nowrap">{loggedDays} of {totalDaysVal}d</div>
                             <div className="text-[10px] text-gray-500 leading-tight mt-0.5 whitespace-nowrap">since {sinceLabel}</div>
                           </div>
-                          <div className="bg-white rounded-xl p-2 text-center border border-gray-100 shadow-sm overflow-hidden">
+                          <div className="bg-white rounded-xl p-2 text-center border border-gray-100 shadow-md overflow-hidden">
                             <div className="text-[13px] font-bold text-indigo-600 whitespace-nowrap">{isWeeklyHabit ? `${weeksGoalMet} of ${totalWeeks}w` : isMonthlyHabit ? `${monthsGoalMet} of ${totalMonths}m` : `${last30Logged}d`}</div>
                             <div className="text-[10px] text-gray-500 leading-tight mt-0.5 whitespace-nowrap">{isWeeklyHabit || isMonthlyHabit ? `since ${sinceLabel}` : 'in last 30 days'}</div>
                           </div>
-                          <div className="bg-white rounded-xl p-2 text-center border border-gray-100 shadow-sm overflow-hidden">
+                          <div className="bg-white rounded-xl p-2 text-center border border-gray-100 shadow-md overflow-hidden">
                             <div className="text-[13px] font-bold text-amber-500 whitespace-nowrap">🏆 {isWeeklyHabit ? `${wStreak.longest}w` : isMonthlyHabit ? `${mStreakExp.longest}m` : `${streak.longest}d`}</div>
                             <div className="text-[10px] text-gray-500 leading-tight mt-0.5">best streak</div>
                           </div>
@@ -970,6 +947,8 @@ export default function HabitTracker() {
                     >
                       <ChevronDown className="w-4 h-4 rotate-180" />
                     </button>
+                  </div>
+                  </div>
                   </div>
                 )}
 
@@ -1103,29 +1082,6 @@ export default function HabitTracker() {
                 </div>
                 )}
 
-                {/* Reorder footer */}
-                {isReorderMode && (
-                  <div className="bg-gray-50 px-3 py-2 flex justify-between items-center border-t border-gray-200">
-                    <div className="flex gap-2">
-                      {index > 0 && (
-                        <button onClick={() => moveHabitUp(index)} className="px-3 py-1 rounded-lg text-xs font-semibold bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 active:scale-95 transition-all">↑</button>
-                      )}
-                      {index < habits.length - 1 && (
-                        <button onClick={() => moveHabitDown(index)} className="px-3 py-1 rounded-lg text-xs font-semibold bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 active:scale-95 transition-all">↓</button>
-                      )}
-                    </div>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={(e) => { e.stopPropagation(); resetHabit(habit.id); }}
-                        className="px-3 py-1 rounded-lg text-xs font-semibold bg-amber-100 text-amber-700 hover:bg-amber-200 active:scale-95 transition-all"
-                      >Reset</button>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); deleteHabit(habit.id); }}
-                        className="px-3 py-1 rounded-lg text-xs font-semibold bg-red-100 text-red-700 hover:bg-red-200 active:scale-95 transition-all"
-                      >Delete</button>
-                    </div>
-                  </div>
-                )}
 
               </div>
             );
