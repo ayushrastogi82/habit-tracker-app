@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
-import { Plus, Check, TrendingUp, Calendar, ChevronDown, ChevronLeft, ChevronRight, Rocket, Undo2 } from 'lucide-react';
+import { Plus, Check, TrendingUp, Calendar, ChevronDown, ChevronLeft, ChevronRight, Rocket, Undo2, Download, Upload } from 'lucide-react';
 
 export default function HabitTracker() {
   const [habits, setHabits] = useState([]);
@@ -26,6 +26,7 @@ export default function HabitTracker() {
   const [heatmapMode, setHeatmapMode] = useState(() => localStorage.getItem('heatmap-mode') || 'month');
   const [monthOffset, setMonthOffset] = useState(0);
   const [nameError, setNameError] = useState(false);
+  const fileInputRef = React.useRef(null);
 
   const TOUR_STEPS = [
     { icon: '➕', title: 'Add a Habit', description: 'Tap "Add Habit" to create a new habit you want to track daily.' },
@@ -94,6 +95,54 @@ export default function HabitTracker() {
     } catch (e) {}
     if (!success) { showFeedback('❌ Failed to save'); return false; }
     return true;
+  };
+
+  const exportBackup = () => {
+    const backup = {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      habits,
+      preferences: { heatmapMode },
+    };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const date = new Date().toISOString().slice(0, 10);
+    a.href = url;
+    a.download = `habit-backup-${date}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showFeedback('✅ Backup downloaded!');
+  };
+
+  const handleImportFile = (e) => {
+    const file = e.target.files?.[0];
+    if (!fileInputRef.current) return;
+    fileInputRef.current.value = '';
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const parsed = JSON.parse(ev.target.result);
+        if (!parsed.habits || !Array.isArray(parsed.habits)) throw new Error('Invalid backup file');
+        setConfirmDialog({
+          message: `Restore ${parsed.habits.length} habit${parsed.habits.length !== 1 ? 's' : ''} from backup? This will replace all your current data.`,
+          confirmLabel: 'Restore',
+          confirmColor: 'bg-indigo-600 hover:bg-indigo-700',
+          onConfirm: async () => {
+            await saveHabits(parsed.habits);
+            if (parsed.preferences?.heatmapMode) {
+              setHeatmapMode(parsed.preferences.heatmapMode);
+              localStorage.setItem('heatmap-mode', parsed.preferences.heatmapMode);
+            }
+            showFeedback(`✅ ${parsed.habits.length} habits restored!`);
+          },
+        });
+      } catch {
+        showFeedback('❌ Invalid backup file');
+      }
+    };
+    reader.readAsText(file);
   };
 
   const addHabit = async (e) => {
@@ -536,10 +585,20 @@ export default function HabitTracker() {
                   <Plus className="w-5 h-5" />
                   Add Habit
                 </button>
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="mt-3 px-4 py-2 text-sm text-gray-500 hover:text-indigo-600 transition-colors inline-flex items-center gap-1.5"
+                >
+                  <Upload className="w-4 h-4" />
+                  Restore from backup
+                </button>
               </>
             )}
           </div>
         )}
+
+        {/* Hidden file input for backup restore */}
+        <input ref={fileInputRef} type="file" accept=".json" className="hidden" onChange={handleImportFile} />
 
         {/* Toolbar */}
         {habits.length > 0 && (
@@ -596,19 +655,31 @@ export default function HabitTracker() {
                 Add Habit
               </button>
             ) : <div />}
-            {!isAddingHabit && (
-              <button
-                onClick={() => setIsReorderMode(v => !v)}
-                className={`ml-auto px-3 h-10 rounded-xl transition-all inline-flex items-center gap-2 shadow-md hover:shadow-lg ${
-                  isReorderMode ? 'bg-gradient-to-r from-indigo-500 to-blue-600 text-white' : 'bg-white text-indigo-600 hover:bg-indigo-50'
-                }`}
-              >
-                {isReorderMode ? 'Finish' : (
+            {!isAddingHabit && !isReorderMode && (
+              <div className="ml-auto flex items-center gap-2">
+                <button onClick={exportBackup} title="Download backup"
+                  className="w-10 h-10 rounded-xl bg-white text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 transition-all inline-flex items-center justify-center shadow-md hover:shadow-lg">
+                  <Download className="w-4 h-4" />
+                </button>
+                <button onClick={() => fileInputRef.current?.click()} title="Restore backup"
+                  className="w-10 h-10 rounded-xl bg-white text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 transition-all inline-flex items-center justify-center shadow-md hover:shadow-lg">
+                  <Upload className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setIsReorderMode(true)}
+                  className="w-10 h-10 rounded-xl bg-white text-indigo-600 hover:bg-indigo-50 transition-all inline-flex items-center justify-center shadow-md hover:shadow-lg">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                   </svg>
-                )}
+                </button>
+              </div>
+            )}
+            {!isAddingHabit && isReorderMode && (
+              <button
+                onClick={() => setIsReorderMode(false)}
+                className="ml-auto px-3 h-10 rounded-xl bg-gradient-to-r from-indigo-500 to-blue-600 text-white transition-all inline-flex items-center gap-2 shadow-md hover:shadow-lg">
+                Finish
               </button>
             )}
           </div>
