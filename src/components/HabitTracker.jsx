@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
-import { Plus, Check, TrendingUp, Calendar, ChevronDown, ChevronLeft, ChevronRight, Rocket, Undo2 } from 'lucide-react';
+import { Plus, Check, TrendingUp, Calendar, ChevronDown, ChevronLeft, ChevronRight, Rocket, Undo2, Bell, BellOff } from 'lucide-react';
 
 export default function HabitTracker() {
   const [habits, setHabits] = useState([]);
@@ -26,6 +26,9 @@ export default function HabitTracker() {
   const [heatmapMode, setHeatmapMode] = useState(() => localStorage.getItem('heatmap-mode') || 'month');
   const [monthOffset, setMonthOffset] = useState(0);
   const [nameError, setNameError] = useState(false);
+  const [notifEnabled, setNotifEnabled] = useState(() => localStorage.getItem('notificationsEnabled') === 'true');
+  const [reminderTime, setReminderTime] = useState(() => localStorage.getItem('reminderTime') || '21:00');
+  const [showNotifSheet, setShowNotifSheet] = useState(false);
 
   const TOUR_STEPS = [
     { icon: '➕', title: 'Add a Habit', description: 'Tap "Add Habit" to create a new habit you want to track daily.' },
@@ -39,6 +42,19 @@ export default function HabitTracker() {
   useEffect(() => {
     if (!localStorage.getItem('habit-tour-seen')) setTourStep(0);
   }, []);
+  // Re-arm the service worker notification on every page load if enabled
+  useEffect(() => {
+    if (notifEnabled && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').then((reg) => {
+        const sendMsg = () => {
+          const sw = reg.active || reg.waiting || reg.installing;
+          if (sw) sw.postMessage({ type: 'SCHEDULE_REMINDER', time: reminderTime });
+        };
+        if (reg.active) { sendMsg(); }
+        else { reg.addEventListener('updatefound', () => reg.installing?.addEventListener('statechange', () => { if (reg.active) sendMsg(); })); }
+      }).catch(() => {});
+    }
+  }, []);
   useEffect(() => {
     if (!undoToast?.showTimer) { setUndoCountdown(undoToast?.duration || 4); return; }
     setUndoCountdown(undoToast.duration);
@@ -51,6 +67,44 @@ export default function HabitTracker() {
   const endTour = () => {
     localStorage.setItem('habit-tour-seen', '1');
     setTourStep(null);
+  };
+
+  const sendScheduleMessage = (time) => {
+    if (!('serviceWorker' in navigator)) return;
+    navigator.serviceWorker.ready.then((reg) => {
+      reg.active?.postMessage({ type: 'SCHEDULE_REMINDER', time });
+    });
+  };
+
+  const handleToggleNotifications = async (enabled) => {
+    if (enabled) {
+      if (!('Notification' in window)) { showFeedback('❌ Notifications not supported'); return; }
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') { showFeedback('❌ Permission denied'); return; }
+      try {
+        await navigator.serviceWorker.register('/sw.js');
+        localStorage.setItem('notificationsEnabled', 'true');
+        localStorage.setItem('reminderTime', reminderTime);
+        setNotifEnabled(true);
+        sendScheduleMessage(reminderTime);
+        showFeedback('🔔 Reminder set!');
+      } catch (e) { showFeedback('❌ Could not enable notifications'); }
+    } else {
+      localStorage.setItem('notificationsEnabled', 'false');
+      setNotifEnabled(false);
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then((reg) => {
+          reg.active?.postMessage({ type: 'CANCEL_REMINDER' });
+        });
+      }
+      showFeedback('🔕 Reminders off');
+    }
+  };
+
+  const handleTimeChange = (newTime) => {
+    setReminderTime(newTime);
+    localStorage.setItem('reminderTime', newTime);
+    if (notifEnabled) sendScheduleMessage(newTime);
   };
 
   const showFeedback = (message) => {
@@ -597,19 +651,30 @@ export default function HabitTracker() {
               </button>
             ) : <div />}
             {!isAddingHabit && (
-              <button
-                onClick={() => setIsReorderMode(v => !v)}
-                className={`ml-auto px-3 h-10 rounded-xl transition-all inline-flex items-center gap-2 shadow-md hover:shadow-lg ${
-                  isReorderMode ? 'bg-gradient-to-r from-indigo-500 to-blue-600 text-white' : 'bg-white text-indigo-600 hover:bg-indigo-50'
-                }`}
-              >
-                {isReorderMode ? 'Finish' : (
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                  </svg>
-                )}
-              </button>
+              <div className="ml-auto flex items-center gap-2">
+                <button
+                  onClick={() => setShowNotifSheet(true)}
+                  className={`w-10 h-10 rounded-xl transition-all inline-flex items-center justify-center shadow-md hover:shadow-lg ${
+                    notifEnabled ? 'bg-gradient-to-r from-indigo-500 to-blue-600 text-white' : 'bg-white text-indigo-600 hover:bg-indigo-50'
+                  }`}
+                  title="Reminder settings"
+                >
+                  {notifEnabled ? <Bell className="w-4 h-4" /> : <BellOff className="w-4 h-4" />}
+                </button>
+                <button
+                  onClick={() => setIsReorderMode(v => !v)}
+                  className={`px-3 h-10 rounded-xl transition-all inline-flex items-center gap-2 shadow-md hover:shadow-lg ${
+                    isReorderMode ? 'bg-gradient-to-r from-indigo-500 to-blue-600 text-white' : 'bg-white text-indigo-600 hover:bg-indigo-50'
+                  }`}
+                >
+                  {isReorderMode ? 'Finish' : (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                  )}
+                </button>
+              </div>
             )}
           </div>
         )}
@@ -1088,6 +1153,55 @@ export default function HabitTracker() {
           })}
         </div>
       </div>
+
+      {/* Notification settings bottom sheet */}
+      {showNotifSheet && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-end justify-center z-50" onClick={() => setShowNotifSheet(false)}>
+          <div className="bg-white rounded-t-2xl shadow-xl w-full max-w-md p-6 pb-8" onClick={(e) => e.stopPropagation()}>
+            <div className="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-5" />
+            <div className="flex items-center gap-3 mb-5">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${notifEnabled ? 'bg-gradient-to-r from-indigo-500 to-blue-600' : 'bg-gray-100'}`}>
+                {notifEnabled ? <Bell className="w-5 h-5 text-white" /> : <BellOff className="w-5 h-5 text-gray-400" />}
+              </div>
+              <div>
+                <h3 className="font-bold text-gray-800 text-base">Daily Reminder</h3>
+                <p className="text-xs text-gray-400">Get nudged to log your habits</p>
+              </div>
+              <button
+                onClick={() => handleToggleNotifications(!notifEnabled)}
+                className={`ml-auto relative w-12 h-6 rounded-full transition-colors duration-200 ${notifEnabled ? 'bg-indigo-500' : 'bg-gray-300'}`}
+              >
+                <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${notifEnabled ? 'translate-x-6' : 'translate-x-0'}`} />
+              </button>
+            </div>
+
+            {notifEnabled && (
+              <div className="bg-indigo-50 rounded-xl p-4 mb-4">
+                <label className="block text-xs font-semibold text-gray-600 mb-2">Remind me at</label>
+                <input
+                  type="time"
+                  value={reminderTime}
+                  onChange={(e) => handleTimeChange(e.target.value)}
+                  className="w-full px-3 py-2 border border-indigo-200 rounded-lg text-gray-800 font-semibold focus:outline-none focus:border-indigo-500 bg-white text-sm"
+                />
+              </div>
+            )}
+
+            <p className="text-xs text-gray-400 text-center leading-relaxed">
+              {notifEnabled
+                ? `You'll get a reminder every day at ${(() => { const [h, m] = reminderTime.split(':'); const hr = parseInt(h); return `${hr > 12 ? hr - 12 : hr || 12}:${m} ${hr >= 12 ? 'PM' : 'AM'}`; })()} 🔔`
+                : 'Install the app to your home screen for the most reliable notifications'}
+            </p>
+
+            <button
+              onClick={() => setShowNotifSheet(false)}
+              className="mt-5 w-full py-3 bg-gray-100 text-gray-600 rounded-xl font-semibold text-sm hover:bg-gray-200 transition-colors"
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
