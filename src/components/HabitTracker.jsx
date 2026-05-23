@@ -530,8 +530,7 @@ export default function HabitTracker() {
           onClick={(e) => e.stopPropagation()}
         >
           <div className="max-w-md mx-auto">
-            <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mt-3" />
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider text-center mt-3 mb-1">Actions</p>
+            <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mt-3 mb-2" />
             <div className="px-1 pb-2" style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}>
               <button
                 onClick={() => { setIsReorderMode(true); setShowSettingsSheet(false); }}
@@ -565,13 +564,6 @@ export default function HabitTracker() {
                 </div>
                 <span className="flex-1 text-left text-sm font-medium text-gray-800">Restore from Backup</span>
               </button>
-              <div className="h-px bg-gray-100 mx-4 mt-1" />
-              <button
-                onClick={() => setShowSettingsSheet(false)}
-                className="w-full px-4 py-3.5 text-sm font-medium text-gray-400 hover:text-gray-600 active:text-gray-800 transition-colors"
-              >
-                Cancel
-              </button>
             </div>
           </div>
         </div>
@@ -593,7 +585,7 @@ export default function HabitTracker() {
       <div className="max-w-4xl mx-auto">
 
         {/* Header */}
-        <div className="flex items-center gap-2 pb-3 mb-4 border-b border-gray-200">
+        <div className="flex items-center gap-2 pb-3 mb-4 border-b border-indigo-100">
           {!isReorderMode
             ? <button onClick={() => setIsAddingHabit(true)} disabled={isAddingHabit}
                 className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center shrink-0 active:scale-95 disabled:opacity-40">
@@ -606,8 +598,8 @@ export default function HabitTracker() {
           </div>
           {isReorderMode
             ? <button onClick={() => setIsReorderMode(false)}
-                className="px-3 h-8 rounded-lg bg-indigo-600 text-white text-sm font-semibold shrink-0 active:scale-95">
-                Done
+                className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center shrink-0 active:scale-95">
+                <Check className="w-4 h-4" strokeWidth={2.5} />
               </button>
             : <button onClick={() => setShowSettingsSheet(true)}
                 className="w-8 h-8 rounded-lg bg-white border border-gray-200 text-indigo-600 flex items-center justify-center shrink-0 active:scale-95">
