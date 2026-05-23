@@ -99,21 +99,30 @@ export default function HabitTracker() {
   };
 
   const exportBackup = () => {
-    const backup = {
-      version: 1,
-      exportedAt: new Date().toISOString(),
-      habits,
-      preferences: { heatmapMode },
-    };
-    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
     const date = new Date().toISOString().slice(0, 10);
-    a.href = url;
-    a.download = `habit-backup-${date}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    showFeedback('✅ Backup downloaded!');
+    const filename = `habit-backup-${date}.json`;
+    setConfirmDialog({
+      message: `Download "${filename}" as backup?`,
+      confirmLabel: 'Download',
+      confirmColor: 'bg-indigo-600 hover:bg-indigo-700',
+      onConfirm: () => {
+        const backup = {
+          version: 1,
+          exportedAt: new Date().toISOString(),
+          habits,
+          preferences: { heatmapMode },
+        };
+        const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+        setConfirmDialog(null);
+        showFeedback('✅ Backup downloaded!');
+      },
+    });
   };
 
   const handleImportFile = (e) => {
