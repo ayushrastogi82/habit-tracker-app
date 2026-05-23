@@ -107,20 +107,43 @@ export default function HabitTracker() {
     return true;
   };
 
-  const exportBackup = () => {
+  const exportBackup = async () => {
     const backup = {
       version: 1,
       exportedAt: new Date().toISOString(),
       habits,
       preferences: { heatmapMode },
     };
-    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+    const json = JSON.stringify(backup, null, 2);
+    const date = new Date().toISOString().slice(0, 10);
+    const fileName = `habit-backup-${date}.json`;
+
+    // iOS PWA: a.download is silently ignored — use Web Share API with files instead
+    const isIOSPWA = window.navigator.standalone === true;
+    if (isIOSPWA && navigator.share && navigator.canShare) {
+      const file = new File([json], fileName, { type: 'application/json' });
+      if (navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({ files: [file], title: 'Habit Tracker Backup' });
+          localStorage.setItem('lastBackupDate', new Date().toISOString());
+          setShowBackupReminder(false);
+          showFeedback('✅ Backup shared!');
+        } catch (e) {
+          if (e.name !== 'AbortError') showFeedback('❌ Share failed');
+        }
+        return;
+      }
+    }
+
+    // Desktop / Android / Safari browser: standard blob download
+    const blob = new Blob([json], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    const date = new Date().toISOString().slice(0, 10);
     a.href = url;
-    a.download = `habit-backup-${date}.json`;
+    a.download = fileName;
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
     URL.revokeObjectURL(url);
     localStorage.setItem('lastBackupDate', new Date().toISOString());
     setShowBackupReminder(false);
