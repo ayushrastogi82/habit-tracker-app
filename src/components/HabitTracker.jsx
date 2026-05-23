@@ -518,50 +518,53 @@ export default function HabitTracker() {
           className={`absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl transition-transform duration-300 ${showSettingsSheet ? 'translate-y-0' : 'translate-y-full'}`}
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mt-3 mb-1" />
-          <div className="px-1 pb-2">
-            <button
-              onClick={() => { setIsReorderMode(true); setShowSettingsSheet(false); }}
-              className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 rounded-xl transition-colors"
-            >
-              <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                </svg>
-              </div>
-              <span className="flex-1 text-left text-sm font-medium text-gray-800">Manage Habits</span>
-              <ChevronRight className="w-4 h-4 text-gray-300" />
-            </button>
-            <div className="h-px bg-gray-100 mx-4" />
-            <button
-              onClick={() => { exportBackup(); setShowSettingsSheet(false); }}
-              className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 rounded-xl transition-colors"
-            >
-              <div className="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center shrink-0">
-                <Download className="w-4 h-4 text-green-600" />
-              </div>
-              <span className="flex-1 text-left text-sm font-medium text-gray-800">Download Backup</span>
-              <ChevronRight className="w-4 h-4 text-gray-300" />
-            </button>
-            <div className="h-px bg-gray-100 mx-4" />
-            <button
-              onClick={() => { fileInputRef.current?.click(); setShowSettingsSheet(false); }}
-              className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 rounded-xl transition-colors"
-            >
-              <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
-                <Upload className="w-4 h-4 text-blue-600" />
-              </div>
-              <span className="flex-1 text-left text-sm font-medium text-gray-800">Restore from Backup</span>
-              <ChevronRight className="w-4 h-4 text-gray-300" />
-            </button>
-            <div className="h-px bg-gray-100 mx-4 mt-1" />
-            <button
-              onClick={() => setShowSettingsSheet(false)}
-              className="w-full px-4 py-3.5 text-sm font-medium text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              Cancel
-            </button>
+          <div className="max-w-md mx-auto">
+            <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mt-3" />
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider text-center mt-3 mb-1">Actions</p>
+            <div className="px-1 pb-2" style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}>
+              <button
+                onClick={() => { setIsReorderMode(true); setShowSettingsSheet(false); }}
+                className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 rounded-xl transition-colors"
+              >
+                <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                </div>
+                <span className="flex-1 text-left text-sm font-medium text-gray-800">Manage Habits</span>
+                <ChevronRight className="w-4 h-4 text-gray-300" />
+              </button>
+              <div className="h-px bg-gray-100 mx-4" />
+              <button
+                onClick={() => { exportBackup(); setShowSettingsSheet(false); }}
+                className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 rounded-xl transition-colors"
+              >
+                <div className="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center shrink-0">
+                  <Download className="w-4 h-4 text-green-600" />
+                </div>
+                <span className="flex-1 text-left text-sm font-medium text-gray-800">Download Backup</span>
+                <ChevronRight className="w-4 h-4 text-gray-300" />
+              </button>
+              <div className="h-px bg-gray-100 mx-4" />
+              <button
+                onClick={() => { fileInputRef.current?.click(); setShowSettingsSheet(false); }}
+                className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 rounded-xl transition-colors"
+              >
+                <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
+                  <Upload className="w-4 h-4 text-blue-600" />
+                </div>
+                <span className="flex-1 text-left text-sm font-medium text-gray-800">Restore from Backup</span>
+                <ChevronRight className="w-4 h-4 text-gray-300" />
+              </button>
+              <div className="h-px bg-gray-100 mx-4 mt-1" />
+              <button
+                onClick={() => setShowSettingsSheet(false)}
+                className="w-full px-4 py-3.5 text-sm font-medium text-gray-400 hover:text-gray-600 active:text-gray-800 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -582,9 +585,15 @@ export default function HabitTracker() {
       <div className="max-w-4xl mx-auto">
 
         {/* Header */}
-        <div className="text-center mb-8">
+        <div className="relative text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-800 mb-2">Habit Tracker</h1>
           <p className="text-gray-600">Log your progress, stay motivated</p>
+          <button
+            onClick={() => setShowSettingsSheet(true)}
+            className="absolute right-0 top-0 w-10 h-10 rounded-xl bg-white text-indigo-600 hover:bg-indigo-50 transition-all inline-flex items-center justify-center shadow-md hover:shadow-lg"
+          >
+            <MoreHorizontal className="w-5 h-5" />
+          </button>
         </div>
 
         {/* Empty state */}
@@ -715,14 +724,6 @@ export default function HabitTracker() {
                 Add Habit
               </button>
             ) : <div />}
-            {!isAddingHabit && !isReorderMode && (
-              <button
-                onClick={() => setShowSettingsSheet(true)}
-                className="ml-auto w-10 h-10 rounded-xl bg-white text-indigo-600 hover:bg-indigo-50 transition-all inline-flex items-center justify-center shadow-md hover:shadow-lg"
-              >
-                <MoreHorizontal className="w-5 h-5" />
-              </button>
-            )}
             {!isAddingHabit && isReorderMode && (
               <button
                 onClick={() => setIsReorderMode(false)}
