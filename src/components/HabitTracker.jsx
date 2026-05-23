@@ -839,7 +839,7 @@ export default function HabitTracker() {
                         e.stopPropagation();
                         if (!loggedToday) logToday(habit.id);
                       }}
-                      className={`shrink-0 self-stretch w-14 rounded-lg text-xs font-normal transition-all flex items-center justify-center gap-1 ${
+                      className={`shrink-0 self-stretch w-14 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 ${
                         loggedToday
                           ? 'bg-gradient-to-r from-green-200 to-green-300 text-green-700 cursor-default'
                           : goalAlreadyMet
@@ -869,16 +869,16 @@ export default function HabitTracker() {
                         {/* Streak/gap pill — fixed w-16 so all pills are same width */}
                         {isWeekly ? (
                           weeklyStreak.current >= 1
-                            ? <span className="w-16 py-0.5 rounded-full text-white text-xs flex items-center justify-center gap-0.5 bg-gradient-to-r from-green-300 to-green-500"><Rocket className="w-2.5 h-2.5" />{weeklyStreak.current}w</span>
-                            : weeklyGap !== null && weeklyGap >= 1 ? <span className="w-16 py-0.5 rounded-full text-white text-xs flex items-center justify-center bg-gradient-to-r from-pink-300 to-red-400">{weeklyGap}w gap</span> : <div className="w-16" />
+                            ? <span className="w-16 py-0.5 rounded-full text-white text-xs font-bold flex items-center justify-center gap-0.5 bg-gradient-to-r from-green-300 to-green-500"><Rocket className="w-2.5 h-2.5" />{weeklyStreak.current}w</span>
+                            : weeklyGap !== null && weeklyGap >= 1 ? <span className="w-16 py-0.5 rounded-full text-white text-xs font-bold flex items-center justify-center bg-gradient-to-r from-pink-300 to-red-400">{weeklyGap}w gap</span> : <div className="w-16" />
                         ) : isMonthly ? (
                           monthlyStreak.current >= 1
-                            ? <span className="w-16 py-0.5 rounded-full text-white text-xs flex items-center justify-center gap-0.5 bg-gradient-to-r from-green-300 to-green-500"><Rocket className="w-2.5 h-2.5" />{monthlyStreak.current}m</span>
-                            : monthlyGap !== null && monthlyGap >= 1 ? <span className="w-16 py-0.5 rounded-full text-white text-xs flex items-center justify-center bg-gradient-to-r from-pink-300 to-red-400">{monthlyGap}m gap</span> : <div className="w-16" />
+                            ? <span className="w-16 py-0.5 rounded-full text-white text-xs font-bold flex items-center justify-center gap-0.5 bg-gradient-to-r from-green-300 to-green-500"><Rocket className="w-2.5 h-2.5" />{monthlyStreak.current}m</span>
+                            : monthlyGap !== null && monthlyGap >= 1 ? <span className="w-16 py-0.5 rounded-full text-white text-xs font-bold flex items-center justify-center bg-gradient-to-r from-pink-300 to-red-400">{monthlyGap}m gap</span> : <div className="w-16" />
                         ) : (
                           streak.current > 1
-                            ? <span className="w-16 py-0.5 rounded-full text-white text-xs flex items-center justify-center gap-0.5 bg-gradient-to-r from-green-300 to-green-500"><Rocket className="w-2.5 h-2.5" />{streak.current}d</span>
-                            : daysSince !== null && daysSince > 0 ? <span className="w-16 py-0.5 rounded-full text-white text-xs flex items-center justify-center bg-gradient-to-r from-pink-300 to-red-400">{daysSince}d gap</span> : <div className="w-16" />
+                            ? <span className="w-16 py-0.5 rounded-full text-white text-xs font-bold flex items-center justify-center gap-0.5 bg-gradient-to-r from-green-300 to-green-500"><Rocket className="w-2.5 h-2.5" />{streak.current}d</span>
+                            : daysSince !== null && daysSince > 0 ? <span className="w-16 py-0.5 rounded-full text-white text-xs font-bold flex items-center justify-center bg-gradient-to-r from-pink-300 to-red-400">{daysSince}d gap</span> : <div className="w-16" />
                         )}
 
                         {/* Tracker */}
