@@ -743,19 +743,9 @@ export default function HabitTracker() {
             const isRenaming = renamingHabit === habit.id;
             const totalDays = getTotalDays(habit.id, habit.dates, habit.startDate);
             const loggedDays = habit.dates.length;
-            const _ht = habit.type || 'daily';
-            const _now = new Date(); _now.setHours(0,0,0,0);
-            const _cms = `${_now.getFullYear()}-${String(_now.getMonth()+1).padStart(2,'0')}`;
-            const _sow = new Date(_now); _sow.setDate(_now.getDate() - (_now.getDay() === 0 ? 6 : _now.getDay() - 1));
-            const _wd = Array.from({length: 7}, (_, i) => { const d = new Date(_sow); d.setDate(_sow.getDate() + i); return d.toISOString().slice(0,10); });
-            const goalMet = _ht === 'weekly'
-              ? _wd.filter(d => habit.dates.includes(d)).length >= (habit.weeklyTarget || 3)
-              : _ht === 'monthly'
-              ? habit.dates.filter(d => d.startsWith(_cms)).length >= (habit.monthlyTarget || 1)
-              : loggedToday;
 
             return (
-              <div key={habit.id} className={`relative overflow-visible transition-all ${viewMode === '2col' ? 'bg-white rounded-xl shadow-lg hover:shadow-xl' : isReorderMode ? 'bg-indigo-50/50 rounded-xl border border-indigo-100' : isExpanded ? goalMet ? 'bg-indigo-50/70 rounded-xl shadow-md border border-indigo-200' : loggedToday ? 'bg-indigo-50/50 rounded-xl shadow-md border border-indigo-200' : 'bg-indigo-50/40 rounded-xl shadow-md border border-indigo-200' : goalMet ? 'bg-indigo-50/70 rounded-xl shadow-md border border-indigo-200' : loggedToday ? 'bg-indigo-50/40 rounded-xl shadow-md border border-indigo-100' : 'bg-white rounded-xl shadow-md hover:shadow-md border border-gray-200'}`}>
+              <div key={habit.id} className={`relative overflow-visible transition-all ${viewMode === '2col' ? 'bg-white rounded-xl shadow-lg hover:shadow-xl' : isReorderMode ? 'bg-indigo-50/50 rounded-xl border border-indigo-100' : isExpanded ? 'bg-indigo-50/40 rounded-xl shadow-md border border-indigo-200' : 'bg-white rounded-xl shadow-md hover:shadow-md border border-gray-200'}`}>
 
                 {/* 2-col: floating streak/gap badge */}
                 {viewMode === '2col' && streak.current > 1 && (
