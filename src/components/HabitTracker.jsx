@@ -500,6 +500,9 @@ export default function HabitTracker() {
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-8" style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}>
 
+      {/* Status bar shield — sits above all overlays so iOS status bar always stays gray-50 */}
+      <div className="fixed top-0 left-0 right-0 bg-gray-50 z-[9999]" style={{ height: 'env(safe-area-inset-top)' }} />
+
       {/* Feedback toast */}
       {feedback && (
         <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 bg-white px-6 py-3 rounded-xl shadow-lg z-50 font-semibold text-gray-800 whitespace-nowrap transition-opacity duration-300 ${feedbackFading ? 'opacity-0' : 'opacity-100'}`}>
