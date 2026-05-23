@@ -106,6 +106,7 @@ export default function HabitTracker() {
       confirmLabel: 'Download',
       confirmColor: 'bg-indigo-600 hover:bg-indigo-700',
       onConfirm: () => {
+        setConfirmDialog(null);
         const backup = {
           version: 1,
           exportedAt: new Date().toISOString(),
@@ -119,7 +120,6 @@ export default function HabitTracker() {
         a.download = filename;
         a.click();
         URL.revokeObjectURL(url);
-        setConfirmDialog(null);
         showFeedback('✅ Backup downloaded!');
       },
     });
@@ -140,12 +140,12 @@ export default function HabitTracker() {
           confirmLabel: 'Restore',
           confirmColor: 'bg-indigo-600 hover:bg-indigo-700',
           onConfirm: async () => {
+            setConfirmDialog(null);
             await saveHabits(parsed.habits);
             if (parsed.preferences?.heatmapMode) {
               setHeatmapMode(parsed.preferences.heatmapMode);
               localStorage.setItem('heatmap-mode', parsed.preferences.heatmapMode);
             }
-            setConfirmDialog(null);
             showFeedback(`🎉 ${parsed.habits.length} habit${parsed.habits.length !== 1 ? 's' : ''} restored!`);
           },
         });
