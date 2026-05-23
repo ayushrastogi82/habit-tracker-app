@@ -1000,8 +1000,8 @@ export default function HabitTracker() {
                       if (isWeeklyHabit) {
                         const startWeek = getWeekStart(new Date(startUTC));
                         const curWeek = getWeekStart(new Date());
-                        totalWeeks = Math.ceil(totalDaysVal / 7);
-                        for (let w = new Date(startWeek); w.getTime() <= curWeek.getTime(); w.setDate(w.getDate() + 7)) {
+                        totalWeeks = Math.floor(totalDaysVal / 7);
+                        for (let w = new Date(startWeek); w.getTime() < curWeek.getTime(); w.setDate(w.getDate() + 7)) {
                           if (isWeekGoalMet(habit.dates, wTarget, new Date(w))) weeksGoalMet++;
                         }
                       }
