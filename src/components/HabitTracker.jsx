@@ -867,15 +867,15 @@ export default function HabitTracker() {
                         {/* Streak/gap pill — fixed w-16 so all pills are same width */}
                         {isWeekly ? (
                           weeklyStreak.current >= 1
-                            ? <span className="w-16 py-0.5 rounded-full text-green-600 text-xs font-semibold flex items-center justify-center gap-0.5 border border-green-400 bg-white"><Rocket className="w-2.5 h-2.5" />{weeklyStreak.current}w</span>
+                            ? <span className="w-16 py-0.5 rounded-full text-green-600 text-xs font-semibold flex items-center justify-center gap-0.5 border border-green-400 bg-white">{weeklyStreak.current}w<Rocket className="w-2.5 h-2.5" /></span>
                             : weeklyGap !== null && weeklyGap >= 1 ? <span className="w-16 py-0.5 rounded-full text-red-500 text-xs font-semibold flex items-center justify-center border border-red-300 bg-white">{weeklyGap}w gap</span> : <div className="w-16" />
                         ) : isMonthly ? (
                           monthlyStreak.current >= 1
-                            ? <span className="w-16 py-0.5 rounded-full text-green-600 text-xs font-semibold flex items-center justify-center gap-0.5 border border-green-400 bg-white"><Rocket className="w-2.5 h-2.5" />{monthlyStreak.current}m</span>
+                            ? <span className="w-16 py-0.5 rounded-full text-green-600 text-xs font-semibold flex items-center justify-center gap-0.5 border border-green-400 bg-white">{monthlyStreak.current}m<Rocket className="w-2.5 h-2.5" /></span>
                             : monthlyGap !== null && monthlyGap >= 1 ? <span className="w-16 py-0.5 rounded-full text-red-500 text-xs font-semibold flex items-center justify-center border border-red-300 bg-white">{monthlyGap}m gap</span> : <div className="w-16" />
                         ) : (
                           streak.current > 1
-                            ? <span className="w-16 py-0.5 rounded-full text-green-600 text-xs font-semibold flex items-center justify-center gap-0.5 border border-green-400 bg-white"><Rocket className="w-2.5 h-2.5" />{streak.current}d</span>
+                            ? <span className="w-16 py-0.5 rounded-full text-green-600 text-xs font-semibold flex items-center justify-center gap-0.5 border border-green-400 bg-white">{streak.current}d<Rocket className="w-2.5 h-2.5" /></span>
                             : daysSince !== null && daysSince > 0 ? <span className="w-16 py-0.5 rounded-full text-red-500 text-xs font-semibold flex items-center justify-center border border-red-300 bg-white">{daysSince}d gap</span> : <div className="w-16" />
                         )}
 
