@@ -998,10 +998,13 @@ export default function HabitTracker() {
                       const mStreakExp = isMonthlyHabit ? getMonthlyStreakInfo(habit.dates, mTargetExp) : null;
                       let weeksGoalMet = 0, totalWeeks = 0;
                       if (isWeeklyHabit) {
-                        const startWeek = getWeekStart(new Date(startUTC));
                         const curWeek = getWeekStart(new Date());
-                        totalWeeks = Math.floor(totalDaysVal / 7);
-                        for (let w = new Date(startWeek); w.getTime() < curWeek.getTime(); w.setDate(w.getDate() + 7)) {
+                        const startDay = new Date(startUTC).getDay(); // 0 = Sunday
+                        const startWeek = getWeekStart(new Date(startUTC));
+                        // If habit starts mid-week, skip the partial first week
+                        const firstFullWeek = new Date(startDay === 0 ? startWeek.getTime() : startWeek.getTime() + 7 * 86400000);
+                        totalWeeks = Math.round((curWeek.getTime() - firstFullWeek.getTime()) / (7 * 86400000));
+                        for (let w = new Date(firstFullWeek); w.getTime() < curWeek.getTime(); w.setDate(w.getDate() + 7)) {
                           if (isWeekGoalMet(habit.dates, wTarget, new Date(w))) weeksGoalMet++;
                         }
                       }
