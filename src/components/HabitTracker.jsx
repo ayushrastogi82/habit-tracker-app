@@ -607,28 +607,35 @@ export default function HabitTracker() {
 
       <div className="max-w-4xl mx-auto">
 
-        {/* Header */}
-        <div className="flex items-center gap-2 pb-3 mb-4 border-b border-indigo-100">
-          {!isReorderMode
-            ? <button onClick={() => setIsAddingHabit(true)} disabled={isAddingHabit}
-                className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center shrink-0 active:scale-95 disabled:opacity-40">
-                <Plus className="w-4 h-4" />
-              </button>
-            : <div className="w-8 shrink-0" />}
-          <div className="flex-1 text-center">
-            <h1 className="text-lg font-bold text-gray-800 leading-tight">Habit Tracker</h1>
-            <p className="text-xs text-gray-500 leading-tight">Log your progress, stay motivated</p>
+        {/* Header — large centered when empty, compact with controls when habits exist */}
+        {habits.length === 0 && !isAddingHabit ? (
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-gray-800 mb-2">Habit Tracker</h1>
+            <p className="text-gray-600">Log your progress, stay motivated</p>
           </div>
-          {isReorderMode
-            ? <button onClick={() => setIsReorderMode(false)}
-                className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center shrink-0 active:scale-95">
-                <Check className="w-4 h-4" strokeWidth={2.5} />
-              </button>
-            : <button onClick={() => setShowSettingsSheet(true)}
-                className="w-8 h-8 rounded-lg bg-white border border-gray-200 text-indigo-600 flex items-center justify-center shrink-0 active:scale-95">
-                <MoreHorizontal className="w-4 h-4" />
-              </button>}
-        </div>
+        ) : (
+          <div className="flex items-center gap-2 pb-3 mb-4 border-b border-indigo-100">
+            {!isReorderMode
+              ? <button onClick={() => setIsAddingHabit(true)} disabled={isAddingHabit}
+                  className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center shrink-0 active:scale-95 disabled:opacity-40">
+                  <Plus className="w-4 h-4" />
+                </button>
+              : <div className="w-8 shrink-0" />}
+            <div className="flex-1 text-center">
+              <h1 className="text-lg font-bold text-gray-800 leading-tight">Habit Tracker</h1>
+              <p className="text-xs text-gray-500 leading-tight">Log your progress, stay motivated</p>
+            </div>
+            {isReorderMode
+              ? <button onClick={() => setIsReorderMode(false)}
+                  className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center shrink-0 active:scale-95">
+                  <Check className="w-4 h-4" strokeWidth={2.5} />
+                </button>
+              : <button onClick={() => setShowSettingsSheet(true)}
+                  className="w-8 h-8 rounded-lg bg-white border border-gray-200 text-indigo-600 flex items-center justify-center shrink-0 active:scale-95">
+                  <MoreHorizontal className="w-4 h-4" />
+                </button>}
+          </div>
+        )}
 
         {/* Inline add habit form */}
         {isAddingHabit && (
@@ -701,14 +708,23 @@ export default function HabitTracker() {
           <div className="bg-white rounded-2xl shadow-lg text-center p-12">
             <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h2 className="text-2xl font-semibold text-gray-700 mb-2">Start Your Journey</h2>
-            <p className="text-gray-500 mb-6">Tap + above to add your first habit</p>
+            <p className="text-gray-500 mb-6">Add your first habit to get started</p>
             <button
-              onClick={() => fileInputRef.current?.click()}
-              className="px-4 py-2 text-sm text-gray-500 hover:text-indigo-600 transition-colors inline-flex items-center gap-1.5"
+              onClick={() => setIsAddingHabit(true)}
+              className="px-6 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-semibold shadow-md active:scale-95 mb-4 inline-flex items-center gap-2"
             >
-              <Upload className="w-4 h-4" />
-              Restore from backup
+              <Plus className="w-4 h-4" />
+              Add Habit
             </button>
+            <div>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="px-4 py-2 text-sm text-gray-500 hover:text-indigo-600 transition-colors inline-flex items-center gap-1.5"
+              >
+                <Upload className="w-4 h-4" />
+                Restore from backup
+              </button>
+            </div>
           </div>
         )}
 
