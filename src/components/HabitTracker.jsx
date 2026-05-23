@@ -856,61 +856,59 @@ export default function HabitTracker() {
                       onClick={() => toggleHabitExpansion(habit.id)}
                       className="flex items-stretch gap-2 px-3 py-2 cursor-pointer"
                     >
-                      {/* Left: 2-row info */}
+                      {/* Left: name + type label */}
                       <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5">
-
-                        {/* Row 1: name + streak/gap pill */}
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          <div className="font-bold text-gray-800 truncate text-sm flex-1 min-w-0">{habit.name}</div>
-                          {isWeekly ? (
-                            weeklyStreak.current >= 1
-                              ? <span className="px-2 py-0.5 rounded-full text-white text-xs flex items-center gap-0.5 bg-gradient-to-r from-green-300 to-green-500 shrink-0"><Rocket className="w-2.5 h-2.5" />{weeklyStreak.current}w</span>
-                              : weeklyGap !== null && weeklyGap >= 1 ? <span className="px-2 py-0.5 rounded-full text-white text-xs bg-gradient-to-r from-pink-300 to-red-400 shrink-0">{weeklyGap}w gap</span> : null
-                          ) : isMonthly ? (
-                            monthlyStreak.current >= 1
-                              ? <span className="px-2 py-0.5 rounded-full text-white text-xs flex items-center gap-0.5 bg-gradient-to-r from-green-300 to-green-500 shrink-0"><Rocket className="w-2.5 h-2.5" />{monthlyStreak.current}m</span>
-                              : monthlyGap !== null && monthlyGap >= 1 ? <span className="px-2 py-0.5 rounded-full text-white text-xs bg-gradient-to-r from-pink-300 to-red-400 shrink-0">{monthlyGap}m gap</span> : null
-                          ) : (
-                            streak.current > 1
-                              ? <span className="px-2 py-0.5 rounded-full text-white text-xs flex items-center gap-0.5 bg-gradient-to-r from-green-300 to-green-500 shrink-0"><Rocket className="w-2.5 h-2.5" />{streak.current}d</span>
-                              : daysSince !== null && daysSince > 0 ? <span className="px-2 py-0.5 rounded-full text-white text-xs bg-gradient-to-r from-pink-300 to-red-400 shrink-0">{daysSince}d gap</span> : null
-                          )}
-                        </div>
-
-                        {/* Row 2: type label + tracker */}
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-xs text-gray-400 shrink-0">
-                            {isWeekly ? `Weekly · ${wTarget}/wk` : isMonthly ? `Monthly · ${mTarget}/mo` : 'Daily'}
-                          </span>
-                          <div className="flex-1" />
-                          {isWeekly ? (
-                            <div className="flex items-center justify-center gap-0.5 shrink-0">
-                              {weekDays.map((dateStr, i) => {
-                                const logged = habit.dates.includes(dateStr);
-                                const future = dateStr > todayStr;
-                                const isToday = dateStr === todayStr;
-                                return (
-                                  <div key={i} className={`w-[10px] h-[10px] rounded-full flex items-center justify-center transition-all ${
-                                    logged ? (weekGoalMet ? 'bg-gradient-to-br from-green-400 to-emerald-500' : 'bg-gradient-to-br from-indigo-400 to-blue-500')
-                                    : !future ? 'bg-rose-100'
-                                    : isToday ? 'border-2 border-indigo-400 bg-white'
-                                    : 'border border-gray-200 bg-white'
-                                  }`}>
-                                    {logged && <Check className="w-1.5 h-1.5 text-white" strokeWidth={3} />}
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          ) : (
-                            <div className={`flex items-center gap-1 shrink-0 ${(isMonthly ? monthGoalMet : loggedToday) ? 'text-green-500' : 'text-indigo-500'}`}>
-                              <TrendingUp className="w-3.5 h-3.5 shrink-0" />
-                              <span className="text-xs font-bold whitespace-nowrap">{daysThisMonth}d this mo</span>
-                            </div>
-                          )}
-                        </div>
+                        <div className="font-bold text-gray-800 truncate text-sm">{habit.name}</div>
+                        <span className="text-xs text-gray-400">
+                          {isWeekly ? `Weekly · ${wTarget}/wk` : isMonthly ? `Monthly · ${mTarget}/mo` : 'Daily'}
+                        </span>
                       </div>
 
-                      {/* Right: Done button — spans full card height */}
+                      {/* Middle: streak/gap pill (top) + tracker (bottom) — same column, right-aligned, extra gap before Done */}
+                      <div className="flex flex-col justify-center items-end gap-0.5 shrink-0 mr-1.5">
+                        {/* Streak/gap pill — fixed w-16 so all pills are same width */}
+                        {isWeekly ? (
+                          weeklyStreak.current >= 1
+                            ? <span className="w-16 py-0.5 rounded-full text-white text-xs flex items-center justify-center gap-0.5 bg-gradient-to-r from-green-300 to-green-500"><Rocket className="w-2.5 h-2.5" />{weeklyStreak.current}w</span>
+                            : weeklyGap !== null && weeklyGap >= 1 ? <span className="w-16 py-0.5 rounded-full text-white text-xs flex items-center justify-center bg-gradient-to-r from-pink-300 to-red-400">{weeklyGap}w gap</span> : <div className="w-16" />
+                        ) : isMonthly ? (
+                          monthlyStreak.current >= 1
+                            ? <span className="w-16 py-0.5 rounded-full text-white text-xs flex items-center justify-center gap-0.5 bg-gradient-to-r from-green-300 to-green-500"><Rocket className="w-2.5 h-2.5" />{monthlyStreak.current}m</span>
+                            : monthlyGap !== null && monthlyGap >= 1 ? <span className="w-16 py-0.5 rounded-full text-white text-xs flex items-center justify-center bg-gradient-to-r from-pink-300 to-red-400">{monthlyGap}m gap</span> : <div className="w-16" />
+                        ) : (
+                          streak.current > 1
+                            ? <span className="w-16 py-0.5 rounded-full text-white text-xs flex items-center justify-center gap-0.5 bg-gradient-to-r from-green-300 to-green-500"><Rocket className="w-2.5 h-2.5" />{streak.current}d</span>
+                            : daysSince !== null && daysSince > 0 ? <span className="w-16 py-0.5 rounded-full text-white text-xs flex items-center justify-center bg-gradient-to-r from-pink-300 to-red-400">{daysSince}d gap</span> : <div className="w-16" />
+                        )}
+
+                        {/* Tracker */}
+                        {isWeekly ? (
+                          <div className="flex items-center justify-center gap-0.5">
+                            {weekDays.map((dateStr, i) => {
+                              const logged = habit.dates.includes(dateStr);
+                              const future = dateStr > todayStr;
+                              const isToday = dateStr === todayStr;
+                              return (
+                                <div key={i} className={`w-[10px] h-[10px] rounded-full flex items-center justify-center transition-all ${
+                                  logged ? (weekGoalMet ? 'bg-gradient-to-br from-green-400 to-emerald-500' : 'bg-gradient-to-br from-indigo-400 to-blue-500')
+                                  : !future ? 'bg-rose-100'
+                                  : isToday ? 'border-2 border-indigo-400 bg-white'
+                                  : 'border border-gray-200 bg-white'
+                                }`}>
+                                  {logged && <Check className="w-1.5 h-1.5 text-white" strokeWidth={3} />}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <div className={`flex items-center gap-1 ${(isMonthly ? monthGoalMet : loggedToday) ? 'text-green-500' : 'text-indigo-500'}`}>
+                            <TrendingUp className="w-3.5 h-3.5 shrink-0" />
+                            <span className="text-xs font-bold whitespace-nowrap">{daysThisMonth}d this mo</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Done button — spans full card height */}
                       {logBtn}
                     </div>
                   );
