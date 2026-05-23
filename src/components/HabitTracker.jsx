@@ -771,7 +771,7 @@ export default function HabitTracker() {
                   const currentTarget = habitType === 'weekly' ? habitTarget : monthlyHabitTarget;
                   const maxTarget = habitType === 'weekly' ? 7 : 30;
                   return (
-                    <div className="flex items-center gap-1 px-2 py-2">
+                    <div className="flex items-center gap-1 pl-1 pr-2 py-2">
                       {/* ↑↓ arrows */}
                       {index > 0
                         ? <button onClick={() => moveHabitUp(index)} className="w-6 h-6 shrink-0 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 text-xs font-bold active:scale-95">↑</button>
