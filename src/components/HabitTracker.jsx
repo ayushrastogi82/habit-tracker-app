@@ -854,20 +854,14 @@ export default function HabitTracker() {
                   return (
                     <div
                       onClick={() => toggleHabitExpansion(habit.id)}
-                      className="flex items-stretch gap-2 px-3 py-2.5 cursor-pointer"
+                      className="flex items-stretch gap-2 px-3 py-2 cursor-pointer"
                     >
                       {/* Left: 2-row info */}
-                      <div className="flex-1 min-w-0 flex flex-col justify-center gap-1">
-                        {/* Row 1: habit name */}
-                        <div className="font-bold text-gray-800 truncate text-sm">{habit.name}</div>
+                      <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5">
 
-                        {/* Row 2: type · streak/gap pill · tracker — full original visual weight */}
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-xs text-gray-400 shrink-0">
-                            {isWeekly ? `Weekly · ${wTarget}/wk` : isMonthly ? `Monthly · ${mTarget}/mo` : 'Daily'}
-                          </span>
-
-                          {/* Streak / gap pill — same gradients as original */}
+                        {/* Row 1: name + streak/gap pill */}
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <div className="font-bold text-gray-800 truncate text-sm flex-1 min-w-0">{habit.name}</div>
                           {isWeekly ? (
                             weeklyStreak.current >= 1
                               ? <span className="px-2 py-0.5 rounded-full text-white text-xs flex items-center gap-0.5 bg-gradient-to-r from-green-300 to-green-500 shrink-0"><Rocket className="w-2.5 h-2.5" />{weeklyStreak.current}w</span>
@@ -881,10 +875,14 @@ export default function HabitTracker() {
                               ? <span className="px-2 py-0.5 rounded-full text-white text-xs flex items-center gap-0.5 bg-gradient-to-r from-green-300 to-green-500 shrink-0"><Rocket className="w-2.5 h-2.5" />{streak.current}d</span>
                               : daysSince !== null && daysSince > 0 ? <span className="px-2 py-0.5 rounded-full text-white text-xs bg-gradient-to-r from-pink-300 to-red-400 shrink-0">{daysSince}d gap</span> : null
                           )}
+                        </div>
 
+                        {/* Row 2: type label + tracker */}
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs text-gray-400 shrink-0">
+                            {isWeekly ? `Weekly · ${wTarget}/wk` : isMonthly ? `Monthly · ${mTarget}/mo` : 'Daily'}
+                          </span>
                           <div className="flex-1" />
-
-                          {/* Tracker — right-aligned, original visual weight */}
                           {isWeekly ? (
                             <div className="flex items-center justify-center gap-0.5 shrink-0">
                               {weekDays.map((dateStr, i) => {
