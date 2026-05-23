@@ -1020,18 +1020,18 @@ export default function HabitTracker() {
                         }
                       }
                       return (
-                        <div className="grid grid-cols-3 gap-1 mb-1.5">
-                          <div className="bg-white rounded-xl p-1.5 text-center border border-gray-100 shadow-md overflow-hidden">
-                            <div className="text-[11px] font-bold text-indigo-600 whitespace-nowrap">{loggedDays} of {totalDaysVal}d</div>
-                            <div className="text-[9px] text-gray-500 leading-tight whitespace-nowrap">since {sinceLabel}</div>
+                        <div className="grid grid-cols-3 gap-1.5 mb-2">
+                          <div className="bg-white rounded-xl p-2 text-center border border-gray-100 shadow-md overflow-hidden">
+                            <div className="text-[13px] font-bold text-indigo-600 whitespace-nowrap">{loggedDays} of {totalDaysVal}d</div>
+                            <div className="text-[10px] text-gray-500 leading-tight mt-0.5 whitespace-nowrap">since {sinceLabel}</div>
                           </div>
-                          <div className="bg-white rounded-xl p-1.5 text-center border border-gray-100 shadow-md overflow-hidden">
-                            <div className="text-[11px] font-bold text-indigo-600 whitespace-nowrap">{isWeeklyHabit ? `${weeksGoalMet} of ${totalWeeks}w` : isMonthlyHabit ? `${monthsGoalMet} of ${totalMonths}m` : `${last30Logged}d`}</div>
-                            <div className="text-[9px] text-gray-500 leading-tight whitespace-nowrap">{isWeeklyHabit || isMonthlyHabit ? `since ${sinceLabel}` : 'in last 30 days'}</div>
+                          <div className="bg-white rounded-xl p-2 text-center border border-gray-100 shadow-md overflow-hidden">
+                            <div className="text-[13px] font-bold text-indigo-600 whitespace-nowrap">{isWeeklyHabit ? `${weeksGoalMet} of ${totalWeeks}w` : isMonthlyHabit ? `${monthsGoalMet} of ${totalMonths}m` : `${last30Logged}d`}</div>
+                            <div className="text-[10px] text-gray-500 leading-tight mt-0.5 whitespace-nowrap">{isWeeklyHabit || isMonthlyHabit ? `since ${sinceLabel}` : 'in last 30 days'}</div>
                           </div>
-                          <div className="bg-white rounded-xl p-1.5 text-center border border-gray-100 shadow-md overflow-hidden">
-                            <div className="text-[11px] font-bold text-amber-500 whitespace-nowrap">🏆 {isWeeklyHabit ? `${wStreak.longest}w` : isMonthlyHabit ? `${mStreakExp.longest}m` : `${streak.longest}d`}</div>
-                            <div className="text-[9px] text-gray-500 leading-tight">best streak</div>
+                          <div className="bg-white rounded-xl p-2 text-center border border-gray-100 shadow-md overflow-hidden">
+                            <div className="text-[13px] font-bold text-amber-500 whitespace-nowrap">🏆 {isWeeklyHabit ? `${wStreak.longest}w` : isMonthlyHabit ? `${mStreakExp.longest}m` : `${streak.longest}d`}</div>
+                            <div className="text-[10px] text-gray-500 leading-tight mt-0.5">best streak</div>
                           </div>
                         </div>
                       );
