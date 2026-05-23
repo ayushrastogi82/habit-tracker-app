@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
-import { Plus, Check, TrendingUp, Calendar, ChevronDown, ChevronLeft, ChevronRight, Rocket, Undo2 } from 'lucide-react';
+import { Plus, Check, TrendingUp, Calendar, ChevronDown, ChevronLeft, ChevronRight, Rocket, Undo2, Download, Upload, MoreHorizontal } from 'lucide-react';
 
 export default function HabitTracker() {
   const [habits, setHabits] = useState([]);
@@ -26,6 +26,11 @@ export default function HabitTracker() {
   const [heatmapMode, setHeatmapMode] = useState(() => localStorage.getItem('heatmap-mode') || 'month');
   const [monthOffset, setMonthOffset] = useState(0);
   const [nameError, setNameError] = useState(false);
+  const [showSettingsSheet, setShowSettingsSheet] = useState(false);
+  const [showBackupReminder, setShowBackupReminder] = useState(false);
+  const fileInputRef = React.useRef(null);
+
+  const BACKUP_REMINDER_DAYS = 5;
 
   const TOUR_STEPS = [
     { icon: '➕', title: 'Add a Habit', description: 'Tap "Add Habit" to create a new habit you want to track daily.' },
@@ -38,6 +43,12 @@ export default function HabitTracker() {
   useEffect(() => { loadHabits(); }, []);
   useEffect(() => {
     if (!localStorage.getItem('habit-tour-seen')) setTourStep(0);
+  }, []);
+  useEffect(() => {
+    const last = localStorage.getItem('lastBackupDate');
+    if (!last) return; // never backed up — don't nag until they've backed up once
+    const daysSince = (Date.now() - new Date(last).getTime()) / (1000 * 60 * 60 * 24);
+    if (daysSince >= BACKUP_REMINDER_DAYS) setShowBackupReminder(true);
   }, []);
   useEffect(() => {
     if (!undoToast?.showTimer) { setUndoCountdown(undoToast?.duration || 4); return; }
@@ -94,6 +105,57 @@ export default function HabitTracker() {
     } catch (e) {}
     if (!success) { showFeedback('❌ Failed to save'); return false; }
     return true;
+  };
+
+  const exportBackup = () => {
+    const backup = {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      habits,
+      preferences: { heatmapMode },
+    };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const date = new Date().toISOString().slice(0, 10);
+    a.href = url;
+    a.download = `habit-backup-${date}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    localStorage.setItem('lastBackupDate', new Date().toISOString());
+    setShowBackupReminder(false);
+    showFeedback('✅ Backup downloaded!');
+  };
+
+  const handleImportFile = (e) => {
+    const file = e.target.files?.[0];
+    if (!fileInputRef.current) return;
+    fileInputRef.current.value = '';
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const parsed = JSON.parse(ev.target.result);
+        if (!parsed.habits || !Array.isArray(parsed.habits)) throw new Error('Invalid backup file');
+        setConfirmDialog({
+          message: `Restore ${parsed.habits.length} habit${parsed.habits.length !== 1 ? 's' : ''} from backup${parsed.exportedAt ? ` (saved ${new Date(parsed.exportedAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })})` : ''}? This will replace all your current data.`,
+          confirmLabel: 'Restore',
+          confirmColor: 'bg-indigo-600 hover:bg-indigo-700',
+          onConfirm: async () => {
+            setConfirmDialog(null);
+            await saveHabits(parsed.habits);
+            if (parsed.preferences?.heatmapMode) {
+              setHeatmapMode(parsed.preferences.heatmapMode);
+              localStorage.setItem('heatmap-mode', parsed.preferences.heatmapMode);
+            }
+            showFeedback(`🎉 ${parsed.habits.length} habit${parsed.habits.length !== 1 ? 's' : ''} restored!`);
+          },
+        });
+      } catch {
+        showFeedback('❌ Invalid backup file');
+      }
+    };
+    reader.readAsText(file);
   };
 
   const addHabit = async (e) => {
@@ -416,7 +478,7 @@ export default function HabitTracker() {
 
       {/* Feedback toast */}
       {feedback && (
-        <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 bg-white px-6 py-3 rounded-xl shadow-lg z-50 font-semibold text-gray-800 transition-opacity duration-300 ${feedbackFading ? 'opacity-0' : 'opacity-100'}`}>
+        <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 bg-white px-6 py-3 rounded-xl shadow-lg z-50 font-semibold text-gray-800 whitespace-nowrap transition-opacity duration-300 ${feedbackFading ? 'opacity-0' : 'opacity-100'}`}>
           {feedback}
         </div>
       )}
@@ -457,14 +519,72 @@ export default function HabitTracker() {
         </div>
       )}
 
+      {/* Settings tray */}
+      <div
+        className={`fixed inset-0 z-50 transition-opacity duration-200 ${showSettingsSheet ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+        style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}
+        onClick={() => setShowSettingsSheet(false)}
+      >
+        <div
+          className={`absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl transition-transform duration-300 ${showSettingsSheet ? 'translate-y-0' : 'translate-y-full'}`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="max-w-md mx-auto">
+            <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mt-3" />
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider text-center mt-3 mb-1">Actions</p>
+            <div className="px-1 pb-2" style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}>
+              <button
+                onClick={() => { setIsReorderMode(true); setShowSettingsSheet(false); }}
+                className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 rounded-xl transition-colors"
+              >
+                <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                </div>
+                <span className="flex-1 text-left text-sm font-medium text-gray-800">Manage Habits</span>
+              </button>
+              <div className="h-px bg-gray-100 mx-4" />
+              <button
+                onClick={() => { exportBackup(); setShowSettingsSheet(false); }}
+                className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 rounded-xl transition-colors"
+              >
+                <div className="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center shrink-0">
+                  <Download className="w-4 h-4 text-green-600" />
+                </div>
+                <span className="flex-1 text-left text-sm font-medium text-gray-800">Download Backup</span>
+              </button>
+              <div className="h-px bg-gray-100 mx-4" />
+              <button
+                onClick={() => { fileInputRef.current?.click(); setShowSettingsSheet(false); }}
+                className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 rounded-xl transition-colors"
+              >
+                <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
+                  <Upload className="w-4 h-4 text-blue-600" />
+                </div>
+                <span className="flex-1 text-left text-sm font-medium text-gray-800">Restore from Backup</span>
+              </button>
+              <div className="h-px bg-gray-100 mx-4 mt-1" />
+              <button
+                onClick={() => setShowSettingsSheet(false)}
+                className="w-full px-4 py-3.5 text-sm font-medium text-gray-400 hover:text-gray-600 active:text-gray-800 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Confirm dialog */}
       {confirmDialog && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6">
-            <p className="text-gray-800 text-lg mb-6">{confirmDialog.message}</p>
-            <div className="flex gap-3">
-              <button onClick={confirmDialog.onConfirm} className={`flex-1 px-6 py-3 text-white rounded-xl font-semibold ${confirmDialog.confirmColor || 'bg-red-600 hover:bg-red-700'}`}>{confirmDialog.confirmLabel || 'Delete'}</button>
-              <button onClick={() => setConfirmDialog(null)} className="flex-1 px-6 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 font-semibold">Cancel</button>
+          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-4">
+            <p className="text-gray-700 text-sm mb-4 leading-relaxed">{confirmDialog.message}</p>
+            <div className="flex gap-2">
+              <button onClick={confirmDialog.onConfirm} className={`flex-1 px-4 py-2 text-white rounded-xl text-sm font-semibold ${confirmDialog.confirmColor || 'bg-red-600 hover:bg-red-700'}`}>{confirmDialog.confirmLabel || 'Delete'}</button>
+              <button onClick={() => setConfirmDialog(null)} className="flex-1 px-4 py-2 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 text-sm font-semibold">Cancel</button>
             </div>
           </div>
         </div>
@@ -477,6 +597,26 @@ export default function HabitTracker() {
           <h1 className="text-4xl font-bold text-gray-800 mb-2">Habit Tracker</h1>
           <p className="text-gray-600">Log your progress, stay motivated</p>
         </div>
+
+        {/* Backup reminder banner */}
+        {showBackupReminder && habits.length > 0 && (
+          <div className="mb-4 flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+            <span className="text-lg shrink-0">💾</span>
+            <p className="flex-1 text-xs text-amber-800 font-medium">No backup in {BACKUP_REMINDER_DAYS}+ days. Download one to stay safe.</p>
+            <button
+              onClick={() => { exportBackup(); }}
+              className="shrink-0 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold rounded-lg transition-colors"
+            >
+              Backup
+            </button>
+            <button
+              onClick={() => setShowBackupReminder(false)}
+              className="shrink-0 text-amber-400 hover:text-amber-600 text-lg leading-none transition-colors"
+            >
+              ×
+            </button>
+          </div>
+        )}
 
         {/* Empty state */}
         {habits.length === 0 && (
@@ -536,10 +676,20 @@ export default function HabitTracker() {
                   <Plus className="w-5 h-5" />
                   Add Habit
                 </button>
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="mt-3 px-4 py-2 text-sm text-gray-500 hover:text-indigo-600 transition-colors inline-flex items-center gap-1.5"
+                >
+                  <Upload className="w-4 h-4" />
+                  Restore from backup
+                </button>
               </>
             )}
           </div>
         )}
+
+        {/* Hidden file input for backup restore */}
+        <input ref={fileInputRef} type="file" accept=".json" className="hidden" onChange={handleImportFile} />
 
         {/* Toolbar */}
         {habits.length > 0 && (
@@ -596,19 +746,19 @@ export default function HabitTracker() {
                 Add Habit
               </button>
             ) : <div />}
-            {!isAddingHabit && (
+            {!isAddingHabit && !isReorderMode && (
               <button
-                onClick={() => setIsReorderMode(v => !v)}
-                className={`ml-auto px-3 h-10 rounded-xl transition-all inline-flex items-center gap-2 shadow-md hover:shadow-lg ${
-                  isReorderMode ? 'bg-gradient-to-r from-indigo-500 to-blue-600 text-white' : 'bg-white text-indigo-600 hover:bg-indigo-50'
-                }`}
+                onClick={() => setShowSettingsSheet(true)}
+                className="ml-auto w-10 h-10 rounded-xl bg-white text-indigo-600 hover:bg-indigo-50 transition-all inline-flex items-center justify-center shadow-md hover:shadow-lg"
               >
-                {isReorderMode ? 'Finish' : (
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                  </svg>
-                )}
+                <MoreHorizontal className="w-5 h-5" />
+              </button>
+            )}
+            {!isAddingHabit && isReorderMode && (
+              <button
+                onClick={() => setIsReorderMode(false)}
+                className="ml-auto px-3 h-10 rounded-xl bg-gradient-to-r from-indigo-500 to-blue-600 text-white transition-all inline-flex items-center gap-2 shadow-md hover:shadow-lg">
+                Finish
               </button>
             )}
           </div>
