@@ -771,14 +771,12 @@ export default function HabitTracker() {
                   const currentTarget = habitType === 'weekly' ? habitTarget : monthlyHabitTarget;
                   const maxTarget = habitType === 'weekly' ? 7 : 30;
                   return (
-                    <div className="flex items-center gap-1 pl-1 pr-2 py-2">
-                      {/* ↑↓ arrows */}
-                      {index > 0
-                        ? <button onClick={() => moveHabitUp(index)} className="w-6 h-6 shrink-0 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 text-xs font-bold active:scale-95">↑</button>
-                        : <span className="w-6 h-6 shrink-0" />}
-                      {index < habits.length - 1
-                        ? <button onClick={() => moveHabitDown(index)} className="w-6 h-6 shrink-0 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 text-xs font-bold active:scale-95">↓</button>
-                        : <span className="w-6 h-6 shrink-0" />}
+                    <div className="flex items-center gap-0.5 pl-1 pr-2 py-2">
+                      {/* ↑↓ arrows — always visible, grayed when disabled */}
+                      <button onClick={() => moveHabitUp(index)} disabled={index === 0}
+                        className={`w-5 h-5 shrink-0 rounded flex items-center justify-center text-xs font-bold transition-colors ${index === 0 ? 'bg-gray-50 text-gray-300 cursor-default' : 'bg-gray-100 hover:bg-gray-200 text-gray-600 active:scale-95'}`}>↑</button>
+                      <button onClick={() => moveHabitDown(index)} disabled={index === habits.length - 1}
+                        className={`w-5 h-5 shrink-0 rounded flex items-center justify-center text-xs font-bold transition-colors ${index === habits.length - 1 ? 'bg-gray-50 text-gray-300 cursor-default' : 'bg-gray-100 hover:bg-gray-200 text-gray-600 active:scale-95'}`}>↓</button>
                       {/* Habit name */}
                       {isRenaming
                         ? <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)}
