@@ -839,7 +839,7 @@ export default function HabitTracker() {
                         e.stopPropagation();
                         if (!loggedToday) logToday(habit.id);
                       }}
-                      className={`shrink-0 w-14 py-1.5 rounded-lg text-xs font-normal transition-all flex items-center justify-center gap-1 ${
+                      className={`shrink-0 self-stretch w-14 rounded-lg text-xs font-normal transition-all flex items-center justify-center gap-1 ${
                         loggedToday
                           ? 'bg-gradient-to-r from-green-200 to-green-300 text-green-700 cursor-default'
                           : goalAlreadyMet
@@ -854,55 +854,65 @@ export default function HabitTracker() {
                   return (
                     <div
                       onClick={() => toggleHabitExpansion(habit.id)}
-                      className="flex items-center gap-2 px-3 py-2.5 cursor-pointer"
+                      className="flex items-stretch gap-2 px-3 py-2.5 cursor-pointer"
                     >
                       {/* Left: 2-row info */}
-                      <div className="flex-1 min-w-0 flex flex-col gap-0.5">
+                      <div className="flex-1 min-w-0 flex flex-col justify-center gap-1">
                         {/* Row 1: habit name */}
                         <div className="font-bold text-gray-800 truncate text-sm">{habit.name}</div>
 
-                        {/* Row 2: type · streak/gap · tracker */}
-                        <div className="flex items-center gap-1 text-[10px] leading-tight text-gray-500">
-                          {/* Type label */}
-                          <span>{isWeekly ? `Weekly · ${wTarget}/wk` : isMonthly ? `Monthly · ${mTarget}/mo` : 'Daily'}</span>
+                        {/* Row 2: type · streak/gap pill · tracker — full original visual weight */}
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs text-gray-400 shrink-0">
+                            {isWeekly ? `Weekly · ${wTarget}/wk` : isMonthly ? `Monthly · ${mTarget}/mo` : 'Daily'}
+                          </span>
 
-                          {/* Streak / gap inline */}
+                          {/* Streak / gap pill — same gradients as original */}
                           {isWeekly ? (
                             weeklyStreak.current >= 1
-                              ? <span className="text-green-600 font-semibold flex items-center gap-0.5">· <Rocket className="w-2 h-2" />{weeklyStreak.current}w</span>
-                              : weeklyGap !== null && weeklyGap >= 1 ? <span className="text-red-500 font-semibold">· {weeklyGap}w gap</span> : null
+                              ? <span className="px-2 py-0.5 rounded-full text-white text-xs flex items-center gap-0.5 bg-gradient-to-r from-green-300 to-green-500 shrink-0"><Rocket className="w-2.5 h-2.5" />{weeklyStreak.current}w</span>
+                              : weeklyGap !== null && weeklyGap >= 1 ? <span className="px-2 py-0.5 rounded-full text-white text-xs bg-gradient-to-r from-pink-300 to-red-400 shrink-0">{weeklyGap}w gap</span> : null
                           ) : isMonthly ? (
                             monthlyStreak.current >= 1
-                              ? <span className="text-green-600 font-semibold flex items-center gap-0.5">· <Rocket className="w-2 h-2" />{monthlyStreak.current}m</span>
-                              : monthlyGap !== null && monthlyGap >= 1 ? <span className="text-red-500 font-semibold">· {monthlyGap}m gap</span> : null
+                              ? <span className="px-2 py-0.5 rounded-full text-white text-xs flex items-center gap-0.5 bg-gradient-to-r from-green-300 to-green-500 shrink-0"><Rocket className="w-2.5 h-2.5" />{monthlyStreak.current}m</span>
+                              : monthlyGap !== null && monthlyGap >= 1 ? <span className="px-2 py-0.5 rounded-full text-white text-xs bg-gradient-to-r from-pink-300 to-red-400 shrink-0">{monthlyGap}m gap</span> : null
                           ) : (
                             streak.current > 1
-                              ? <span className="text-green-600 font-semibold flex items-center gap-0.5">· <Rocket className="w-2 h-2" />{streak.current}d</span>
-                              : daysSince !== null && daysSince > 0 ? <span className="text-red-500 font-semibold">· {daysSince}d gap</span> : null
+                              ? <span className="px-2 py-0.5 rounded-full text-white text-xs flex items-center gap-0.5 bg-gradient-to-r from-green-300 to-green-500 shrink-0"><Rocket className="w-2.5 h-2.5" />{streak.current}d</span>
+                              : daysSince !== null && daysSince > 0 ? <span className="px-2 py-0.5 rounded-full text-white text-xs bg-gradient-to-r from-pink-300 to-red-400 shrink-0">{daysSince}d gap</span> : null
                           )}
 
-                          {/* Tracker — right-aligned */}
+                          <div className="flex-1" />
+
+                          {/* Tracker — right-aligned, original visual weight */}
                           {isWeekly ? (
-                            <span className="flex items-center gap-0.5 ml-auto">
-                              {weekDays.map((dateStr, i) => (
-                                <span key={i} className={`inline-block w-1.5 h-1.5 rounded-full ${
-                                  habit.dates.includes(dateStr)
-                                    ? weekGoalMet ? 'bg-green-500' : 'bg-indigo-500'
-                                    : dateStr > todayStr ? 'bg-gray-200' : 'bg-rose-200'
-                                }`} />
-                              ))}
-                            </span>
+                            <div className="flex items-center justify-center gap-0.5 shrink-0">
+                              {weekDays.map((dateStr, i) => {
+                                const logged = habit.dates.includes(dateStr);
+                                const future = dateStr > todayStr;
+                                const isToday = dateStr === todayStr;
+                                return (
+                                  <div key={i} className={`w-[10px] h-[10px] rounded-full flex items-center justify-center transition-all ${
+                                    logged ? (weekGoalMet ? 'bg-gradient-to-br from-green-400 to-emerald-500' : 'bg-gradient-to-br from-indigo-400 to-blue-500')
+                                    : !future ? 'bg-rose-100'
+                                    : isToday ? 'border-2 border-indigo-400 bg-white'
+                                    : 'border border-gray-200 bg-white'
+                                  }`}>
+                                    {logged && <Check className="w-1.5 h-1.5 text-white" strokeWidth={3} />}
+                                  </div>
+                                );
+                              })}
+                            </div>
                           ) : (
-                            <span className={`flex items-center gap-0.5 ml-auto font-semibold ${
-                              (isMonthly ? monthGoalMet : loggedToday) ? 'text-green-500' : 'text-indigo-500'
-                            }`}>
-                              <TrendingUp className="w-2.5 h-2.5" />{daysThisMonth}d
-                            </span>
+                            <div className={`flex items-center gap-1 shrink-0 ${(isMonthly ? monthGoalMet : loggedToday) ? 'text-green-500' : 'text-indigo-500'}`}>
+                              <TrendingUp className="w-3.5 h-3.5 shrink-0" />
+                              <span className="text-xs font-bold whitespace-nowrap">{daysThisMonth}d this mo</span>
+                            </div>
                           )}
                         </div>
                       </div>
 
-                      {/* Right: Done button — vertically centered across both rows */}
+                      {/* Right: Done button — spans full card height */}
                       {logBtn}
                     </div>
                   );
