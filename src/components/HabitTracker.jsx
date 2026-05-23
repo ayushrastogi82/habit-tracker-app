@@ -498,7 +498,7 @@ export default function HabitTracker() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-8">
+    <div className="min-h-screen bg-gray-50 p-4 sm:p-8" style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}>
 
       {/* Feedback toast */}
       {feedback && (
@@ -545,8 +545,8 @@ export default function HabitTracker() {
 
       {/* Settings tray */}
       <div
-        className={`fixed inset-0 z-50 transition-opacity duration-200 ${showSettingsSheet ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
-        style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}
+        className={`fixed z-50 transition-opacity duration-200 ${showSettingsSheet ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+        style={{ backgroundColor: 'rgba(0,0,0,0.4)', top: 'env(safe-area-inset-top)', left: 0, right: 0, bottom: 0 }}
         onClick={() => setShowSettingsSheet(false)}
       >
         <div
