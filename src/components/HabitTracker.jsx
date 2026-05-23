@@ -127,7 +127,7 @@ export default function HabitTracker() {
         const parsed = JSON.parse(ev.target.result);
         if (!parsed.habits || !Array.isArray(parsed.habits)) throw new Error('Invalid backup file');
         setConfirmDialog({
-          message: `Restore ${parsed.habits.length} habit${parsed.habits.length !== 1 ? 's' : ''} from backup? This will replace all your current data.`,
+          message: `Restore ${parsed.habits.length} habit${parsed.habits.length !== 1 ? 's' : ''} from backup${parsed.exportedAt ? ` (saved ${new Date(parsed.exportedAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })})` : ''}? This will replace all your current data.`,
           confirmLabel: 'Restore',
           confirmColor: 'bg-indigo-600 hover:bg-indigo-700',
           onConfirm: async () => {
