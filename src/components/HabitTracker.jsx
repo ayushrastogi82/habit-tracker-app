@@ -196,7 +196,7 @@ export default function HabitTracker() {
     const saved = await saveHabits([...habits, habit]);
     if (saved) {
       showFeedback('✅ Habit added!');
-      setNewHabit(''); setIsAddingHabit(false);
+      setNewHabit(''); setIsAddingHabit(false); setIsReorderMode(false);
       setNewHabitType('daily'); setNewHabitWeeklyTarget(3); setNewHabitMonthlyTarget(1);
     }
   };
