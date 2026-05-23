@@ -593,10 +593,73 @@ export default function HabitTracker() {
       <div className="max-w-4xl mx-auto">
 
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">Habit Tracker</h1>
-          <p className="text-gray-600">Log your progress, stay motivated</p>
+        <div className="flex items-center gap-2 pb-3 mb-4 border-b border-gray-200">
+          {!isReorderMode
+            ? <button onClick={() => setIsAddingHabit(true)} disabled={isAddingHabit}
+                className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center shrink-0 active:scale-95 disabled:opacity-40">
+                <Plus className="w-4 h-4" />
+              </button>
+            : <div className="w-8 shrink-0" />}
+          <div className="flex-1 text-center">
+            <h1 className="text-lg font-bold text-gray-800 leading-tight">Habit Tracker</h1>
+            <p className="text-xs text-gray-500 leading-tight">Log your progress, stay motivated</p>
+          </div>
+          {isReorderMode
+            ? <button onClick={() => setIsReorderMode(false)}
+                className="px-3 h-8 rounded-lg bg-indigo-600 text-white text-sm font-semibold shrink-0 active:scale-95">
+                Done
+              </button>
+            : <button onClick={() => setShowSettingsSheet(true)}
+                className="w-8 h-8 rounded-lg bg-white border border-gray-200 text-indigo-600 flex items-center justify-center shrink-0 active:scale-95">
+                <MoreHorizontal className="w-4 h-4" />
+              </button>}
         </div>
+
+        {/* Inline add habit form */}
+        {isAddingHabit && (
+          <form onSubmit={addHabit} className="bg-white rounded-xl shadow-md px-3 py-3 flex flex-col gap-2 mb-4">
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={newHabit}
+                  onChange={(e) => { setNewHabit(e.target.value); if (nameError) setNameError(false); }}
+                  placeholder="Habit name (max 12 chars)"
+                  maxLength={12}
+                  style={{ fontSize: '16px' }}
+                  className={`flex-1 px-2 py-1 border rounded-lg focus:outline-none text-sm ${nameError ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-indigo-500'}`}
+                  autoFocus
+                />
+                <button type="submit" className="px-4 py-1.5 bg-gradient-to-r from-indigo-500 to-blue-600 text-white rounded-lg text-sm font-semibold shadow-md active:scale-95 shrink-0">Add</button>
+                <button type="button" onClick={() => { setIsAddingHabit(false); setNewHabit(''); setNameError(false); setNewHabitType('daily'); setNewHabitWeeklyTarget(3); setNewHabitMonthlyTarget(1); }} className="ml-1 text-gray-400 hover:text-gray-600 text-xl font-bold leading-none shrink-0">×</button>
+              </div>
+              {nameError && <p className="text-red-500 text-xs px-1">Please enter a habit name</p>}
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="flex rounded-lg border border-gray-200 overflow-hidden text-xs">
+                <button type="button" onClick={() => setNewHabitType('daily')} className={`px-3 py-1 transition-colors ${newHabitType === 'daily' ? 'bg-indigo-500 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}>Daily</button>
+                <button type="button" onClick={() => setNewHabitType('weekly')} className={`px-3 py-1 transition-colors ${newHabitType === 'weekly' ? 'bg-indigo-500 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}>Weekly</button>
+                <button type="button" onClick={() => setNewHabitType('monthly')} className={`px-3 py-1 transition-colors ${newHabitType === 'monthly' ? 'bg-indigo-500 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}>Monthly</button>
+              </div>
+              {newHabitType === 'weekly' && (
+                <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                  <button type="button" onClick={() => setNewHabitWeeklyTarget(t => Math.max(1, t - 1))} className="w-5 h-5 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-bold">−</button>
+                  <span className="w-4 text-center font-semibold">{newHabitWeeklyTarget}</span>
+                  <button type="button" onClick={() => setNewHabitWeeklyTarget(t => Math.min(7, t + 1))} className="w-5 h-5 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-bold">+</button>
+                  <span className="text-gray-400">days/wk</span>
+                </div>
+              )}
+              {newHabitType === 'monthly' && (
+                <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                  <button type="button" onClick={() => setNewHabitMonthlyTarget(t => Math.max(1, t - 1))} className="w-5 h-5 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-bold">−</button>
+                  <span className="w-4 text-center font-semibold">{newHabitMonthlyTarget}</span>
+                  <button type="button" onClick={() => setNewHabitMonthlyTarget(t => Math.min(30, t + 1))} className="w-5 h-5 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-bold">+</button>
+                  <span className="text-gray-400">days/mo</span>
+                </div>
+              )}
+            </div>
+          </form>
+        )}
 
         {/* Backup reminder banner */}
         {showBackupReminder && habits.length > 0 && (
@@ -619,150 +682,24 @@ export default function HabitTracker() {
         )}
 
         {/* Empty state */}
-        {habits.length === 0 && (
-          <div className={`bg-white rounded-2xl shadow-lg text-center ${isAddingHabit ? 'p-6' : 'p-12'}`}>
-            {isAddingHabit ? (
-              <form onSubmit={addHabit} className="flex flex-col gap-3 text-left">
-                <div className="flex flex-col gap-1">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      value={newHabit}
-                      onChange={(e) => { setNewHabit(e.target.value); if (nameError) setNameError(false); }}
-                      placeholder="Habit name (max 12 chars)"
-                      maxLength={12}
-                      style={{ fontSize: '16px' }}
-                      className={`flex-1 px-3 py-2 border rounded-lg focus:outline-none text-sm ${nameError ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-indigo-500'}`}
-                      autoFocus
-                    />
-                    <button type="submit" className="px-4 py-2 bg-gradient-to-r from-indigo-500 to-blue-600 text-white rounded-lg text-sm font-semibold shadow-md active:scale-95 shrink-0">Add</button>
-                    <button type="button" onClick={() => { setIsAddingHabit(false); setNewHabit(''); setNameError(false); setNewHabitType('daily'); setNewHabitWeeklyTarget(3); setNewHabitMonthlyTarget(1); }} className="ml-1 text-gray-400 hover:text-gray-600 text-xl font-bold leading-none shrink-0">×</button>
-                  </div>
-                  {nameError && <p className="text-red-500 text-xs px-1">Please enter a habit name</p>}
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="flex rounded-lg border border-gray-200 overflow-hidden text-xs">
-                    <button type="button" onClick={() => setNewHabitType('daily')} className={`px-3 py-1 transition-colors ${newHabitType === 'daily' ? 'bg-indigo-500 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}>Daily</button>
-                    <button type="button" onClick={() => setNewHabitType('weekly')} className={`px-3 py-1 transition-colors ${newHabitType === 'weekly' ? 'bg-indigo-500 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}>Weekly</button>
-                    <button type="button" onClick={() => setNewHabitType('monthly')} className={`px-3 py-1 transition-colors ${newHabitType === 'monthly' ? 'bg-indigo-500 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}>Monthly</button>
-                  </div>
-                  {newHabitType === 'weekly' && (
-                    <div className="flex items-center gap-1.5 text-xs text-gray-600">
-                      <button type="button" onClick={() => setNewHabitWeeklyTarget(t => Math.max(1, t - 1))} className="w-5 h-5 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-bold">−</button>
-                      <span className="w-4 text-center font-semibold">{newHabitWeeklyTarget}</span>
-                      <button type="button" onClick={() => setNewHabitWeeklyTarget(t => Math.min(7, t + 1))} className="w-5 h-5 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-bold">+</button>
-                      <span className="text-gray-400">days/wk</span>
-                    </div>
-                  )}
-                  {newHabitType === 'monthly' && (
-                    <div className="flex items-center gap-1.5 text-xs text-gray-600">
-                      <button type="button" onClick={() => setNewHabitMonthlyTarget(t => Math.max(1, t - 1))} className="w-5 h-5 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-bold">−</button>
-                      <span className="w-4 text-center font-semibold">{newHabitMonthlyTarget}</span>
-                      <button type="button" onClick={() => setNewHabitMonthlyTarget(t => Math.min(30, t + 1))} className="w-5 h-5 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-bold">+</button>
-                      <span className="text-gray-400">days/mo</span>
-                    </div>
-                  )}
-                </div>
-              </form>
-            ) : (
-              <>
-                <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h2 className="text-2xl font-semibold text-gray-700 mb-2">Start Your Journey</h2>
-                <p className="text-gray-500 mb-6">Add your first habit to begin tracking</p>
-                <button
-                  onClick={() => setIsAddingHabit(true)}
-                  className="px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors inline-flex items-center gap-2"
-                >
-                  <Plus className="w-5 h-5" />
-                  Add Habit
-                </button>
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="mt-3 px-4 py-2 text-sm text-gray-500 hover:text-indigo-600 transition-colors inline-flex items-center gap-1.5"
-                >
-                  <Upload className="w-4 h-4" />
-                  Restore from backup
-                </button>
-              </>
-            )}
+        {habits.length === 0 && !isAddingHabit && (
+          <div className="bg-white rounded-2xl shadow-lg text-center p-12">
+            <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <h2 className="text-2xl font-semibold text-gray-700 mb-2">Start Your Journey</h2>
+            <p className="text-gray-500 mb-6">Tap + above to add your first habit</p>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="px-4 py-2 text-sm text-gray-500 hover:text-indigo-600 transition-colors inline-flex items-center gap-1.5"
+            >
+              <Upload className="w-4 h-4" />
+              Restore from backup
+            </button>
           </div>
         )}
 
         {/* Hidden file input for backup restore */}
         <input ref={fileInputRef} type="file" accept=".json" className="hidden" onChange={handleImportFile} />
 
-        {/* Toolbar */}
-        {habits.length > 0 && (
-          <div className="mb-4 flex items-center gap-2">
-            {isAddingHabit ? (
-              <form onSubmit={addHabit} className="flex-1 bg-white rounded-xl shadow-md px-3 py-2 flex flex-col gap-2">
-                <div className="flex flex-col gap-1">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      value={newHabit}
-                      onChange={(e) => { setNewHabit(e.target.value); if (nameError) setNameError(false); }}
-                      placeholder="Habit name (max 12 chars)"
-                      maxLength={12}
-                      style={{ fontSize: '16px' }}
-                      className={`flex-1 px-2 py-1 border rounded-lg focus:outline-none text-sm ${nameError ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-indigo-500'}`}
-                      autoFocus
-                    />
-                    <button type="submit" className="px-4 py-1.5 bg-gradient-to-r from-indigo-500 to-blue-600 text-white rounded-lg text-sm font-semibold shadow-md active:scale-95 shrink-0">Add</button>
-                    <button type="button" onClick={() => { setIsAddingHabit(false); setNewHabit(''); setNameError(false); setNewHabitType('daily'); setNewHabitWeeklyTarget(3); setNewHabitMonthlyTarget(1); }} className="ml-2 text-gray-400 hover:text-gray-600 text-xl font-bold leading-none shrink-0">×</button>
-                  </div>
-                  {nameError && <p className="text-red-500 text-xs px-1">Please enter a habit name</p>}
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="flex rounded-lg border border-gray-200 overflow-hidden text-xs">
-                    <button type="button" onClick={() => setNewHabitType('daily')} className={`px-3 py-1 transition-colors ${newHabitType === 'daily' ? 'bg-indigo-500 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}>Daily</button>
-                    <button type="button" onClick={() => setNewHabitType('weekly')} className={`px-3 py-1 transition-colors ${newHabitType === 'weekly' ? 'bg-indigo-500 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}>Weekly</button>
-                    <button type="button" onClick={() => setNewHabitType('monthly')} className={`px-3 py-1 transition-colors ${newHabitType === 'monthly' ? 'bg-indigo-500 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}>Monthly</button>
-                  </div>
-                  {newHabitType === 'weekly' && (
-                    <div className="flex items-center gap-1.5 text-xs text-gray-600">
-                      <button type="button" onClick={() => setNewHabitWeeklyTarget(t => Math.max(1, t - 1))} className="w-5 h-5 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-bold">−</button>
-                      <span className="w-4 text-center font-semibold">{newHabitWeeklyTarget}</span>
-                      <button type="button" onClick={() => setNewHabitWeeklyTarget(t => Math.min(7, t + 1))} className="w-5 h-5 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-bold">+</button>
-                      <span className="text-gray-400">days/wk</span>
-                    </div>
-                  )}
-                  {newHabitType === 'monthly' && (
-                    <div className="flex items-center gap-1.5 text-xs text-gray-600">
-                      <button type="button" onClick={() => setNewHabitMonthlyTarget(t => Math.max(1, t - 1))} className="w-5 h-5 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-bold">−</button>
-                      <span className="w-4 text-center font-semibold">{newHabitMonthlyTarget}</span>
-                      <button type="button" onClick={() => setNewHabitMonthlyTarget(t => Math.min(30, t + 1))} className="w-5 h-5 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-bold">+</button>
-                      <span className="text-gray-400">days/mo</span>
-                    </div>
-                  )}
-                </div>
-              </form>
-            ) : !isReorderMode ? (
-              <button
-                onClick={() => setIsAddingHabit(true)}
-                className="px-4 h-10 bg-white text-indigo-600 rounded-xl hover:bg-indigo-50 transition-all inline-flex items-center gap-2 shadow-md hover:shadow-lg"
-              >
-                <Plus className="w-5 h-5" />
-                Add Habit
-              </button>
-            ) : <div />}
-            {!isAddingHabit && !isReorderMode && (
-              <button
-                onClick={() => setShowSettingsSheet(true)}
-                className="ml-auto w-10 h-10 rounded-xl bg-white text-indigo-600 hover:bg-indigo-50 transition-all inline-flex items-center justify-center shadow-md hover:shadow-lg"
-              >
-                <MoreHorizontal className="w-5 h-5" />
-              </button>
-            )}
-            {!isAddingHabit && isReorderMode && (
-              <button
-                onClick={() => setIsReorderMode(false)}
-                className="ml-auto px-3 h-10 rounded-xl bg-gradient-to-r from-indigo-500 to-blue-600 text-white transition-all inline-flex items-center gap-2 shadow-md hover:shadow-lg">
-                Finish
-              </button>
-            )}
-          </div>
-        )}
 
         {/* Habits grid */}
         <div className={viewMode === '2col' ? 'grid grid-cols-2 gap-x-3 gap-y-6' : 'space-y-1.5'}>
