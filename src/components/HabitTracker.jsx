@@ -41,6 +41,7 @@ export default function HabitTracker() {
   ];
 
   useEffect(() => { loadHabits(); }, []);
+  useEffect(() => { if (habits.length === 0) setIsReorderMode(false); }, [habits.length]);
   useEffect(() => {
     if (!localStorage.getItem('habit-tour-seen')) setTourStep(0);
   }, []);
