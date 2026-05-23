@@ -30,7 +30,7 @@ export default function HabitTracker() {
   const [showBackupReminder, setShowBackupReminder] = useState(false);
   const fileInputRef = React.useRef(null);
 
-  const BACKUP_REMINDER_DAYS = 5;
+  const BACKUP_REMINDER_DAYS = 1;
 
   const TOUR_STEPS = [
     { icon: '➕', title: 'Add a Habit', description: 'Tap "Add Habit" to create a new habit you want to track daily.' },
