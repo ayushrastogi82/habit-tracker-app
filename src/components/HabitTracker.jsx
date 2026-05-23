@@ -585,15 +585,9 @@ export default function HabitTracker() {
       <div className="max-w-4xl mx-auto">
 
         {/* Header */}
-        <div className="relative text-center mb-8">
+        <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-800 mb-2">Habit Tracker</h1>
           <p className="text-gray-600">Log your progress, stay motivated</p>
-          <button
-            onClick={() => setShowSettingsSheet(true)}
-            className="absolute right-0 top-0 w-10 h-10 rounded-xl bg-white text-indigo-600 hover:bg-indigo-50 transition-all inline-flex items-center justify-center shadow-md hover:shadow-lg"
-          >
-            <MoreHorizontal className="w-5 h-5" />
-          </button>
         </div>
 
         {/* Empty state */}
@@ -724,6 +718,14 @@ export default function HabitTracker() {
                 Add Habit
               </button>
             ) : <div />}
+            {!isAddingHabit && !isReorderMode && (
+              <button
+                onClick={() => setShowSettingsSheet(true)}
+                className="ml-auto w-10 h-10 rounded-xl bg-white text-indigo-600 hover:bg-indigo-50 transition-all inline-flex items-center justify-center shadow-md hover:shadow-lg"
+              >
+                <MoreHorizontal className="w-5 h-5" />
+              </button>
+            )}
             {!isAddingHabit && isReorderMode && (
               <button
                 onClick={() => setIsReorderMode(false)}
