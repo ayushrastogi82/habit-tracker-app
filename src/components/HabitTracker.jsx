@@ -972,7 +972,7 @@ export default function HabitTracker() {
                     className="transition-[grid-template-rows] duration-300 ease-in-out"
                   >
                   <div className={`overflow-hidden transition-opacity duration-300 ${isExpanded ? 'opacity-100' : 'opacity-0'}`}>
-                  <div className="px-3 pb-3">
+                  <div className="px-2 pb-2">
                     <div className="h-px bg-indigo-100 mb-2" />
                     {/* Stats row */}
                     {(() => {
@@ -1020,18 +1020,18 @@ export default function HabitTracker() {
                         }
                       }
                       return (
-                        <div className="grid grid-cols-3 gap-1.5 mb-2">
-                          <div className="bg-white rounded-xl p-2 text-center border border-gray-100 shadow-md overflow-hidden">
-                            <div className="text-[13px] font-bold text-indigo-600 whitespace-nowrap">{loggedDays} of {totalDaysVal}d</div>
-                            <div className="text-[10px] text-gray-500 leading-tight mt-0.5 whitespace-nowrap">since {sinceLabel}</div>
+                        <div className="grid grid-cols-3 gap-1 mb-1.5">
+                          <div className="bg-white rounded-xl p-1.5 text-center border border-gray-100 shadow-md overflow-hidden">
+                            <div className="text-[11px] font-bold text-indigo-600 whitespace-nowrap">{loggedDays} of {totalDaysVal}d</div>
+                            <div className="text-[9px] text-gray-500 leading-tight whitespace-nowrap">since {sinceLabel}</div>
                           </div>
-                          <div className="bg-white rounded-xl p-2 text-center border border-gray-100 shadow-md overflow-hidden">
-                            <div className="text-[13px] font-bold text-indigo-600 whitespace-nowrap">{isWeeklyHabit ? `${weeksGoalMet} of ${totalWeeks}w` : isMonthlyHabit ? `${monthsGoalMet} of ${totalMonths}m` : `${last30Logged}d`}</div>
-                            <div className="text-[10px] text-gray-500 leading-tight mt-0.5 whitespace-nowrap">{isWeeklyHabit || isMonthlyHabit ? `since ${sinceLabel}` : 'in last 30 days'}</div>
+                          <div className="bg-white rounded-xl p-1.5 text-center border border-gray-100 shadow-md overflow-hidden">
+                            <div className="text-[11px] font-bold text-indigo-600 whitespace-nowrap">{isWeeklyHabit ? `${weeksGoalMet} of ${totalWeeks}w` : isMonthlyHabit ? `${monthsGoalMet} of ${totalMonths}m` : `${last30Logged}d`}</div>
+                            <div className="text-[9px] text-gray-500 leading-tight whitespace-nowrap">{isWeeklyHabit || isMonthlyHabit ? `since ${sinceLabel}` : 'in last 30 days'}</div>
                           </div>
-                          <div className="bg-white rounded-xl p-2 text-center border border-gray-100 shadow-md overflow-hidden">
-                            <div className="text-[13px] font-bold text-amber-500 whitespace-nowrap">🏆 {isWeeklyHabit ? `${wStreak.longest}w` : isMonthlyHabit ? `${mStreakExp.longest}m` : `${streak.longest}d`}</div>
-                            <div className="text-[10px] text-gray-500 leading-tight mt-0.5">best streak</div>
+                          <div className="bg-white rounded-xl p-1.5 text-center border border-gray-100 shadow-md overflow-hidden">
+                            <div className="text-[11px] font-bold text-amber-500 whitespace-nowrap">🏆 {isWeeklyHabit ? `${wStreak.longest}w` : isMonthlyHabit ? `${mStreakExp.longest}m` : `${streak.longest}d`}</div>
+                            <div className="text-[9px] text-gray-500 leading-tight">best streak</div>
                           </div>
                         </div>
                       );
@@ -1057,16 +1057,16 @@ export default function HabitTracker() {
                         );
                       }
                       return (
-                        <div className="bg-gray-50 rounded-lg p-1.5">
+                        <div className="bg-gray-50 rounded-lg p-1">
                           {heatmapMode === 'month' && (
-                            <div className="flex items-center justify-between mb-1.5">
+                            <div className="flex items-center justify-between mb-1">
                               <button onClick={(e) => { e.stopPropagation(); setMonthOffset(o => o - 1); }} className="p-0.5 rounded hover:bg-gray-200 text-gray-500"><ChevronLeft className="w-3 h-3" /></button>
                               <span className="text-xs font-semibold text-gray-600">{monthLabel} ({days.filter(d => habit.dates.includes(d)).length}d)</span>
                               <button onClick={(e) => { e.stopPropagation(); setMonthOffset(o => o + 1); }} disabled={monthOffset >= 0} className="p-0.5 rounded hover:bg-gray-200 text-gray-500 disabled:opacity-30"><ChevronRight className="w-3 h-3" /></button>
                             </div>
                           )}
                           {heatmapMode === 'month' && (
-                            <div className="grid grid-cols-7 gap-0.5 mb-0.5">
+                            <div className="grid grid-cols-7 gap-0.5 mb-0">
                               {['S','M','T','W','T','F','S'].map((d, i) => <div key={i} className="text-center text-[8px] font-semibold text-gray-400">{d}</div>)}
                             </div>
                           )}
@@ -1094,12 +1094,6 @@ export default function HabitTracker() {
                         </div>
                       );
                     })()}
-                    <button
-                      onClick={(e) => { e.stopPropagation(); toggleHabitExpansion(habit.id); }}
-                      className="mt-2 w-full flex items-center justify-center py-1 text-gray-300 hover:text-gray-500 transition-colors"
-                    >
-                      <ChevronDown className="w-4 h-4 rotate-180" />
-                    </button>
                   </div>
                   </div>
                   </div>
