@@ -785,7 +785,7 @@ export default function HabitTracker() {
                             onBlur={() => saveRename(habit.id)} onKeyPress={(e) => e.key === 'Enter' && e.target.blur()}
                             maxLength={20} style={{ fontSize: '16px' }}
                             className="flex-1 min-w-0 px-2 py-0.5 border-2 border-indigo-500 rounded-lg focus:outline-none text-sm" autoFocus />
-                        : <span onClick={() => startRenaming(habit)} className="flex-1 min-w-0 font-bold text-xs text-gray-700 truncate cursor-pointer hover:text-indigo-600">{habit.name}</span>}
+                        : <span onClick={() => startRenaming(habit)} className="flex-1 min-w-0 font-medium text-xs text-gray-700 truncate cursor-pointer hover:text-indigo-600">{habit.name}</span>}
                       {/* Frequency chip — fixed-width column so all rows align */}
                       <div className="w-20 shrink-0 flex items-center gap-0.5 mx-2">
                         {habitType !== 'daily'
