@@ -136,6 +136,7 @@ export default function HabitTracker() {
               setHeatmapMode(parsed.preferences.heatmapMode);
               localStorage.setItem('heatmap-mode', parsed.preferences.heatmapMode);
             }
+            setConfirmDialog(null);
             showFeedback(`✅ ${parsed.habits.length} habits restored!`);
           },
         });
