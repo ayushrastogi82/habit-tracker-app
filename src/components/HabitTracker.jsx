@@ -787,7 +787,7 @@ export default function HabitTracker() {
                             className="flex-1 min-w-0 px-2 py-0.5 border-2 border-indigo-500 rounded-lg focus:outline-none text-sm" autoFocus />
                         : <span onClick={() => startRenaming(habit)} className="flex-1 min-w-0 font-medium text-xs text-gray-700 truncate cursor-pointer hover:text-indigo-600">{habit.name}</span>}
                       {/* Frequency chip — fixed-width column so all rows align */}
-                      <div className="w-20 shrink-0 flex items-center gap-0.5 mx-2">
+                      <div className="w-20 shrink-0 flex items-center gap-0.5 ml-2 mr-1">
                         {habitType !== 'daily'
                           ? <button onClick={(e) => { e.stopPropagation(); updateHabitType(habit.id, habitType, Math.max(1, currentTarget - 1)); }}
                               className="w-5 h-5 shrink-0 rounded-full bg-indigo-100 hover:bg-indigo-200 flex items-center justify-center text-indigo-600 text-xs font-bold active:scale-95">−</button>
