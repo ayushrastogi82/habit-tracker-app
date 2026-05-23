@@ -27,7 +27,10 @@ export default function HabitTracker() {
   const [monthOffset, setMonthOffset] = useState(0);
   const [nameError, setNameError] = useState(false);
   const [showSettingsSheet, setShowSettingsSheet] = useState(false);
+  const [showBackupReminder, setShowBackupReminder] = useState(false);
   const fileInputRef = React.useRef(null);
+
+  const BACKUP_REMINDER_DAYS = 3;
 
   const TOUR_STEPS = [
     { icon: '➕', title: 'Add a Habit', description: 'Tap "Add Habit" to create a new habit you want to track daily.' },
@@ -40,6 +43,12 @@ export default function HabitTracker() {
   useEffect(() => { loadHabits(); }, []);
   useEffect(() => {
     if (!localStorage.getItem('habit-tour-seen')) setTourStep(0);
+  }, []);
+  useEffect(() => {
+    const last = localStorage.getItem('lastBackupDate');
+    if (!last) return; // never backed up — don't nag until they've backed up once
+    const daysSince = (Date.now() - new Date(last).getTime()) / (1000 * 60 * 60 * 24);
+    if (daysSince >= BACKUP_REMINDER_DAYS) setShowBackupReminder(true);
   }, []);
   useEffect(() => {
     if (!undoToast?.showTimer) { setUndoCountdown(undoToast?.duration || 4); return; }
@@ -113,6 +122,8 @@ export default function HabitTracker() {
     a.download = `habit-backup-${date}.json`;
     a.click();
     URL.revokeObjectURL(url);
+    localStorage.setItem('lastBackupDate', new Date().toISOString());
+    setShowBackupReminder(false);
     showFeedback('✅ Backup downloaded!');
   };
 
@@ -589,6 +600,26 @@ export default function HabitTracker() {
           <h1 className="text-4xl font-bold text-gray-800 mb-2">Habit Tracker</h1>
           <p className="text-gray-600">Log your progress, stay motivated</p>
         </div>
+
+        {/* Backup reminder banner */}
+        {showBackupReminder && habits.length > 0 && (
+          <div className="mb-4 flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+            <span className="text-lg shrink-0">💾</span>
+            <p className="flex-1 text-xs text-amber-800 font-medium">No backup in {BACKUP_REMINDER_DAYS}+ days. Download one to stay safe.</p>
+            <button
+              onClick={() => { exportBackup(); }}
+              className="shrink-0 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold rounded-lg transition-colors"
+            >
+              Backup
+            </button>
+            <button
+              onClick={() => setShowBackupReminder(false)}
+              className="shrink-0 text-amber-400 hover:text-amber-600 text-lg leading-none transition-colors"
+            >
+              ×
+            </button>
+          </div>
+        )}
 
         {/* Empty state */}
         {habits.length === 0 && (
