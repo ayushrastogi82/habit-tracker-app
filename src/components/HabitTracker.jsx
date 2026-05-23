@@ -544,7 +544,6 @@ export default function HabitTracker() {
                   </svg>
                 </div>
                 <span className="flex-1 text-left text-sm font-medium text-gray-800">Manage Habits</span>
-                <ChevronRight className="w-4 h-4 text-gray-300" />
               </button>
               <div className="h-px bg-gray-100 mx-4" />
               <button
@@ -555,7 +554,6 @@ export default function HabitTracker() {
                   <Download className="w-4 h-4 text-green-600" />
                 </div>
                 <span className="flex-1 text-left text-sm font-medium text-gray-800">Download Backup</span>
-                <ChevronRight className="w-4 h-4 text-gray-300" />
               </button>
               <div className="h-px bg-gray-100 mx-4" />
               <button
@@ -566,7 +564,6 @@ export default function HabitTracker() {
                   <Upload className="w-4 h-4 text-blue-600" />
                 </div>
                 <span className="flex-1 text-left text-sm font-medium text-gray-800">Restore from Backup</span>
-                <ChevronRight className="w-4 h-4 text-gray-300" />
               </button>
               <div className="h-px bg-gray-100 mx-4 mt-1" />
               <button
