@@ -839,7 +839,7 @@ export default function HabitTracker() {
                         e.stopPropagation();
                         if (!loggedToday) logToday(habit.id);
                       }}
-                      className={`shrink-0 self-stretch w-14 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 ${
+                      className={`shrink-0 self-stretch w-14 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1 ${
                         loggedToday
                           ? 'bg-gradient-to-r from-green-200 to-green-300 text-green-700 cursor-default'
                           : goalAlreadyMet
