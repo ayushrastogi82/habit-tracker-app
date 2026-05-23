@@ -117,8 +117,9 @@ export default function HabitTracker() {
     const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
+    const date = new Date().toISOString().slice(0, 10);
     a.href = url;
-    a.download = 'habit-backup.json';
+    a.download = `habit-backup-${date}.json`;
     a.click();
     URL.revokeObjectURL(url);
     localStorage.setItem('lastBackupDate', new Date().toISOString());
