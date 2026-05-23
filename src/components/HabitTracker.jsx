@@ -647,8 +647,8 @@ export default function HabitTracker() {
                   type="text"
                   value={newHabit}
                   onChange={(e) => { setNewHabit(e.target.value); if (nameError) setNameError(false); }}
-                  placeholder="Habit name (max 12 chars)"
-                  maxLength={12}
+                  placeholder="Habit name (max 20 chars)"
+                  maxLength={20}
                   style={{ fontSize: '16px' }}
                   className={`flex-1 px-2 py-1 border rounded-lg focus:outline-none text-sm ${nameError ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-indigo-500'}`}
                   autoFocus
@@ -783,7 +783,7 @@ export default function HabitTracker() {
                       {isRenaming
                         ? <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)}
                             onBlur={() => saveRename(habit.id)} onKeyPress={(e) => e.key === 'Enter' && e.target.blur()}
-                            maxLength={12} style={{ fontSize: '16px' }}
+                            maxLength={20} style={{ fontSize: '16px' }}
                             className="flex-1 min-w-0 px-2 py-0.5 border-2 border-indigo-500 rounded-lg focus:outline-none text-sm" autoFocus />
                         : <span onClick={() => startRenaming(habit)} className="flex-1 min-w-0 font-bold text-xs text-gray-700 truncate cursor-pointer hover:text-indigo-600">{habit.name}</span>}
                       {/* Frequency chip — fixed-width column so all rows align */}
@@ -856,79 +856,53 @@ export default function HabitTracker() {
                       onClick={() => toggleHabitExpansion(habit.id)}
                       className="flex items-center gap-2 px-3 py-2.5 cursor-pointer"
                     >
-                      {/* Habit name + subtitle */}
-                      <div className="flex-1 min-w-0">
+                      {/* Left: 2-row info */}
+                      <div className="flex-1 min-w-0 flex flex-col gap-0.5">
+                        {/* Row 1: habit name */}
                         <div className="font-bold text-gray-800 truncate text-sm">{habit.name}</div>
-                        <div className="text-[10px] text-gray-500 leading-tight">
-                          {isWeekly ? `Weekly · ${wTarget}/wk` : isMonthly ? `Monthly · ${mTarget}/mo` : 'Daily'}
+
+                        {/* Row 2: type · streak/gap · tracker */}
+                        <div className="flex items-center gap-1 text-[10px] leading-tight text-gray-500">
+                          {/* Type label */}
+                          <span>{isWeekly ? `Weekly · ${wTarget}/wk` : isMonthly ? `Monthly · ${mTarget}/mo` : 'Daily'}</span>
+
+                          {/* Streak / gap inline */}
+                          {isWeekly ? (
+                            weeklyStreak.current >= 1
+                              ? <span className="text-green-600 font-semibold flex items-center gap-0.5">· <Rocket className="w-2 h-2" />{weeklyStreak.current}w</span>
+                              : weeklyGap !== null && weeklyGap >= 1 ? <span className="text-red-500 font-semibold">· {weeklyGap}w gap</span> : null
+                          ) : isMonthly ? (
+                            monthlyStreak.current >= 1
+                              ? <span className="text-green-600 font-semibold flex items-center gap-0.5">· <Rocket className="w-2 h-2" />{monthlyStreak.current}m</span>
+                              : monthlyGap !== null && monthlyGap >= 1 ? <span className="text-red-500 font-semibold">· {monthlyGap}m gap</span> : null
+                          ) : (
+                            streak.current > 1
+                              ? <span className="text-green-600 font-semibold flex items-center gap-0.5">· <Rocket className="w-2 h-2" />{streak.current}d</span>
+                              : daysSince !== null && daysSince > 0 ? <span className="text-red-500 font-semibold">· {daysSince}d gap</span> : null
+                          )}
+
+                          {/* Tracker — right-aligned */}
+                          {isWeekly ? (
+                            <span className="flex items-center gap-0.5 ml-auto">
+                              {weekDays.map((dateStr, i) => (
+                                <span key={i} className={`inline-block w-1.5 h-1.5 rounded-full ${
+                                  habit.dates.includes(dateStr)
+                                    ? weekGoalMet ? 'bg-green-500' : 'bg-indigo-500'
+                                    : dateStr > todayStr ? 'bg-gray-200' : 'bg-rose-200'
+                                }`} />
+                              ))}
+                            </span>
+                          ) : (
+                            <span className={`flex items-center gap-0.5 ml-auto font-semibold ${
+                              (isMonthly ? monthGoalMet : loggedToday) ? 'text-green-500' : 'text-indigo-500'
+                            }`}>
+                              <TrendingUp className="w-2.5 h-2.5" />{daysThisMonth}d
+                            </span>
+                          )}
                         </div>
                       </div>
 
-                      {isWeekly ? (
-                        <>
-                          {/* Weekly streak/gap pill */}
-                          <div className="w-16 flex justify-center shrink-0">
-                            {weeklyStreak.current >= 1 ? (
-                              <span className={`w-full text-center text-xs px-2 py-0.5 rounded-full text-white flex items-center justify-center gap-0.5 bg-gradient-to-r from-green-300 to-green-500`}><Rocket className="w-2.5 h-2.5" />{weeklyStreak.current}w</span>
-                            ) : weeklyGap !== null && weeklyGap >= 1 ? (
-                              <span className={`w-full text-center text-xs px-2 py-0.5 rounded-full text-white bg-gradient-to-r from-pink-300 to-red-400`}>{weeklyGap}w gap</span>
-                            ) : <span className="w-full" />}
-                          </div>
-
-                          {/* 7-circle weekly tracker */}
-                          <div className="w-[90px] flex items-center justify-center gap-0.5 shrink-0 px-1 py-0.5 rounded-full">
-                            {weekDays.map((dateStr, i) => {
-                              const logged = habit.dates.includes(dateStr);
-                              const future = dateStr > todayStr;
-                              const isToday = dateStr === todayStr;
-                              return (
-                                <div key={i} className={`w-[10px] h-[10px] rounded-full flex items-center justify-center transition-all ${
-                                  logged ? (weekGoalMet ? 'bg-gradient-to-br from-green-400 to-emerald-500' : 'bg-gradient-to-br from-indigo-400 to-blue-500') :
-                                  !future ? 'bg-rose-100' :
-                                  isToday ? 'border-2 border-indigo-400 bg-white' :
-                                  'border border-gray-200 bg-white'
-                                }`}>
-                                  {logged && <Check className="w-1.5 h-1.5 text-white" strokeWidth={3} />}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </>
-                      ) : isMonthly ? (
-                        <>
-                          {/* Monthly streak/gap pill */}
-                          <div className="w-16 flex justify-center shrink-0">
-                            {monthlyStreak.current >= 1 ? (
-                              <span className={`w-full text-center text-xs px-2 py-0.5 rounded-full text-white flex items-center justify-center gap-0.5 bg-gradient-to-r from-green-300 to-green-500`}><Rocket className="w-2.5 h-2.5" />{monthlyStreak.current}m</span>
-                            ) : monthlyGap !== null && monthlyGap >= 1 ? (
-                              <span className={`w-full text-center text-xs px-2 py-0.5 rounded-full text-white bg-gradient-to-r from-pink-300 to-red-400`}>{monthlyGap}m gap</span>
-                            ) : <span className="w-full" />}
-                          </div>
-
-                          {/* Monthly tracker */}
-                          <div className={`w-[90px] flex items-center gap-1 shrink-0 px-1 py-0.5 rounded-full transition-all ${monthGoalMet ? 'text-green-500' : 'text-indigo-500'}`}>
-                            <TrendingUp className="w-3.5 h-3.5 shrink-0" />
-                            <span className="text-xs font-bold whitespace-nowrap">{daysThisMonth}d this mo</span>
-                          </div>
-                        </>
-                      ) : (
-                        <>
-                          {/* Daily streak/gap pill */}
-                          <div className="w-16 flex justify-center shrink-0">
-                            {streak.current > 1 ? (
-                              <span className={`w-full text-center text-xs px-2 py-0.5 rounded-full text-white flex items-center justify-center gap-0.5 bg-gradient-to-r from-green-300 to-green-500`}><Rocket className="w-2.5 h-2.5" />{streak.current}d</span>
-                            ) : daysSince !== null && daysSince > 0 ? (
-                              <span className={`w-full text-center text-xs px-2 py-0.5 rounded-full text-white bg-gradient-to-r from-pink-300 to-red-400`}>{daysSince}d gap</span>
-                            ) : <span className="w-full" />}
-                          </div>
-
-                          {/* Daily tracker */}
-                          <div className={`w-[90px] flex items-center gap-1 shrink-0 transition-colors ${loggedToday ? 'text-green-500' : 'text-indigo-500'}`}>
-                            <TrendingUp className="w-3.5 h-3.5 shrink-0" />
-                            <span className="text-xs font-bold whitespace-nowrap">{daysThisMonth}d this mo</span>
-                          </div>
-                        </>
-                      )}
+                      {/* Right: Done button — vertically centered across both rows */}
                       {logBtn}
                     </div>
                   );
