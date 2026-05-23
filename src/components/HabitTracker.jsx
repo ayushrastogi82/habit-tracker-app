@@ -137,7 +137,7 @@ export default function HabitTracker() {
               localStorage.setItem('heatmap-mode', parsed.preferences.heatmapMode);
             }
             setConfirmDialog(null);
-            showFeedback(`✅ ${parsed.habits.length} habits restored!`);
+            showFeedback(`🎉 ${parsed.habits.length} habit${parsed.habits.length !== 1 ? 's' : ''} restored!`);
           },
         });
       } catch {
@@ -467,7 +467,7 @@ export default function HabitTracker() {
 
       {/* Feedback toast */}
       {feedback && (
-        <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 bg-white px-6 py-3 rounded-xl shadow-lg z-50 font-semibold text-gray-800 transition-opacity duration-300 ${feedbackFading ? 'opacity-0' : 'opacity-100'}`}>
+        <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 bg-white px-6 py-3 rounded-xl shadow-lg z-50 font-semibold text-gray-800 whitespace-nowrap transition-opacity duration-300 ${feedbackFading ? 'opacity-0' : 'opacity-100'}`}>
           {feedback}
         </div>
       )}
