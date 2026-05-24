@@ -85,9 +85,11 @@ const ShareableCard = forwardRef(function ShareableCard({ habit, stat, appUrl },
   const daysElapsedThisYear = Math.floor((today - startOfYear) / 86400000) + 1;
   const yearPct = daysElapsedThisYear > 0 ? Math.min(100, Math.round((yearCount / daysElapsedThisYear) * 100)) : 0;
 
+  const wTarget = habit.weeklyTarget || 3;
+  const mTarget = habit.monthlyTarget || 1;
   const typeLabel =
-    habit.type === 'weekly'  ? 'Weekly habit'  :
-    habit.type === 'monthly' ? 'Monthly habit' : 'Daily habit';
+    habit.type === 'weekly'  ? `Weekly habit · ${wTarget}/wk`  :
+    habit.type === 'monthly' ? `Monthly habit · ${mTarget}/mo` : 'Daily habit';
 
   const card = {
     width: '360px',
