@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
 import { Plus, Check, TrendingUp, Calendar, ChevronDown, ChevronLeft, ChevronRight, Rocket, Undo2, Download, Upload, MoreHorizontal, Share2, Moon, Sun } from 'lucide-react';
 import ShareModal from './ShareModal';
+import Onboarding from './Onboarding';
 
 export default function HabitTracker() {
   const [habits, setHabits] = useState([]);
@@ -22,7 +23,7 @@ export default function HabitTracker() {
   const viewMode = '1col';
   const habitsRef = React.useRef(habits);
   React.useEffect(() => { habitsRef.current = habits; }, [habits]);
-  const [tourStep, setTourStep] = useState(null);
+  const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem('onboarding-seen'));
   const [feedbackFading, setFeedbackFading] = useState(false);
   const [heatmapMode, setHeatmapMode] = useState(() => localStorage.getItem('heatmap-mode') || 'month');
   const [weekStart, setWeekStart] = useState(() => parseInt(localStorage.getItem('week-start') || '0')); // 0=Sun, 1=Mon
@@ -36,23 +37,12 @@ export default function HabitTracker() {
 
   const BACKUP_REMINDER_DAYS = 5;
 
-  const TOUR_STEPS = [
-    { icon: '➕', title: 'Add a Habit', description: 'Tap "Add Habit" to create a new habit you want to track daily.' },
-    { icon: '✅', title: 'Log Your Day', description: 'Tap "Log" each day you complete a habit. Tap "Done" again to unlog if you made a mistake.' },
-    { icon: '📈', title: 'Track Progress', description: 'The tracker pill shows logged vs total days. Tap it to expand your 30-day heatmap and toggle individual days.' },
-    { icon: '🔥', title: 'Streak & Gap Badges', description: 'Green badge = active streak. Amber/red badge = days missed. Keep the fire alive!' },
-    { icon: '✏️', title: 'Manage Habits', description: 'Tap the pencil icon to enter manage mode — rename habits by tapping their name, reorder with arrows, or delete.' },
-  ];
-
   useEffect(() => { loadHabits(); }, []);
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode);
     localStorage.setItem('dark-mode', darkMode);
   }, [darkMode]);
   useEffect(() => { if (habits.length === 0) setIsReorderMode(false); }, [habits.length]);
-  useEffect(() => {
-    if (!localStorage.getItem('habit-tour-seen')) setTourStep(0);
-  }, []);
   useEffect(() => {
     const last = localStorage.getItem('lastBackupDate');
     if (!last) return; // never backed up — don't nag until they've backed up once
@@ -67,11 +57,6 @@ export default function HabitTracker() {
     }, 1000);
     return () => clearInterval(interval);
   }, [undoToast]);
-
-  const endTour = () => {
-    localStorage.setItem('habit-tour-seen', '1');
-    setTourStep(null);
-  };
 
   const showFeedback = (message) => {
     setFeedback(message);
@@ -524,31 +509,15 @@ export default function HabitTracker() {
         </div>
       )}
 
-      {/* Tour overlay */}
-      {tourStep !== null && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex flex-col justify-end">
-          <div className="bg-white dark:bg-gray-900 rounded-t-3xl p-6 shadow-2xl">
-            <div className="text-4xl mb-3 text-center">{TOUR_STEPS[tourStep].icon}</div>
-            <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 text-center mb-2">{TOUR_STEPS[tourStep].title}</h2>
-            <p className="text-gray-500 dark:text-gray-400 text-center text-sm mb-6">{TOUR_STEPS[tourStep].description}</p>
-            <div className="flex justify-center gap-1.5 mb-6">
-              {TOUR_STEPS.map((_, i) => (
-                <div key={i} className={`h-1.5 rounded-full transition-all ${i === tourStep ? 'w-6 bg-indigo-600' : 'w-1.5 bg-gray-300 dark:bg-gray-600'}`} />
-              ))}
-            </div>
-            <div className="flex gap-3">
-              <button onClick={endTour} className="flex-1 py-3 rounded-xl text-gray-500 dark:text-gray-400 font-medium border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
-                Skip
-              </button>
-              <button
-                onClick={() => tourStep < TOUR_STEPS.length - 1 ? setTourStep(tourStep + 1) : endTour()}
-                className="flex-2 flex-grow-[2] py-3 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700"
-              >
-                {tourStep < TOUR_STEPS.length - 1 ? 'Next →' : 'Got it!'}
-              </button>
-            </div>
-          </div>
-        </div>
+      {/* Onboarding */}
+      {showOnboarding && (
+        <Onboarding
+          darkMode={darkMode}
+          onDone={() => {
+            localStorage.setItem('onboarding-seen', 'true');
+            setShowOnboarding(false);
+          }}
+        />
       )}
 
       {/* Undo toast */}
