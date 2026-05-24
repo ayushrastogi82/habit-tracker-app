@@ -894,8 +894,8 @@ export default function HabitTracker() {
                               return (
                                 <div key={i} className={`w-[10px] h-[10px] rounded-full flex items-center justify-center transition-all ${
                                   logged ? (weekGoalMet ? 'bg-gradient-to-br from-green-400 to-emerald-500' : 'bg-gradient-to-br from-indigo-400 to-blue-500')
-                                  : !future ? 'bg-rose-100'
                                   : isToday ? 'border-2 border-indigo-400 bg-white'
+                                  : !future ? 'bg-rose-100'
                                   : 'border border-gray-200 bg-white'
                                 }`}>
                                   {logged && <Check className="w-1.5 h-1.5 text-white" strokeWidth={3} />}
