@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
-import { Plus, Check, TrendingUp, Calendar, ChevronDown, ChevronLeft, ChevronRight, Rocket, Undo2, Download, Upload, MoreHorizontal, Share2 } from 'lucide-react';
+import { Plus, Check, TrendingUp, Calendar, ChevronDown, ChevronLeft, ChevronRight, Rocket, Undo2, Download, Upload, MoreHorizontal, Share2, Moon, Sun } from 'lucide-react';
 import ShareModal from './ShareModal';
 
 export default function HabitTracker() {
@@ -30,6 +30,7 @@ export default function HabitTracker() {
   const [showSettingsSheet, setShowSettingsSheet] = useState(false);
   const [showBackupReminder, setShowBackupReminder] = useState(false);
   const [shareHabit, setShareHabit] = useState(null);
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('dark-mode') === 'true');
   const fileInputRef = React.useRef(null);
 
   const BACKUP_REMINDER_DAYS = 5;
@@ -43,6 +44,10 @@ export default function HabitTracker() {
   ];
 
   useEffect(() => { loadHabits(); }, []);
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', darkMode);
+    localStorage.setItem('dark-mode', darkMode);
+  }, [darkMode]);
   useEffect(() => { if (habits.length === 0) setIsReorderMode(false); }, [habits.length]);
   useEffect(() => {
     if (!localStorage.getItem('habit-tour-seen')) setTourStep(0);
@@ -500,11 +505,11 @@ export default function HabitTracker() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-8" style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 p-4 sm:p-8" style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}>
 
       {/* Feedback toast */}
       {feedback && (
-        <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 bg-white px-6 py-3 rounded-xl shadow-lg z-50 font-semibold text-gray-800 whitespace-nowrap transition-opacity duration-300 ${feedbackFading ? 'opacity-0' : 'opacity-100'}`}>
+        <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 bg-white dark:bg-gray-800 px-6 py-3 rounded-xl shadow-lg z-50 font-semibold text-gray-800 dark:text-gray-100 whitespace-nowrap transition-opacity duration-300 ${feedbackFading ? 'opacity-0' : 'opacity-100'}`}>
           {feedback}
         </div>
       )}
@@ -512,17 +517,17 @@ export default function HabitTracker() {
       {/* Tour overlay */}
       {tourStep !== null && (
         <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex flex-col justify-end">
-          <div className="bg-white rounded-t-3xl p-6 shadow-2xl">
+          <div className="bg-white dark:bg-gray-900 rounded-t-3xl p-6 shadow-2xl">
             <div className="text-4xl mb-3 text-center">{TOUR_STEPS[tourStep].icon}</div>
-            <h2 className="text-xl font-bold text-gray-800 text-center mb-2">{TOUR_STEPS[tourStep].title}</h2>
-            <p className="text-gray-500 text-center text-sm mb-6">{TOUR_STEPS[tourStep].description}</p>
+            <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 text-center mb-2">{TOUR_STEPS[tourStep].title}</h2>
+            <p className="text-gray-500 dark:text-gray-400 text-center text-sm mb-6">{TOUR_STEPS[tourStep].description}</p>
             <div className="flex justify-center gap-1.5 mb-6">
               {TOUR_STEPS.map((_, i) => (
-                <div key={i} className={`h-1.5 rounded-full transition-all ${i === tourStep ? 'w-6 bg-indigo-600' : 'w-1.5 bg-gray-300'}`} />
+                <div key={i} className={`h-1.5 rounded-full transition-all ${i === tourStep ? 'w-6 bg-indigo-600' : 'w-1.5 bg-gray-300 dark:bg-gray-600'}`} />
               ))}
             </div>
             <div className="flex gap-3">
-              <button onClick={endTour} className="flex-1 py-3 rounded-xl text-gray-500 font-medium border border-gray-200 hover:bg-gray-50">
+              <button onClick={endTour} className="flex-1 py-3 rounded-xl text-gray-500 dark:text-gray-400 font-medium border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
                 Skip
               </button>
               <button
@@ -555,15 +560,15 @@ export default function HabitTracker() {
         onClick={() => setShowSettingsSheet(false)}
       >
         <div
-          className={`absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl transition-transform duration-300 ${showSettingsSheet ? 'translate-y-0' : 'translate-y-full'}`}
+          className={`absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-900 rounded-t-2xl shadow-2xl transition-transform duration-300 ${showSettingsSheet ? 'translate-y-0' : 'translate-y-full'}`}
           onClick={(e) => e.stopPropagation()}
         >
           <div className="max-w-md mx-auto">
-            <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mt-3 mb-2" />
+            <div className="w-12 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full mx-auto mt-3 mb-2" />
             <div className="px-1 pb-2" style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}>
               <button
                 onClick={() => { setIsReorderMode(true); setShowSettingsSheet(false); }}
-                className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 rounded-xl transition-colors"
+                className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 dark:hover:bg-gray-800 active:bg-gray-100 dark:active:bg-gray-700 rounded-xl transition-colors"
               >
                 <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -571,28 +576,41 @@ export default function HabitTracker() {
                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                   </svg>
                 </div>
-                <span className="flex-1 text-left text-sm font-medium text-gray-800">Manage Habits</span>
+                <span className="flex-1 text-left text-sm font-medium text-gray-800 dark:text-gray-100">Manage Habits</span>
               </button>
-              <div className="h-px bg-gray-100 mx-4" />
+              <div className="h-px bg-gray-100 dark:bg-gray-800 mx-4" />
               <button
                 onClick={() => { exportBackup(); setShowSettingsSheet(false); }}
-                className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 rounded-xl transition-colors"
+                className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 dark:hover:bg-gray-800 active:bg-gray-100 dark:active:bg-gray-700 rounded-xl transition-colors"
               >
                 <div className="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center shrink-0">
                   <Download className="w-4 h-4 text-green-600" />
                 </div>
-                <span className="flex-1 text-left text-sm font-medium text-gray-800">Download Backup</span>
+                <span className="flex-1 text-left text-sm font-medium text-gray-800 dark:text-gray-100">Download Backup</span>
               </button>
-              <div className="h-px bg-gray-100 mx-4" />
+              <div className="h-px bg-gray-100 dark:bg-gray-800 mx-4" />
               <button
                 onClick={() => { fileInputRef.current?.click(); setShowSettingsSheet(false); }}
-                className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 rounded-xl transition-colors"
+                className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 dark:hover:bg-gray-800 active:bg-gray-100 dark:active:bg-gray-700 rounded-xl transition-colors"
               >
                 <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
                   <Upload className="w-4 h-4 text-blue-600" />
                 </div>
-                <span className="flex-1 text-left text-sm font-medium text-gray-800">Restore from Backup</span>
+                <span className="flex-1 text-left text-sm font-medium text-gray-800 dark:text-gray-100">Restore from Backup</span>
               </button>
+              <div className="h-px bg-gray-100 dark:bg-gray-800 mx-4" />
+              <div className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl">
+                <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center shrink-0">
+                  {darkMode ? <Moon className="w-4 h-4 text-indigo-500" /> : <Sun className="w-4 h-4 text-amber-500" />}
+                </div>
+                <span className="flex-1 text-left text-sm font-medium text-gray-800 dark:text-gray-100">Dark Mode</span>
+                <button
+                  onClick={() => setDarkMode(d => !d)}
+                  className={`relative w-11 h-6 rounded-full transition-colors duration-200 shrink-0 ${darkMode ? 'bg-indigo-600' : 'bg-gray-300'}`}
+                >
+                  <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200 ${darkMode ? 'translate-x-5' : 'translate-x-0'}`} />
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -601,11 +619,11 @@ export default function HabitTracker() {
       {/* Confirm dialog */}
       {confirmDialog && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-4">
-            <p className="text-gray-700 text-sm mb-4 leading-relaxed">{confirmDialog.message}</p>
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl max-w-sm w-full p-4">
+            <p className="text-gray-700 dark:text-gray-300 text-sm mb-4 leading-relaxed">{confirmDialog.message}</p>
             <div className="flex gap-2">
               <button onClick={confirmDialog.onConfirm} className={`flex-1 px-4 py-2 text-white rounded-xl text-sm font-semibold ${confirmDialog.confirmColor || 'bg-red-600 hover:bg-red-700'}`}>{confirmDialog.confirmLabel || 'Delete'}</button>
-              <button onClick={() => setConfirmDialog(null)} className="flex-1 px-4 py-2 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 text-sm font-semibold">Cancel</button>
+              <button onClick={() => setConfirmDialog(null)} className="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 text-sm font-semibold">Cancel</button>
             </div>
           </div>
         </div>
@@ -616,11 +634,11 @@ export default function HabitTracker() {
         {/* Header — large centered when empty, compact with controls when habits exist */}
         {habits.length === 0 && !isAddingHabit ? (
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-800 mb-2">Habit Tracker</h1>
-            <p className="text-gray-600">Log your progress, stay motivated</p>
+            <h1 className="text-4xl font-bold text-gray-800 dark:text-gray-100 mb-2">Habit Tracker</h1>
+            <p className="text-gray-600 dark:text-gray-400">Log your progress, stay motivated</p>
           </div>
         ) : (
-          <div className="flex items-center gap-2 pb-3 mb-4 border-b border-indigo-100">
+          <div className="flex items-center gap-2 pb-3 mb-4 border-b border-indigo-100 dark:border-gray-800">
             {!isReorderMode
               ? <button onClick={() => setIsAddingHabit(true)} disabled={isAddingHabit}
                   className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center shrink-0 active:scale-95 disabled:opacity-40">
@@ -628,8 +646,8 @@ export default function HabitTracker() {
                 </button>
               : <div className="w-8 shrink-0" />}
             <div className="flex-1 text-center">
-              <h1 className="text-lg font-bold text-gray-800 leading-tight">Habit Tracker</h1>
-              <p className="text-xs text-gray-500 leading-tight">Log your progress, stay motivated</p>
+              <h1 className="text-lg font-bold text-gray-800 dark:text-gray-100 leading-tight">Habit Tracker</h1>
+              <p className="text-xs text-gray-500 dark:text-gray-400 leading-tight">Log your progress, stay motivated</p>
             </div>
             {isReorderMode
               ? <button onClick={() => setIsReorderMode(false)}
@@ -637,7 +655,7 @@ export default function HabitTracker() {
                   <Check className="w-4 h-4" strokeWidth={2.5} />
                 </button>
               : <button onClick={() => setShowSettingsSheet(true)}
-                  className="w-8 h-8 rounded-lg bg-white border border-gray-200 text-indigo-600 flex items-center justify-center shrink-0 active:scale-95">
+                  className="w-8 h-8 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 active:scale-95">
                   <MoreHorizontal className="w-4 h-4" />
                 </button>}
           </div>
@@ -645,7 +663,7 @@ export default function HabitTracker() {
 
         {/* Inline add habit form */}
         {isAddingHabit && (
-          <form onSubmit={addHabit} className="bg-white rounded-xl shadow-md px-3 py-3 flex flex-col gap-2 mb-4">
+          <form onSubmit={addHabit} className="bg-white dark:bg-gray-900 rounded-xl shadow-md px-3 py-3 flex flex-col gap-2 mb-4">
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-2">
                 <input
@@ -655,34 +673,34 @@ export default function HabitTracker() {
                   placeholder="Habit name (max 20 chars)"
                   maxLength={20}
                   style={{ fontSize: '16px' }}
-                  className={`flex-1 px-2 py-1 border rounded-lg focus:outline-none text-sm ${nameError ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-indigo-500'}`}
+                  className={`flex-1 px-2 py-1 border rounded-lg focus:outline-none text-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 ${nameError ? 'border-red-400 focus:border-red-400' : 'border-gray-200 dark:border-gray-700 focus:border-indigo-500'}`}
                   autoFocus
                 />
                 <button type="submit" className="px-4 py-1.5 bg-gradient-to-r from-indigo-500 to-blue-600 text-white rounded-lg text-sm font-semibold shadow-md active:scale-95 shrink-0">Add</button>
-                <button type="button" onClick={() => { setIsAddingHabit(false); setNewHabit(''); setNameError(false); setNewHabitType('daily'); setNewHabitWeeklyTarget(3); setNewHabitMonthlyTarget(1); }} className="ml-1 text-gray-400 hover:text-gray-600 text-xl font-bold leading-none shrink-0">×</button>
+                <button type="button" onClick={() => { setIsAddingHabit(false); setNewHabit(''); setNameError(false); setNewHabitType('daily'); setNewHabitWeeklyTarget(3); setNewHabitMonthlyTarget(1); }} className="ml-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 text-xl font-bold leading-none shrink-0">×</button>
               </div>
               {nameError && <p className="text-red-500 text-xs px-1">Please enter a habit name</p>}
             </div>
             <div className="flex items-center gap-3">
-              <div className="flex rounded-lg border border-gray-200 overflow-hidden text-xs">
-                <button type="button" onClick={() => setNewHabitType('daily')} className={`px-3 py-1 transition-colors ${newHabitType === 'daily' ? 'bg-indigo-500 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}>Daily</button>
-                <button type="button" onClick={() => setNewHabitType('weekly')} className={`px-3 py-1 transition-colors ${newHabitType === 'weekly' ? 'bg-indigo-500 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}>Weekly</button>
-                <button type="button" onClick={() => setNewHabitType('monthly')} className={`px-3 py-1 transition-colors ${newHabitType === 'monthly' ? 'bg-indigo-500 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}>Monthly</button>
+              <div className="flex rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden text-xs">
+                <button type="button" onClick={() => setNewHabitType('daily')} className={`px-3 py-1 transition-colors ${newHabitType === 'daily' ? 'bg-indigo-500 text-white' : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'}`}>Daily</button>
+                <button type="button" onClick={() => setNewHabitType('weekly')} className={`px-3 py-1 transition-colors ${newHabitType === 'weekly' ? 'bg-indigo-500 text-white' : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'}`}>Weekly</button>
+                <button type="button" onClick={() => setNewHabitType('monthly')} className={`px-3 py-1 transition-colors ${newHabitType === 'monthly' ? 'bg-indigo-500 text-white' : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'}`}>Monthly</button>
               </div>
               {newHabitType === 'weekly' && (
-                <div className="flex items-center gap-1.5 text-xs text-gray-600">
-                  <button type="button" onClick={() => setNewHabitWeeklyTarget(t => Math.max(1, t - 1))} className="w-5 h-5 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-bold">−</button>
+                <div className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400">
+                  <button type="button" onClick={() => setNewHabitWeeklyTarget(t => Math.max(1, t - 1))} className="w-5 h-5 rounded bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 flex items-center justify-center font-bold">−</button>
                   <span className="w-4 text-center font-semibold">{newHabitWeeklyTarget}</span>
-                  <button type="button" onClick={() => setNewHabitWeeklyTarget(t => Math.min(7, t + 1))} className="w-5 h-5 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-bold">+</button>
-                  <span className="text-gray-400">days/wk</span>
+                  <button type="button" onClick={() => setNewHabitWeeklyTarget(t => Math.min(7, t + 1))} className="w-5 h-5 rounded bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 flex items-center justify-center font-bold">+</button>
+                  <span className="text-gray-400 dark:text-gray-500">days/wk</span>
                 </div>
               )}
               {newHabitType === 'monthly' && (
-                <div className="flex items-center gap-1.5 text-xs text-gray-600">
-                  <button type="button" onClick={() => setNewHabitMonthlyTarget(t => Math.max(1, t - 1))} className="w-5 h-5 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-bold">−</button>
+                <div className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400">
+                  <button type="button" onClick={() => setNewHabitMonthlyTarget(t => Math.max(1, t - 1))} className="w-5 h-5 rounded bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 flex items-center justify-center font-bold">−</button>
                   <span className="w-4 text-center font-semibold">{newHabitMonthlyTarget}</span>
-                  <button type="button" onClick={() => setNewHabitMonthlyTarget(t => Math.min(30, t + 1))} className="w-5 h-5 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-bold">+</button>
-                  <span className="text-gray-400">days/mo</span>
+                  <button type="button" onClick={() => setNewHabitMonthlyTarget(t => Math.min(30, t + 1))} className="w-5 h-5 rounded bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 flex items-center justify-center font-bold">+</button>
+                  <span className="text-gray-400 dark:text-gray-500">days/mo</span>
                 </div>
               )}
             </div>
@@ -691,9 +709,9 @@ export default function HabitTracker() {
 
         {/* Backup reminder banner */}
         {showBackupReminder && habits.length > 0 && (
-          <div className="mb-4 flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+          <div className="mb-4 flex items-center gap-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/50 rounded-xl px-4 py-3">
             <span className="text-lg shrink-0">💾</span>
-            <p className="flex-1 text-xs text-amber-800 font-medium">No backup in {BACKUP_REMINDER_DAYS}+ days. Download one to stay safe.</p>
+            <p className="flex-1 text-xs text-amber-800 dark:text-amber-300 font-medium">No backup in {BACKUP_REMINDER_DAYS}+ days. Download one to stay safe.</p>
             <button
               onClick={() => { exportBackup(); }}
               className="shrink-0 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold rounded-lg transition-colors"
@@ -711,10 +729,10 @@ export default function HabitTracker() {
 
         {/* Empty state */}
         {habits.length === 0 && !isAddingHabit && (
-          <div className="bg-white rounded-2xl shadow-lg text-center p-12">
-            <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h2 className="text-2xl font-semibold text-gray-700 mb-2">Start Your Journey</h2>
-            <p className="text-gray-500 mb-6">Add your first habit to get started</p>
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg text-center p-12">
+            <Calendar className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+            <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-200 mb-2">Start Your Journey</h2>
+            <p className="text-gray-500 dark:text-gray-400 mb-6">Add your first habit to get started</p>
             <button
               onClick={() => setIsAddingHabit(true)}
               className="px-6 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-semibold shadow-md active:scale-95 mb-4 inline-flex items-center gap-2"
@@ -725,7 +743,7 @@ export default function HabitTracker() {
             <div>
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="px-4 py-2 text-sm text-gray-500 hover:text-indigo-600 transition-colors inline-flex items-center gap-1.5"
+                className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors inline-flex items-center gap-1.5"
               >
                 <Upload className="w-4 h-4" />
                 Restore from backup
@@ -750,7 +768,7 @@ export default function HabitTracker() {
             const loggedDays = habit.dates.length;
 
             return (
-              <div key={habit.id} className={`relative overflow-visible transition-all ${viewMode === '2col' ? 'bg-white rounded-xl shadow-lg hover:shadow-xl' : isReorderMode ? 'bg-indigo-50/50 rounded-xl border border-indigo-100' : isExpanded ? 'bg-indigo-50/40 rounded-xl shadow-md border border-indigo-200' : 'bg-white rounded-xl shadow-md hover:shadow-md border border-gray-200'}`}>
+              <div key={habit.id} className={`relative overflow-visible transition-all ${viewMode === '2col' ? 'bg-white dark:bg-gray-900 rounded-xl shadow-lg hover:shadow-xl' : isReorderMode ? 'bg-indigo-50/50 dark:bg-indigo-950/30 rounded-xl border border-indigo-100 dark:border-indigo-900' : isExpanded ? 'bg-indigo-50/40 dark:bg-indigo-950/30 rounded-xl shadow-md border border-indigo-200 dark:border-indigo-800' : 'bg-white dark:bg-gray-900 rounded-xl shadow-md hover:shadow-md border border-gray-200 dark:border-gray-800'}`}>
 
                 {/* 2-col: floating streak/gap badge */}
                 {viewMode === '2col' && streak.current > 1 && (
@@ -779,34 +797,34 @@ export default function HabitTracker() {
                     <div className="flex items-center gap-0.5 pl-1 pr-2 py-2">
                       {/* ↑↓ arrows — always visible, grayed when disabled */}
                       <button onClick={() => moveHabitUp(index)} disabled={index === 0}
-                        className={`w-5 h-5 shrink-0 rounded flex items-center justify-center text-xs font-bold transition-colors ${index === 0 ? 'bg-gray-50 text-gray-300 cursor-default' : 'bg-gray-100 hover:bg-gray-200 text-gray-600 active:scale-95'}`}>↑</button>
+                        className={`w-5 h-5 shrink-0 rounded flex items-center justify-center text-xs font-bold transition-colors ${index === 0 ? 'bg-gray-50 dark:bg-gray-800 text-gray-300 dark:text-gray-600 cursor-default' : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 active:scale-95'}`}>↑</button>
                       <button onClick={() => moveHabitDown(index)} disabled={index === habits.length - 1}
-                        className={`w-5 h-5 shrink-0 rounded flex items-center justify-center text-xs font-bold transition-colors ${index === habits.length - 1 ? 'bg-gray-50 text-gray-300 cursor-default' : 'bg-gray-100 hover:bg-gray-200 text-gray-600 active:scale-95'}`}>↓</button>
+                        className={`w-5 h-5 shrink-0 rounded flex items-center justify-center text-xs font-bold transition-colors ${index === habits.length - 1 ? 'bg-gray-50 dark:bg-gray-800 text-gray-300 dark:text-gray-600 cursor-default' : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 active:scale-95'}`}>↓</button>
                       {/* Habit name */}
                       {isRenaming
                         ? <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)}
                             onBlur={() => saveRename(habit.id)} onKeyPress={(e) => e.key === 'Enter' && e.target.blur()}
                             maxLength={20} style={{ fontSize: '16px' }}
-                            className="flex-1 min-w-0 px-2 py-0.5 border-2 border-indigo-500 rounded-lg focus:outline-none text-sm" autoFocus />
-                        : <span onClick={() => startRenaming(habit)} className="flex-1 min-w-0 font-medium text-xs text-gray-700 truncate cursor-pointer hover:text-indigo-600">{habit.name}</span>}
+                            className="flex-1 min-w-0 px-2 py-0.5 border-2 border-indigo-500 rounded-lg focus:outline-none text-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100" autoFocus />
+                        : <span onClick={() => startRenaming(habit)} className="flex-1 min-w-0 font-medium text-xs text-gray-700 dark:text-gray-200 truncate cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400">{habit.name}</span>}
                       {/* Frequency chip — fixed-width column so all rows align */}
                       <div className="w-20 shrink-0 flex items-center gap-0.5 ml-2 mr-1">
                         {habitType !== 'daily'
                           ? <button onClick={(e) => { e.stopPropagation(); updateHabitType(habit.id, habitType, Math.max(1, currentTarget - 1)); }}
-                              className="w-5 h-5 shrink-0 rounded-full bg-indigo-100 hover:bg-indigo-200 flex items-center justify-center text-indigo-600 text-xs font-bold active:scale-95">−</button>
+                              className="w-5 h-5 shrink-0 rounded-full bg-indigo-100 dark:bg-indigo-900/50 hover:bg-indigo-200 dark:hover:bg-indigo-900 flex items-center justify-center text-indigo-600 dark:text-indigo-400 text-xs font-bold active:scale-95">−</button>
                           : <span className="w-5 shrink-0" />}
                         <button onClick={(e) => { e.stopPropagation(); cycleType(); }}
-                          className="flex-1 text-center py-0.5 rounded-full text-[10px] font-semibold bg-indigo-100 text-indigo-600 hover:bg-indigo-200 active:scale-95">
+                          className="flex-1 text-center py-0.5 rounded-full text-[10px] font-semibold bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-200 dark:hover:bg-indigo-900 active:scale-95">
                           {habitType === 'daily' ? 'Daily' : habitType === 'weekly' ? `${habitTarget}/wk` : `${monthlyHabitTarget}/mo`}
                         </button>
                         {habitType !== 'daily'
                           ? <button onClick={(e) => { e.stopPropagation(); updateHabitType(habit.id, habitType, Math.min(maxTarget, currentTarget + 1)); }}
-                              className="w-5 h-5 shrink-0 rounded-full bg-indigo-100 hover:bg-indigo-200 flex items-center justify-center text-indigo-600 text-xs font-bold active:scale-95">+</button>
+                              className="w-5 h-5 shrink-0 rounded-full bg-indigo-100 dark:bg-indigo-900/50 hover:bg-indigo-200 dark:hover:bg-indigo-900 flex items-center justify-center text-indigo-600 dark:text-indigo-400 text-xs font-bold active:scale-95">+</button>
                           : <span className="w-5 shrink-0" />}
                       </div>
                       {/* Delete */}
                       <button onClick={(e) => { e.stopPropagation(); deleteHabit(habit.id); }}
-                        className="shrink-0 w-14 py-1 rounded-lg text-[10px] font-semibold bg-red-100 text-red-700 hover:bg-red-200 active:scale-95 transition-all ml-1.5">Delete</button>
+                        className="shrink-0 w-14 py-1 rounded-lg text-[10px] font-semibold bg-red-100 dark:bg-red-950/50 text-red-700 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-950 active:scale-95 transition-all ml-1.5">Delete</button>
                     </div>
                   );
                 })()}
@@ -861,8 +879,8 @@ export default function HabitTracker() {
                     >
                       {/* Left: name + type label */}
                       <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5">
-                        <div className="font-bold text-gray-800 truncate text-sm">{habit.name}</div>
-                        <span className="text-xs text-gray-400">
+                        <div className="font-bold text-gray-800 dark:text-gray-100 truncate text-sm">{habit.name}</div>
+                        <span className="text-xs text-gray-400 dark:text-gray-500">
                           {isWeekly ? `Weekly · ${wTarget}/wk` : isMonthly ? `Monthly · ${mTarget}/mo` : 'Daily'}
                         </span>
                       </div>
@@ -872,16 +890,16 @@ export default function HabitTracker() {
                         {/* Streak/gap pill — fixed w-16 so all pills are same width */}
                         {isWeekly ? (
                           weeklyStreak.current >= 1
-                            ? <span className={`w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center gap-0.5 ${weekGoalMet ? 'bg-green-100 text-green-700' : 'bg-indigo-100 text-indigo-600'}`}>{weeklyStreak.current}w<Rocket className="w-2.5 h-2.5" /></span>
-                            : weeklyGap !== null && weeklyGap >= 1 ? <span className="w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center bg-rose-100 text-rose-500">{weeklyGap}w gap</span> : <div className="w-16" />
+                            ? <span className={`w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center gap-0.5 ${weekGoalMet ? 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400' : 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400'}`}>{weeklyStreak.current}w<Rocket className="w-2.5 h-2.5" /></span>
+                            : weeklyGap !== null && weeklyGap >= 1 ? <span className="w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center bg-rose-100 dark:bg-rose-950/40 text-rose-500 dark:text-rose-400">{weeklyGap}w gap</span> : <div className="w-16" />
                         ) : isMonthly ? (
                           monthlyStreak.current >= 1
-                            ? <span className={`w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center gap-0.5 ${monthGoalMet ? 'bg-green-100 text-green-700' : 'bg-indigo-100 text-indigo-600'}`}>{monthlyStreak.current}m<Rocket className="w-2.5 h-2.5" /></span>
-                            : monthlyGap !== null && monthlyGap >= 1 ? <span className="w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center bg-rose-100 text-rose-500">{monthlyGap}m gap</span> : <div className="w-16" />
+                            ? <span className={`w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center gap-0.5 ${monthGoalMet ? 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400' : 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400'}`}>{monthlyStreak.current}m<Rocket className="w-2.5 h-2.5" /></span>
+                            : monthlyGap !== null && monthlyGap >= 1 ? <span className="w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center bg-rose-100 dark:bg-rose-950/40 text-rose-500 dark:text-rose-400">{monthlyGap}m gap</span> : <div className="w-16" />
                         ) : (
                           streak.current > 1
-                            ? <span className={`w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center gap-0.5 ${loggedToday ? 'bg-green-100 text-green-700' : 'bg-indigo-100 text-indigo-600'}`}>{streak.current}d<Rocket className="w-2.5 h-2.5" /></span>
-                            : daysSince !== null && daysSince > 0 ? <span className="w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center bg-rose-100 text-rose-500">{daysSince}d gap</span> : <div className="w-16" />
+                            ? <span className={`w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center gap-0.5 ${loggedToday ? 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400' : 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400'}`}>{streak.current}d<Rocket className="w-2.5 h-2.5" /></span>
+                            : daysSince !== null && daysSince > 0 ? <span className="w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center bg-rose-100 dark:bg-rose-950/40 text-rose-500 dark:text-rose-400">{daysSince}d gap</span> : <div className="w-16" />
                         )}
 
                         {/* Tracker */}
@@ -894,9 +912,9 @@ export default function HabitTracker() {
                               return (
                                 <div key={i} className={`w-[10px] h-[10px] rounded-full flex items-center justify-center transition-all ${
                                   logged ? (weekGoalMet ? 'bg-gradient-to-br from-green-400 to-emerald-500' : 'bg-gradient-to-br from-indigo-400 to-blue-500')
-                                  : isToday ? 'border-2 border-indigo-400 bg-white'
-                                  : !future ? 'bg-rose-100'
-                                  : 'border border-gray-200 bg-white'
+                                  : isToday ? 'border-2 border-indigo-400 bg-white dark:bg-gray-900'
+                                  : !future ? 'bg-rose-100 dark:bg-rose-950/50'
+                                  : 'border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900'
                                 }`}>
                                   {logged && <Check className="w-1.5 h-1.5 text-white" strokeWidth={3} />}
                                 </div>
@@ -904,7 +922,7 @@ export default function HabitTracker() {
                             })}
                           </div>
                         ) : (
-                          <div className={`flex items-center gap-1 ${(isMonthly ? monthGoalMet : loggedToday) ? 'text-green-500' : 'text-indigo-500'}`}>
+                          <div className={`flex items-center gap-1 ${(isMonthly ? monthGoalMet : loggedToday) ? 'text-green-500 dark:text-green-400' : 'text-indigo-500 dark:text-indigo-400'}`}>
                             <TrendingUp className="w-3.5 h-3.5 shrink-0" />
                             <span className="text-xs font-bold whitespace-nowrap">{daysThisMonth}d this mo</span>
                           </div>
@@ -925,12 +943,12 @@ export default function HabitTracker() {
                   >
                   <div className={`overflow-hidden transition-opacity duration-300 ${isExpanded ? 'opacity-100' : 'opacity-0'}`}>
                   <div className="px-2 pb-2">
-                    <div className="h-px bg-indigo-100 mb-2" />
+                    <div className="h-px bg-indigo-100 dark:bg-indigo-900 mb-2" />
                     {/* Share button */}
                     <div className="flex justify-end mb-2">
                       <button
                         onClick={(e) => { e.stopPropagation(); setShareHabit(habit); }}
-                        className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 active:scale-95 transition-all text-indigo-600 text-xs font-semibold"
+                        className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-900/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/70 active:scale-95 transition-all text-indigo-600 dark:text-indigo-400 text-xs font-semibold"
                       >
                         <Share2 className="w-3 h-3" />
                         Share
@@ -992,17 +1010,17 @@ export default function HabitTracker() {
                       }
                       return (
                         <div className="grid grid-cols-3 gap-1.5 mb-2">
-                          <div className="bg-white rounded-xl p-2 text-center border border-gray-100 shadow-md overflow-hidden">
-                            <div className="text-[13px] font-bold text-indigo-600 whitespace-nowrap">{loggedDays} of {totalDaysVal}d</div>
-                            <div className="text-[10px] text-gray-500 leading-tight mt-0.5 whitespace-nowrap">since {sinceLabel}</div>
+                          <div className="bg-white dark:bg-gray-800 rounded-xl p-2 text-center border border-gray-100 dark:border-gray-700 shadow-md overflow-hidden">
+                            <div className="text-[13px] font-bold text-indigo-600 dark:text-indigo-400 whitespace-nowrap">{loggedDays} of {totalDaysVal}d</div>
+                            <div className="text-[10px] text-gray-500 dark:text-gray-400 leading-tight mt-0.5 whitespace-nowrap">since {sinceLabel}</div>
                           </div>
-                          <div className="bg-white rounded-xl p-2 text-center border border-gray-100 shadow-md overflow-hidden">
-                            <div className="text-[13px] font-bold text-indigo-600 whitespace-nowrap">{isWeeklyHabit ? `${weeksGoalMet} of ${totalWeeks}w` : isMonthlyHabit ? `${monthsGoalMet} of ${totalMonths}m` : `${last30Logged}d`}</div>
-                            <div className="text-[10px] text-gray-500 leading-tight mt-0.5 whitespace-nowrap">{isWeeklyHabit || isMonthlyHabit ? `since ${sinceLabel}` : 'in last 30 days'}</div>
+                          <div className="bg-white dark:bg-gray-800 rounded-xl p-2 text-center border border-gray-100 dark:border-gray-700 shadow-md overflow-hidden">
+                            <div className="text-[13px] font-bold text-indigo-600 dark:text-indigo-400 whitespace-nowrap">{isWeeklyHabit ? `${weeksGoalMet} of ${totalWeeks}w` : isMonthlyHabit ? `${monthsGoalMet} of ${totalMonths}m` : `${last30Logged}d`}</div>
+                            <div className="text-[10px] text-gray-500 dark:text-gray-400 leading-tight mt-0.5 whitespace-nowrap">{isWeeklyHabit || isMonthlyHabit ? `since ${sinceLabel}` : 'in last 30 days'}</div>
                           </div>
-                          <div className="bg-white rounded-xl p-2 text-center border border-gray-100 shadow-md overflow-hidden">
-                            <div className="text-[13px] font-bold text-amber-500 whitespace-nowrap">🏆 {isWeeklyHabit ? `${wStreak.longest}w` : isMonthlyHabit ? `${mStreakExp.longest}m` : `${streak.longest}d`}</div>
-                            <div className="text-[10px] text-gray-500 leading-tight mt-0.5">best streak</div>
+                          <div className="bg-white dark:bg-gray-800 rounded-xl p-2 text-center border border-gray-100 dark:border-gray-700 shadow-md overflow-hidden">
+                            <div className="text-[13px] font-bold text-amber-500 dark:text-amber-400 whitespace-nowrap">🏆 {isWeeklyHabit ? `${wStreak.longest}w` : isMonthlyHabit ? `${mStreakExp.longest}m` : `${streak.longest}d`}</div>
+                            <div className="text-[10px] text-gray-500 dark:text-gray-400 leading-tight mt-0.5">best streak</div>
                           </div>
                         </div>
                       );
@@ -1028,17 +1046,17 @@ export default function HabitTracker() {
                         );
                       }
                       return (
-                        <div className="bg-gray-50 rounded-lg p-1">
+                        <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-1">
                           {heatmapMode === 'month' && (
                             <div className="flex items-center justify-between mb-1">
-                              <button onClick={(e) => { e.stopPropagation(); setMonthOffset(o => o - 1); }} className="p-0.5 rounded hover:bg-gray-200 text-gray-500"><ChevronLeft className="w-3 h-3" /></button>
-                              <span className="text-xs font-semibold text-gray-600">{monthLabel} ({days.filter(d => habit.dates.includes(d)).length}d)</span>
-                              <button onClick={(e) => { e.stopPropagation(); setMonthOffset(o => o + 1); }} disabled={monthOffset >= 0} className="p-0.5 rounded hover:bg-gray-200 text-gray-500 disabled:opacity-30"><ChevronRight className="w-3 h-3" /></button>
+                              <button onClick={(e) => { e.stopPropagation(); setMonthOffset(o => o - 1); }} className="p-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400"><ChevronLeft className="w-3 h-3" /></button>
+                              <span className="text-xs font-semibold text-gray-600 dark:text-gray-300">{monthLabel} ({days.filter(d => habit.dates.includes(d)).length}d)</span>
+                              <button onClick={(e) => { e.stopPropagation(); setMonthOffset(o => o + 1); }} disabled={monthOffset >= 0} className="p-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 disabled:opacity-30"><ChevronRight className="w-3 h-3" /></button>
                             </div>
                           )}
                           {heatmapMode === 'month' && (
                             <div className="grid grid-cols-7 gap-0.5 mb-0">
-                              {['S','M','T','W','T','F','S'].map((d, i) => <div key={i} className="text-center text-[8px] font-semibold text-gray-400">{d}</div>)}
+                              {['S','M','T','W','T','F','S'].map((d, i) => <div key={i} className="text-center text-[8px] font-semibold text-gray-400 dark:text-gray-500">{d}</div>)}
                             </div>
                           )}
                           <div className="grid grid-cols-7 gap-0.5">
@@ -1052,10 +1070,10 @@ export default function HabitTracker() {
                                   onClick={(e) => { e.stopPropagation(); !isFuture && toggleDate(habit.id, dateStr, isLogged); }}
                                   title={formatDate(dateStr)}
                                   className={`aspect-square rounded-sm transition-colors flex items-center justify-center ${
-                                    isFuture ? 'bg-gray-100 cursor-default text-gray-300' :
-                                    isLogged ? 'bg-indigo-500 hover:bg-indigo-600 text-white' :
-                                    'bg-gray-200 hover:bg-gray-300 text-gray-500'
-                                  } ${isToday ? 'ring-2 ring-indigo-400 ring-offset-1' : ''}`}
+                                    isFuture ? 'bg-gray-100 dark:bg-gray-700/50 cursor-default text-gray-300 dark:text-gray-600' :
+                                    isLogged ? 'bg-indigo-500 dark:bg-indigo-600 hover:bg-indigo-600 dark:hover:bg-indigo-500 text-white' :
+                                    'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-500 dark:text-gray-400'
+                                  } ${isToday ? 'ring-2 ring-indigo-400 ring-offset-1 dark:ring-offset-gray-900' : ''}`}
                                 >
                                   <span className="text-[8px] font-medium leading-none select-none">{parseInt(dateStr.split('-')[2])}</span>
                                 </button>

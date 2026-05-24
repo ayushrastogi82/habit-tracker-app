@@ -10,3 +10,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background-color: #f9fafb; /* gray-50 — matches app wrapper, keeps iOS status bar consistent */
 }
+
+html.dark body {
+  background-color: #030712; /* gray-950 */
+}
