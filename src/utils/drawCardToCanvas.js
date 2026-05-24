@@ -180,7 +180,7 @@ export function drawCardToCanvas(habit, stat, appUrl) {
     ctx.fillText(String(streakCount), W / 2, heroMid + 16);
 
     ctx.fillStyle = 'rgba(203,213,225,0.7)';
-    ctx.font = `500 17px ${SYS}`;
+    ctx.font = `500 16px ${SYS}`;
     ctx.fillText('day streak', W / 2, heroMid + 72);
   }
 
@@ -196,7 +196,7 @@ export function drawCardToCanvas(habit, stat, appUrl) {
     ctx.fillText('/7', W / 2 + 32, heroMid - 52);
 
     ctx.fillStyle = 'rgba(203,213,225,0.7)';
-    ctx.font = `500 14px ${SYS}`;
+    ctx.font = `500 16px ${SYS}`;
     ctx.textAlign = 'center';
     ctx.fillText('days this week', W / 2, heroMid - 4);
 
@@ -278,7 +278,7 @@ export function drawCardToCanvas(habit, stat, appUrl) {
     ctx.fillText(String(bestStreak), W / 2, heroMid + 16);
 
     ctx.fillStyle = 'rgba(203,213,225,0.7)';
-    ctx.font = `500 17px ${SYS}`;
+    ctx.font = `500 16px ${SYS}`;
     ctx.fillText('day best streak', W / 2, heroMid + 72);
   }
 
@@ -292,7 +292,7 @@ export function drawCardToCanvas(habit, stat, appUrl) {
 
     // "days since May 1, 2024"
     ctx.fillStyle = 'rgba(203,213,225,0.7)';
-    ctx.font = `500 14px ${SYS}`;
+    ctx.font = `500 16px ${SYS}`;
     ctx.textAlign = 'center';
     ctx.fillText(`days since ${sinceLabel}`, W / 2, heroMid + 14);
   }

@@ -132,7 +132,7 @@ const ShareableCard = forwardRef(function ShareableCard({ habit, stat, appUrl },
             <div style={{ fontSize: '80px', fontWeight: '800', color: 'white', lineHeight: 1, marginBottom: '8px' }}>
               {streakCount}
             </div>
-            <div style={{ fontSize: '17px', color: 'rgba(203,213,225,0.7)', fontWeight: '500' }}>
+            <div style={{ fontSize: '16px', color: 'rgba(203,213,225,0.7)', fontWeight: '500', marginBottom: '20px' }}>
               day streak
             </div>
           </>
@@ -143,7 +143,7 @@ const ShareableCard = forwardRef(function ShareableCard({ habit, stat, appUrl },
             <div style={{ fontSize: '64px', fontWeight: '800', color: 'white', lineHeight: 1, marginBottom: '6px' }}>
               {last7Count}<span style={{ fontSize: '34px', color: 'rgba(203,213,225,0.45)', fontWeight: '600' }}>/7</span>
             </div>
-            <div style={{ fontSize: '14px', color: 'rgba(203,213,225,0.7)', fontWeight: '500', marginBottom: '18px' }}>
+            <div style={{ fontSize: '16px', color: 'rgba(203,213,225,0.7)', fontWeight: '500', marginBottom: '20px' }}>
               days this week
             </div>
             <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
@@ -166,7 +166,7 @@ const ShareableCard = forwardRef(function ShareableCard({ habit, stat, appUrl },
             <div style={{ fontSize: '80px', fontWeight: '800', color: 'white', lineHeight: 1, marginBottom: '8px' }}>
               {last30Count}
             </div>
-            <div style={{ fontSize: '16px', color: 'rgba(203,213,225,0.7)', fontWeight: '500', marginBottom: '18px' }}>
+            <div style={{ fontSize: '16px', color: 'rgba(203,213,225,0.7)', fontWeight: '500', marginBottom: '20px' }}>
               days in last 30
             </div>
             {/* 10×3 dot grid */}
@@ -216,7 +216,7 @@ const ShareableCard = forwardRef(function ShareableCard({ habit, stat, appUrl },
             <div style={{ fontSize: '80px', fontWeight: '800', color: 'white', lineHeight: 1, marginBottom: '8px' }}>
               {bestStreak}
             </div>
-            <div style={{ fontSize: '17px', color: 'rgba(203,213,225,0.7)', fontWeight: '500' }}>
+            <div style={{ fontSize: '16px', color: 'rgba(203,213,225,0.7)', fontWeight: '500', marginBottom: '20px' }}>
               day best streak
             </div>
           </>
@@ -227,7 +227,7 @@ const ShareableCard = forwardRef(function ShareableCard({ habit, stat, appUrl },
             <div style={{ fontSize: '64px', fontWeight: '800', color: 'white', lineHeight: 1, marginBottom: '6px' }}>
               {sinceCount}
             </div>
-            <div style={{ fontSize: '14px', color: 'rgba(203,213,225,0.7)', fontWeight: '500', marginBottom: '18px' }}>
+            <div style={{ fontSize: '16px', color: 'rgba(203,213,225,0.7)', fontWeight: '500', marginBottom: '20px' }}>
               days since {sinceLabel}
             </div>
           </>
