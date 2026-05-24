@@ -282,18 +282,24 @@ export function drawCardToCanvas(habit, stat, appUrl) {
   }
 
   if (stat === 'since') {
-    // Big white count
-    ctx.fillStyle = 'white';
-    ctx.font = `800 64px ${SYS}`;
+    // Rocket emoji
+    ctx.font = '70px serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(String(sinceCount), W / 2, heroMid - 36);
+    ctx.fillText('🚀', W / 2, heroMid - 72);
+
+    // Big count — same size as other cards
+    ctx.fillStyle = 'white';
+    ctx.font = `800 86px ${SYS}`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(String(sinceCount), W / 2, heroMid + 16);
 
     // "days since May 1, 2024"
     ctx.fillStyle = 'rgba(203,213,225,0.7)';
     ctx.font = `500 16px ${SYS}`;
     ctx.textAlign = 'center';
-    ctx.fillText(`days since ${sinceLabel}`, W / 2, heroMid + 14);
+    ctx.fillText(`days since ${sinceLabel}`, W / 2, heroMid + 72);
   }
 
   if (stat === 'month' || stat === 'year') {
