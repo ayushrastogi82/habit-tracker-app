@@ -25,6 +25,7 @@ export default function HabitTracker() {
   const [tourStep, setTourStep] = useState(null);
   const [feedbackFading, setFeedbackFading] = useState(false);
   const [heatmapMode, setHeatmapMode] = useState(() => localStorage.getItem('heatmap-mode') || 'month');
+  const [weekStart, setWeekStart] = useState(() => parseInt(localStorage.getItem('week-start') || '0')); // 0=Sun, 1=Mon
   const [monthOffset, setMonthOffset] = useState(0);
   const [nameError, setNameError] = useState(false);
   const [showSettingsSheet, setShowSettingsSheet] = useState(false);
@@ -115,7 +116,7 @@ export default function HabitTracker() {
       version: 1,
       exportedAt: new Date().toISOString(),
       habits,
-      preferences: { heatmapMode },
+      preferences: { heatmapMode, weekStart },
     };
     const json = JSON.stringify(backup, null, 2);
     const date = new Date().toISOString().slice(0, 10);
@@ -173,6 +174,10 @@ export default function HabitTracker() {
             if (parsed.preferences?.heatmapMode) {
               setHeatmapMode(parsed.preferences.heatmapMode);
               localStorage.setItem('heatmap-mode', parsed.preferences.heatmapMode);
+            }
+            if (parsed.preferences?.weekStart !== undefined) {
+              setWeekStart(parsed.preferences.weekStart);
+              localStorage.setItem('week-start', parsed.preferences.weekStart);
             }
             showFeedback(`🎉 ${parsed.habits.length} habit${parsed.habits.length !== 1 ? 's' : ''} restored!`);
           },
@@ -328,7 +333,12 @@ export default function HabitTracker() {
 
   // ── Weekly helpers ──────────────────────────────────────────────
   const getWeekStart = (date) => {
-    const d = new Date(date); d.setDate(d.getDate() - d.getDay()); d.setHours(0,0,0,0); return d;
+    const d = new Date(date);
+    const day = d.getDay(); // 0=Sun … 6=Sat
+    const diff = weekStart === 1 ? (day === 0 ? 6 : day - 1) : day;
+    d.setDate(d.getDate() - diff);
+    d.setHours(0, 0, 0, 0);
+    return d;
   };
   const toDateStr = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 
@@ -593,6 +603,22 @@ export default function HabitTracker() {
                 </div>
                 <span className="flex-1 text-left text-sm font-medium text-gray-800">Restore from Backup</span>
               </button>
+              <div className="h-px bg-gray-100 mx-4" />
+              <div className="flex items-center gap-3 px-4 py-3.5">
+                <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                </div>
+                <span className="flex-1 text-sm font-medium text-gray-800">Week starts on</span>
+                <div className="flex rounded-lg overflow-hidden border border-gray-200">
+                  {[{ val: 0, label: 'Sun' }, { val: 1, label: 'Mon' }].map(({ val, label }) => (
+                    <button
+                      key={val}
+                      onClick={() => { const v = val; setWeekStart(v); localStorage.setItem('week-start', v); }}
+                      className={`px-3 py-1 text-xs font-semibold transition-colors ${weekStart === val ? 'bg-indigo-600 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}
+                    >{label}</button>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -961,7 +987,8 @@ export default function HabitTracker() {
                       let weeksGoalMet = 0, totalWeeks = 0;
                       if (isWeeklyHabit) {
                         const curWeek = getWeekStart(new Date());
-                        const startDay = new Date(startUTC).getDay(); // 0 = Sunday
+                        const startDayRaw = new Date(startUTC).getDay(); // 0 = Sunday
+                        const startDay = weekStart === 1 ? (startDayRaw === 0 ? 6 : startDayRaw - 1) : startDayRaw;
                         const startWeek = getWeekStart(new Date(startUTC));
                         // Skip first week only if remaining days < target (impossible to hit goal)
                         const daysRemainingInFirstWeek = 7 - startDay;
@@ -1022,11 +1049,14 @@ export default function HabitTracker() {
                         const daysInMonth = new Date(year, month + 1, 0).getDate();
                         const isCurrentYear = year === today.getFullYear();
                         monthLabel = ref.toLocaleDateString('en-US', isCurrentYear ? { month: 'short' } : { month: 'short', year: 'numeric' });
-                        leadingBlanks = new Date(year, month, 1).getDay();
+                        leadingBlanks = weekStart === 1
+                          ? (new Date(year, month, 1).getDay() + 6) % 7
+                          : new Date(year, month, 1).getDay();
                         days = Array.from({ length: daysInMonth }, (_, i) =>
                           `${year}-${String(month+1).padStart(2,'0')}-${String(i+1).padStart(2,'0')}`
                         );
                       }
+                      const dayLabels = weekStart === 1 ? ['M','T','W','T','F','S','S'] : ['S','M','T','W','T','F','S'];
                       return (
                         <div className="bg-gray-50 rounded-lg p-1">
                           {heatmapMode === 'month' && (
@@ -1038,7 +1068,7 @@ export default function HabitTracker() {
                           )}
                           {heatmapMode === 'month' && (
                             <div className="grid grid-cols-7 gap-0.5 mb-0">
-                              {['S','M','T','W','T','F','S'].map((d, i) => <div key={i} className="text-center text-[8px] font-semibold text-gray-400">{d}</div>)}
+                              {dayLabels.map((d, i) => <div key={i} className="text-center text-[8px] font-semibold text-gray-400">{d}</div>)}
                             </div>
                           )}
                           <div className="grid grid-cols-7 gap-0.5">
@@ -1139,11 +1169,14 @@ export default function HabitTracker() {
                       const daysInMonth = new Date(year, month + 1, 0).getDate();
                       const isCurrentYear = year === today.getFullYear();
                       monthLabel = ref.toLocaleDateString('en-US', isCurrentYear ? { month: 'short' } : { month: 'short', year: 'numeric' });
-                      leadingBlanks = new Date(year, month, 1).getDay();
+                      leadingBlanks = weekStart === 1
+                        ? (new Date(year, month, 1).getDay() + 6) % 7
+                        : new Date(year, month, 1).getDay();
                       days = Array.from({ length: daysInMonth }, (_, i) =>
                         `${year}-${String(month+1).padStart(2,'0')}-${String(i+1).padStart(2,'0')}`
                       );
                     }
+                    const dayLabels2 = weekStart === 1 ? ['M','T','W','T','F','S','S'] : ['S','M','T','W','T','F','S'];
 
                     return (
                       <div className="mt-2 bg-gray-50 rounded-lg p-2">
@@ -1162,7 +1195,7 @@ export default function HabitTracker() {
                         )}
                         {heatmapMode === 'month' && (
                           <div className="grid grid-cols-7 gap-1 mb-1">
-                            {['S','M','T','W','T','F','S'].map((d, i) => (
+                            {dayLabels2.map((d, i) => (
                               <div key={i} className="text-center text-[8px] font-semibold text-gray-400">{d}</div>
                             ))}
                           </div>
