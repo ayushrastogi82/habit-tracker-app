@@ -3,20 +3,20 @@ import React, { useState } from 'react';
 const SLIDES = [
   {
     id: 0,
-    backdropClass: 'bg-white/90 dark:bg-gray-950/92',
+    backdropClass: 'bg-white/90',
     backdropBlur: 'backdrop-blur-sm',
     theme: 'light',
   },
   {
     id: 1,
-    backdropClass: 'bg-white/75 dark:bg-gray-950/80',
+    backdropClass: 'bg-white/75',
     backdropBlur: 'backdrop-blur-[2px]',
     theme: 'light',
   },
   {
     id: 2,
-    backdropClass: 'bg-gray-950/93',
-    backdropBlur: 'backdrop-blur-sm',
+    backdropClass: 'bg-gray-950',
+    backdropBlur: '',
     theme: 'dark',
   },
 ];
@@ -85,20 +85,18 @@ function SlidePanel({ slideIndex, currentSlide, isDark, backdropClass, backdropB
 
   return (
     <div
-      className={`relative shrink-0 w-full h-full flex flex-col items-center justify-between px-6 pt-safe pb-safe transition-opacity duration-300 ${backdropClass} ${backdropBlur} ${exiting ? 'opacity-0' : 'opacity-100'}`}
+      className={`relative shrink-0 w-full h-full flex flex-col items-center justify-between px-6 py-10 transition-opacity duration-300 ${backdropClass} ${backdropBlur} ${exiting ? 'opacity-0' : 'opacity-100'}`}
       style={{ minWidth: '100%' }}
       onClick={onAdvance}
     >
-      {/* Skip link — slides 1 & 2 only */}
+      {/* Skip link — absolutely positioned, slides 1 & 2 only */}
       {!isLast && (
-        <div className="w-full flex justify-end pt-4">
-          <button
-            onClick={(e) => { e.stopPropagation(); onSkip(); }}
-            className={`text-sm font-medium px-3 py-1.5 rounded-lg transition-colors ${isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'}`}
-          >
-            Skip
-          </button>
-        </div>
+        <button
+          onClick={(e) => { e.stopPropagation(); onSkip(); }}
+          className={`absolute top-4 right-4 text-sm font-medium px-3 py-1.5 rounded-lg transition-colors z-10 ${isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'}`}
+        >
+          Skip
+        </button>
       )}
 
       {/* Slide content */}
@@ -109,7 +107,7 @@ function SlidePanel({ slideIndex, currentSlide, isDark, backdropClass, backdropB
       </div>
 
       {/* Bottom: dots + CTA */}
-      <div className="w-full flex flex-col items-center gap-5 pb-10">
+      <div className="w-full flex flex-col items-center gap-5">
         {/* Dot indicators */}
         <div className="flex items-center gap-2">
           {Array.from({ length: totalSlides }).map((_, i) => (
