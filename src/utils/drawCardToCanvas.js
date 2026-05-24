@@ -81,9 +81,7 @@ export function drawCardToCanvas(habit, stat, appUrl) {
   const totalDaysSince = Math.max(1, (nowUTC - startUTC) / 86400000 + 1);
   const startDateObj = new Date(startUTC);
   const sinceLabel = startDateObj.toLocaleDateString('en-US',
-    startDateObj.getUTCFullYear() !== today.getFullYear()
-      ? { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }
-      : { month: 'short', day: 'numeric', timeZone: 'UTC' }
+    { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' }
   );
   const sincePct = Math.min(100, Math.round((sinceCount / totalDaysSince) * 100));
 
@@ -285,22 +283,17 @@ export function drawCardToCanvas(habit, stat, appUrl) {
   }
 
   if (stat === 'since') {
-    // Big count
+    // "X / Y" — same size, same white color, one line
     ctx.fillStyle = 'white';
-    ctx.font = `800 80px ${SYS}`;
+    ctx.font = `800 64px ${SYS}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(String(sinceCount), W / 2, heroMid - 72);
+    ctx.fillText(`${sinceCount} / ${Math.floor(totalDaysSince)}`, W / 2, heroMid - 52);
 
-    // "/ N days" muted
-    ctx.fillStyle = 'rgba(203,213,225,0.45)';
-    ctx.font = `600 22px ${SYS}`;
-    ctx.fillText(`/ ${totalDaysSince} days`, W / 2, heroMid - 28);
-
-    // "since May 1"
+    // "days since May 1, 2024"
     ctx.fillStyle = 'rgba(203,213,225,0.7)';
     ctx.font = `500 16px ${SYS}`;
-    ctx.fillText(`since ${sinceLabel}`, W / 2, heroMid + 8);
+    ctx.fillText(`days since ${sinceLabel}`, W / 2, heroMid + 4);
 
     // Progress bar
     const barW = 200, barH = 6, barR = 3;

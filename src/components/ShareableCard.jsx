@@ -68,9 +68,7 @@ const ShareableCard = forwardRef(function ShareableCard({ habit, stat, appUrl },
   const totalDaysSince = Math.max(1, (nowUTC - startUTC) / 86400000 + 1);
   const startDateObj = new Date(startUTC);
   const sinceLabel = startDateObj.toLocaleDateString('en-US',
-    startDateObj.getUTCFullYear() !== today.getFullYear()
-      ? { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }
-      : { month: 'short', day: 'numeric', timeZone: 'UTC' }
+    { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' }
   );
 
   // --- This month ---
@@ -226,14 +224,11 @@ const ShareableCard = forwardRef(function ShareableCard({ habit, stat, appUrl },
 
         {stat === 'since' && (
           <>
-            <div style={{ fontSize: '72px', fontWeight: '800', color: 'white', lineHeight: 1, marginBottom: '4px' }}>
-              {sinceCount}
-            </div>
-            <div style={{ fontSize: '22px', color: 'rgba(203,213,225,0.45)', fontWeight: '600', marginBottom: '10px' }}>
-              / {totalDaysSince} days
+            <div style={{ fontSize: '64px', fontWeight: '800', color: 'white', lineHeight: 1, marginBottom: '8px' }}>
+              {sinceCount} / {Math.floor(totalDaysSince)}
             </div>
             <div style={{ fontSize: '16px', color: 'rgba(203,213,225,0.7)', fontWeight: '500', marginBottom: '20px' }}>
-              since {sinceLabel}
+              days since {sinceLabel}
             </div>
             {/* Progress bar */}
             <div style={{ width: '200px', height: '6px', borderRadius: '3px', background: 'rgba(255,255,255,0.12)', overflow: 'hidden', marginBottom: '8px' }}>
