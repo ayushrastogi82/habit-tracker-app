@@ -184,24 +184,26 @@ export function drawCardToCanvas(habit, stat, appUrl) {
     ctx.fillText('day streak', W / 2, heroMid + 72);
   }
 
-  if (stat === 'week') {
+  if (stat === 'week' || stat === '7days') {
+    const label = stat === 'week' ? 'days this week' : 'last 7 days';
+
+    // Big number
     ctx.fillStyle = 'white';
     ctx.font = `800 86px ${SYS}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(String(last7Count), W / 2, heroMid);
+    ctx.fillText(String(last7Count), W / 2, heroMid - 52);
 
+    // Subtitle
     ctx.fillStyle = 'rgba(203,213,225,0.7)';
     ctx.font = `500 16px ${SYS}`;
-    ctx.fillText('days this week', W / 2, heroMid + 60);
-  }
+    ctx.fillText(label, W / 2, heroMid + 10);
 
-  if (stat === '7days') {
-    // 7 dots — centred vertically
+    // 7 dots
     const dotR = 15, gap = 10;
     const total = 7 * (dotR * 2) + 6 * gap;
     const sx = (W - total) / 2 + dotR;
-    const dotY = heroMid - 10;
+    const dotY = heroMid + 52;
     last7Logged.forEach((logged, i) => {
       const cx = sx + i * (dotR * 2 + gap);
       ctx.beginPath();
@@ -224,12 +226,6 @@ export function drawCardToCanvas(habit, stat, appUrl) {
         ctx.stroke();
       }
     });
-
-    ctx.fillStyle = 'rgba(203,213,225,0.7)';
-    ctx.font = `500 16px ${SYS}`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('last 7 days', W / 2, dotY + dotR + 28);
   }
 
   if (stat === '30days') {
