@@ -5,8 +5,7 @@ import { drawCardToCanvas } from '../utils/drawCardToCanvas';
 const TABS = [
   { key: 'streak', label: '🔥 Streak'    },
   { key: 'best',   label: '🏆 Best'      },
-  { key: 'week',   label: '📅 Week'      },
-  { key: '7days',  label: '🔲 Last 7'    },
+  { key: '7days',  label: '📅 Last 7 Days' },
   { key: '30days', label: '📊 30 Days'   },
   { key: 'month',  label: '📆 Month'     },
   { key: 'year',   label: '🗓 Year'      },

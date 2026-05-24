@@ -184,8 +184,8 @@ export function drawCardToCanvas(habit, stat, appUrl) {
     ctx.fillText('day streak', W / 2, heroMid + 72);
   }
 
-  if (stat === 'week' || stat === '7days') {
-    const label = stat === 'week' ? 'days this week' : 'last 7 days';
+  if (stat === '7days') {
+    const label = 'last 7 days';
 
     // Big number
     ctx.fillStyle = 'white';

@@ -138,13 +138,13 @@ const ShareableCard = forwardRef(function ShareableCard({ habit, stat, appUrl },
           </>
         )}
 
-        {(stat === 'week' || stat === '7days') && (
+        {stat === '7days' && (
           <>
             <div style={{ fontSize: '80px', fontWeight: '800', color: 'white', lineHeight: 1, marginBottom: '8px' }}>
               {last7Count}
             </div>
             <div style={{ fontSize: '16px', color: 'rgba(203,213,225,0.7)', fontWeight: '500', marginBottom: '20px' }}>
-              {stat === 'week' ? 'days this week' : 'last 7 days'}
+              last 7 days
             </div>
             <div style={{ display: 'flex', gap: '10px' }}>
               {last7Logged.map((logged, i) => (
