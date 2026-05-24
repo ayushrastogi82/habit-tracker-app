@@ -276,34 +276,43 @@ export function drawCardToCanvas(habit, stat, appUrl) {
   ctx.fillStyle = 'rgba(255,255,255,0.08)';
   ctx.fillRect(32, footerY, W - 64, 1);
 
-  // H logo box — centered
-  const logoSize = 26, logoR = 7;
-  const logoX = (W - logoSize) / 2;
-  const logoY = footerY + 12;
-  const logoGrad = ctx.createLinearGradient(logoX, logoY, logoX + logoSize, logoY + logoSize);
+  // H logo + "Habit Tracker" on same row, centered together
+  const logoSize = 22, logoR = 6;
+  const appNameText = 'Habit Tracker';
+  ctx.font = `700 13px ${SYS}`;
+  const nameW = ctx.measureText(appNameText).width;
+  const gap7  = 7;
+  const rowW  = logoSize + gap7 + nameW;
+  const rowX  = (W - rowW) / 2;
+  const rowY  = footerY + 12;
+
+  // Logo box
+  const logoGrad = ctx.createLinearGradient(rowX, rowY, rowX + logoSize, rowY + logoSize);
   logoGrad.addColorStop(0, '#6366f1');
   logoGrad.addColorStop(1, '#4f46e5');
   ctx.fillStyle = logoGrad;
-  rr(logoX, logoY, logoSize, logoSize, logoR);
+  rr(rowX, rowY, logoSize, logoSize, logoR);
   ctx.fill();
 
   ctx.fillStyle = 'white';
-  ctx.font = `800 13px ${SYS}`;
+  ctx.font = `800 11px ${SYS}`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText('H', W / 2, logoY + logoSize / 2 + 0.5);
+  ctx.fillText('H', rowX + logoSize / 2, rowY + logoSize / 2 + 0.5);
 
-  // App name
-  ctx.fillStyle = 'rgba(203,213,225,0.75)';
-  ctx.font = `700 12px ${SYS}`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'alphabetic';
-  ctx.fillText('Habit Tracker', W / 2, logoY + logoSize + 16);
+  // App name — vertically centred with logo
+  ctx.fillStyle = 'rgba(203,213,225,0.8)';
+  ctx.font = `700 13px ${SYS}`;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(appNameText, rowX + logoSize + gap7, rowY + logoSize / 2);
 
-  // Subtitle
+  // Subtitle below
   ctx.fillStyle = 'rgba(148,163,184,0.5)';
   ctx.font = `400 11px ${SYS}`;
-  ctx.fillText('Log your progress, stay motivated', W / 2, logoY + logoSize + 32);
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText('Log your progress, stay motivated', W / 2, rowY + logoSize + 18);
 
   return canvas;
 }

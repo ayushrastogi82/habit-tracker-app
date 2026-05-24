@@ -28,11 +28,11 @@ export default function ShareModal({ habit, onClose }) {
         if (!blob) { setSharing(false); return; }
         const file = new File([blob], `${habit.name}-habit.png`, { type: 'image/png' });
 
-        // Include the URL as text so WhatsApp renders it as a clickable link
+        // `text` becomes the WhatsApp message body — the URL auto-links
         const shareData = {
           files: [file],
           title: `${habit.name} — Habit Tracker`,
-          text: `Tracking my habits 🔥\nJoin me → https://${APP_URL}`,
+          text: `Start tracking your habits on Habit Tracker🔥 https://${APP_URL}`,
         };
 
         if (navigator.canShare && navigator.canShare({ files: [file] })) {

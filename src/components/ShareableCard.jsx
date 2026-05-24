@@ -202,17 +202,19 @@ const ShareableCard = forwardRef(function ShareableCard({ habit, stat, appUrl },
       {/* Thin divider */}
       <div style={{ height: '1px', background: 'rgba(255,255,255,0.08)', margin: '16px 0 14px' }} />
 
-      {/* Footer — H logo + brand + subtitle, all centered */}
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
-        <div style={{
-          width: '26px', height: '26px', borderRadius: '7px',
-          background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '13px', fontWeight: '800', color: 'white',
-        }}>H</div>
-        <span style={{ fontSize: '12px', fontWeight: '700', color: 'rgba(203,213,225,0.75)' }}>
-          Habit Tracker
-        </span>
+      {/* Footer — H logo + "Habit Tracker" on one row, subtitle below */}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+          <div style={{
+            width: '22px', height: '22px', borderRadius: '6px',
+            background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '11px', fontWeight: '800', color: 'white', flexShrink: 0,
+          }}>H</div>
+          <span style={{ fontSize: '13px', fontWeight: '700', color: 'rgba(203,213,225,0.8)' }}>
+            Habit Tracker
+          </span>
+        </div>
         <span style={{ fontSize: '11px', color: 'rgba(148,163,184,0.5)', fontWeight: '400' }}>
           Log your progress, stay motivated
         </span>
