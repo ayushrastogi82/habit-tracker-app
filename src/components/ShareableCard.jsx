@@ -42,21 +42,21 @@ const ShareableCard = forwardRef(function ShareableCard({ habit, stat, appUrl },
   });
   const last30Logged = last30.map(d => dates.includes(d));
   const last30Count = last30Logged.filter(Boolean).length;
-  const last30Pct = Math.round((last30Count / 30) * 100);
+  const last30Pct = Math.min(100, Math.round((last30Count / 30) * 100));
 
   // --- This month ---
   const monthStr = todayStr.slice(0, 7);
   const monthName = today.toLocaleDateString('en-US', { month: 'long' });
   const monthCount = dates.filter(d => d.startsWith(monthStr)).length;
   const daysElapsedThisMonth = today.getDate();
-  const monthPct = daysElapsedThisMonth > 0 ? Math.round((monthCount / daysElapsedThisMonth) * 100) : 0;
+  const monthPct = daysElapsedThisMonth > 0 ? Math.min(100, Math.round((monthCount / daysElapsedThisMonth) * 100)) : 0;
 
   // --- This year ---
   const yearStr = todayStr.slice(0, 4);
   const yearCount = dates.filter(d => d.startsWith(yearStr)).length;
   const startOfYear = new Date(today.getFullYear(), 0, 1);
   const daysElapsedThisYear = Math.floor((today - startOfYear) / 86400000) + 1;
-  const yearPct = daysElapsedThisYear > 0 ? Math.round((yearCount / daysElapsedThisYear) * 100) : 0;
+  const yearPct = daysElapsedThisYear > 0 ? Math.min(100, Math.round((yearCount / daysElapsedThisYear) * 100)) : 0;
 
   const typeLabel =
     habit.type === 'weekly'  ? 'Weekly habit'  :
