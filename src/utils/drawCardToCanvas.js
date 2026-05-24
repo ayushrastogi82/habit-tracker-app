@@ -283,26 +283,12 @@ export function drawCardToCanvas(habit, stat, appUrl) {
   }
 
   if (stat === 'since') {
-    // Big white count — same pattern as 7days
+    // Big white count
     ctx.fillStyle = 'white';
     ctx.font = `800 64px ${SYS}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    const sinceNumW = ctx.measureText(String(sinceCount)).width;
-    const sinceDenStr = `/${Math.floor(totalDaysSince)}`;
-    ctx.font = `600 34px ${SYS}`;
-    const sinceDenW = ctx.measureText(sinceDenStr).width;
-    const sinceRowW = sinceNumW + sinceDenW;
-    const sinceStartX = W / 2 - sinceRowW / 2;
-
-    ctx.fillStyle = 'white';
-    ctx.font = `800 64px ${SYS}`;
-    ctx.textAlign = 'left';
-    ctx.fillText(String(sinceCount), sinceStartX, heroMid - 36);
-
-    ctx.fillStyle = 'rgba(203,213,225,0.45)';
-    ctx.font = `600 34px ${SYS}`;
-    ctx.fillText(sinceDenStr, sinceStartX + sinceNumW, heroMid - 36);
+    ctx.fillText(String(sinceCount), W / 2, heroMid - 36);
 
     // "days since May 1, 2024"
     ctx.fillStyle = 'rgba(203,213,225,0.7)';
