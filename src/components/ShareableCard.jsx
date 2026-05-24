@@ -138,25 +138,33 @@ const ShareableCard = forwardRef(function ShareableCard({ habit, stat, appUrl },
           </>
         )}
 
-        {stat === '7days' && (
+        {stat === 'week' && (
           <>
-            <div style={{ fontSize: '64px', fontWeight: '800', color: 'white', lineHeight: 1, marginBottom: '6px' }}>
-              {last7Count}<span style={{ fontSize: '34px', color: 'rgba(203,213,225,0.45)', fontWeight: '600' }}>/7</span>
+            <div style={{ fontSize: '80px', fontWeight: '800', color: 'white', lineHeight: 1, marginBottom: '8px' }}>
+              {last7Count}
             </div>
             <div style={{ fontSize: '16px', color: 'rgba(203,213,225,0.7)', fontWeight: '500', marginBottom: '20px' }}>
               days this week
             </div>
-            <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+          </>
+        )}
+
+        {stat === '7days' && (
+          <>
+            <div style={{ display: 'flex', gap: '10px', marginBottom: '16px' }}>
               {last7Logged.map((logged, i) => (
                 <div key={i} style={{
-                  width: '28px', height: '28px', borderRadius: '50%',
+                  width: '30px', height: '30px', borderRadius: '50%',
                   background: logged ? 'linear-gradient(135deg, #34d399, #10b981)' : 'rgba(255,255,255,0.1)',
                   border: logged ? 'none' : '1px solid rgba(255,255,255,0.2)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
-                  {logged && <span style={{ color: 'white', fontSize: '12px', fontWeight: '700' }}>✓</span>}
+                  {logged && <span style={{ color: 'white', fontSize: '13px', fontWeight: '700' }}>✓</span>}
                 </div>
               ))}
+            </div>
+            <div style={{ fontSize: '16px', color: 'rgba(203,213,225,0.7)', fontWeight: '500', marginBottom: '20px' }}>
+              last 7 days
             </div>
           </>
         )}

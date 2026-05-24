@@ -184,27 +184,24 @@ export function drawCardToCanvas(habit, stat, appUrl) {
     ctx.fillText('day streak', W / 2, heroMid + 72);
   }
 
-  if (stat === '7days') {
+  if (stat === 'week') {
     ctx.fillStyle = 'white';
-    ctx.font = `800 72px ${SYS}`;
+    ctx.font = `800 86px ${SYS}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(String(last7Count), W / 2 - 22, heroMid - 52);
-
-    ctx.fillStyle = 'rgba(203,213,225,0.45)';
-    ctx.font = `600 36px ${SYS}`;
-    ctx.fillText('/7', W / 2 + 32, heroMid - 52);
+    ctx.fillText(String(last7Count), W / 2, heroMid);
 
     ctx.fillStyle = 'rgba(203,213,225,0.7)';
     ctx.font = `500 16px ${SYS}`;
-    ctx.textAlign = 'center';
-    ctx.fillText('days this week', W / 2, heroMid - 4);
+    ctx.fillText('days this week', W / 2, heroMid + 60);
+  }
 
-    // 7 dots
-    const dotR = 14, gap = 8;
+  if (stat === '7days') {
+    // 7 dots — centred vertically
+    const dotR = 15, gap = 10;
     const total = 7 * (dotR * 2) + 6 * gap;
     const sx = (W - total) / 2 + dotR;
-    const dotY = heroMid + 46;
+    const dotY = heroMid - 10;
     last7Logged.forEach((logged, i) => {
       const cx = sx + i * (dotR * 2 + gap);
       ctx.beginPath();
@@ -218,7 +215,7 @@ export function drawCardToCanvas(habit, stat, appUrl) {
         ctx.strokeStyle = 'white'; ctx.lineWidth = 2;
         ctx.lineCap = 'round'; ctx.lineJoin = 'round';
         ctx.beginPath();
-        ctx.moveTo(cx - 5, dotY); ctx.lineTo(cx - 1, dotY + 4); ctx.lineTo(cx + 5, dotY - 4);
+        ctx.moveTo(cx - 5, dotY); ctx.lineTo(cx - 1, dotY + 5); ctx.lineTo(cx + 5, dotY - 5);
         ctx.stroke();
       } else {
         ctx.fillStyle = 'rgba(255,255,255,0.1)';
@@ -227,6 +224,12 @@ export function drawCardToCanvas(habit, stat, appUrl) {
         ctx.stroke();
       }
     });
+
+    ctx.fillStyle = 'rgba(203,213,225,0.7)';
+    ctx.font = `500 16px ${SYS}`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('last 7 days', W / 2, dotY + dotR + 28);
   }
 
   if (stat === '30days') {
