@@ -1,6 +1,6 @@
-import React, { useState, useRef } from 'react';
-import html2canvas from 'html2canvas';
+import React, { useState } from 'react';
 import ShareableCard from './ShareableCard';
+import { drawCardToCanvas } from '../utils/drawCardToCanvas';
 
 const TABS = [
   { key: 'streak', label: '🔥 Streak'  },
@@ -17,29 +17,27 @@ const APP_URL = window.location.hostname === 'localhost'
 export default function ShareModal({ habit, onClose }) {
   const [activeStat, setActiveStat] = useState('streak');
   const [sharing, setSharing] = useState(false);
-  const cardRef = useRef(null);
 
   async function handleShare() {
-    if (!cardRef.current) return;
     setSharing(true);
     try {
-      const canvas = await html2canvas(cardRef.current, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: null,
-        logging: false,
-      });
+      // Draw card directly to canvas — no html2canvas, pixel-perfect result
+      const canvas = drawCardToCanvas(habit, activeStat, APP_URL);
 
       canvas.toBlob(async (blob) => {
         if (!blob) { setSharing(false); return; }
         const file = new File([blob], `${habit.name}-habit.png`, { type: 'image/png' });
 
+        // Include the URL as text so WhatsApp renders it as a clickable link
+        const shareData = {
+          files: [file],
+          title: `${habit.name} — Habit Tracker`,
+          text: `Tracking my habits 🔥\nJoin me → https://${APP_URL}`,
+        };
+
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
           try {
-            await navigator.share({
-              files: [file],
-              title: `${habit.name} — Habit Tracker`,
-            });
+            await navigator.share(shareData);
           } catch (err) {
             if (err.name !== 'AbortError') fallbackDownload(blob);
           }
@@ -49,7 +47,7 @@ export default function ShareModal({ habit, onClose }) {
         setSharing(false);
       }, 'image/png');
     } catch (err) {
-      console.error('html2canvas error:', err);
+      console.error('Card draw error:', err);
       setSharing(false);
     }
   }
@@ -72,7 +70,7 @@ export default function ShareModal({ habit, onClose }) {
     >
       {/* Sheet */}
       <div
-        className="bg-white rounded-t-2xl shadow-2xl w-full max-w-md mx-auto animate-slide-up"
+        className="bg-white rounded-t-2xl shadow-2xl w-full max-w-md mx-auto"
         style={{ animation: 'slideUp 0.3s ease-out' }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -105,12 +103,12 @@ export default function ShareModal({ habit, onClose }) {
           ))}
         </div>
 
-        {/* Card preview — scaled down */}
+        {/* Card preview — HTML-based (for the in-app preview only) */}
         <div className="flex justify-center mb-6 px-5">
           <div
             style={{
-              width: '252px',   // 360 * 0.7
-              height: '350px',  // 500 * 0.7
+              width: '252px',
+              height: '350px',
               overflow: 'hidden',
               borderRadius: '17px',
               boxShadow: '0 8px 32px rgba(0,0,0,0.22)',
@@ -118,10 +116,15 @@ export default function ShareModal({ habit, onClose }) {
             }}
           >
             <div style={{ transform: 'scale(0.7)', transformOrigin: 'top left', width: '360px', height: '500px' }}>
-              <ShareableCard ref={cardRef} habit={habit} stat={activeStat} appUrl={APP_URL} />
+              <ShareableCard habit={habit} stat={activeStat} appUrl={APP_URL} />
             </div>
           </div>
         </div>
+
+        {/* Note about link */}
+        <p className="text-center text-xs text-gray-400 px-6 mb-3">
+          App link will be included as text in your message so it's tappable 🔗
+        </p>
 
         {/* Share button */}
         <div className="px-5 pb-6" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
