@@ -283,34 +283,32 @@ export function drawCardToCanvas(habit, stat, appUrl) {
   }
 
   if (stat === 'since') {
-    // "X / Y" — same size, same white color, one line
+    // Big white count — same pattern as 7days
     ctx.fillStyle = 'white';
     ctx.font = `800 64px ${SYS}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(`${sinceCount} / ${Math.floor(totalDaysSince)}`, W / 2, heroMid - 52);
+    const sinceNumW = ctx.measureText(String(sinceCount)).width;
+    const sinceDenStr = `/${Math.floor(totalDaysSince)}`;
+    ctx.font = `600 34px ${SYS}`;
+    const sinceDenW = ctx.measureText(sinceDenStr).width;
+    const sinceRowW = sinceNumW + sinceDenW;
+    const sinceStartX = W / 2 - sinceRowW / 2;
+
+    ctx.fillStyle = 'white';
+    ctx.font = `800 64px ${SYS}`;
+    ctx.textAlign = 'left';
+    ctx.fillText(String(sinceCount), sinceStartX, heroMid - 36);
+
+    ctx.fillStyle = 'rgba(203,213,225,0.45)';
+    ctx.font = `600 34px ${SYS}`;
+    ctx.fillText(sinceDenStr, sinceStartX + sinceNumW, heroMid - 36);
 
     // "days since May 1, 2024"
     ctx.fillStyle = 'rgba(203,213,225,0.7)';
-    ctx.font = `500 16px ${SYS}`;
-    ctx.fillText(`days since ${sinceLabel}`, W / 2, heroMid + 4);
-
-    // Progress bar
-    const barW = 200, barH = 6, barR = 3;
-    const barX = (W - barW) / 2, barY = heroMid + 32;
-    ctx.fillStyle = 'rgba(255,255,255,0.12)';
-    rr(barX, barY, barW, barH, barR); ctx.fill();
-    if (sincePct > 0) {
-      const fg = ctx.createLinearGradient(barX, 0, barX + barW, 0);
-      fg.addColorStop(0, '#6366f1'); fg.addColorStop(1, '#818cf8');
-      ctx.fillStyle = fg;
-      rr(barX, barY, barW * sincePct / 100, barH, barR); ctx.fill();
-    }
-
-    ctx.fillStyle = 'rgba(165,180,252,0.85)';
-    ctx.font = `600 14px ${SYS}`;
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText(`${sincePct}% consistency`, W / 2, heroMid + 58);
+    ctx.font = `500 14px ${SYS}`;
+    ctx.textAlign = 'center';
+    ctx.fillText(`days since ${sinceLabel}`, W / 2, heroMid + 14);
   }
 
   if (stat === 'month' || stat === 'year') {

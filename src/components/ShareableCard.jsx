@@ -224,18 +224,11 @@ const ShareableCard = forwardRef(function ShareableCard({ habit, stat, appUrl },
 
         {stat === 'since' && (
           <>
-            <div style={{ fontSize: '64px', fontWeight: '800', color: 'white', lineHeight: 1, marginBottom: '8px' }}>
-              {sinceCount} / {Math.floor(totalDaysSince)}
+            <div style={{ fontSize: '64px', fontWeight: '800', color: 'white', lineHeight: 1, marginBottom: '6px' }}>
+              {sinceCount}<span style={{ fontSize: '34px', color: 'rgba(203,213,225,0.45)', fontWeight: '600' }}>/{Math.floor(totalDaysSince)}</span>
             </div>
-            <div style={{ fontSize: '16px', color: 'rgba(203,213,225,0.7)', fontWeight: '500', marginBottom: '20px' }}>
+            <div style={{ fontSize: '14px', color: 'rgba(203,213,225,0.7)', fontWeight: '500', marginBottom: '18px' }}>
               days since {sinceLabel}
-            </div>
-            {/* Progress bar */}
-            <div style={{ width: '200px', height: '6px', borderRadius: '3px', background: 'rgba(255,255,255,0.12)', overflow: 'hidden', marginBottom: '8px' }}>
-              <div style={{ width: `${Math.min(100, Math.round((sinceCount / totalDaysSince) * 100))}%`, height: '100%', borderRadius: '3px', background: 'linear-gradient(90deg, #6366f1, #818cf8)' }} />
-            </div>
-            <div style={{ fontSize: '14px', color: 'rgba(165,180,252,0.85)', fontWeight: '600' }}>
-              {Math.min(100, Math.round((sinceCount / totalDaysSince) * 100))}% consistency
             </div>
           </>
         )}
