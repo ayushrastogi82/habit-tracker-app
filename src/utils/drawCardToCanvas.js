@@ -286,7 +286,7 @@ export function drawCardToCanvas(habit, stat, appUrl) {
     ctx.font = '70px serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('🚀', W / 2, heroMid - 72);
+    ctx.fillText('🌟', W / 2, heroMid - 72);
 
     // Big count — same size as other cards
     ctx.fillStyle = 'white';

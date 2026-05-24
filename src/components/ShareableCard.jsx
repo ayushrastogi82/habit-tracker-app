@@ -224,7 +224,7 @@ const ShareableCard = forwardRef(function ShareableCard({ habit, stat, appUrl },
 
         {stat === 'since' && (
           <>
-            <div style={{ fontSize: '68px', marginBottom: '4px', lineHeight: 1 }}>🚀</div>
+            <div style={{ fontSize: '68px', marginBottom: '4px', lineHeight: 1 }}>🌟</div>
             <div style={{ fontSize: '80px', fontWeight: '800', color: 'white', lineHeight: 1, marginBottom: '8px' }}>
               {sinceCount}
             </div>
