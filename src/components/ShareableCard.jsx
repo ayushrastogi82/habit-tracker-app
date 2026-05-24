@@ -34,6 +34,15 @@ const ShareableCard = forwardRef(function ShareableCard({ habit, stat, appUrl },
   const last7Logged = last7.map(d => dates.includes(d));
   const last7Count = last7Logged.filter(Boolean).length;
 
+  // --- Last 30 days ---
+  const last30 = Array.from({ length: 30 }, (_, i) => {
+    const d = new Date(today); d.setDate(today.getDate() - 29 + i);
+    return d.toISOString().slice(0, 10);
+  });
+  const last30Logged = last30.map(d => dates.includes(d));
+  const last30Count = last30Logged.filter(Boolean).length;
+  const last30Pct = Math.round((last30Count / 30) * 100);
+
   // --- This month ---
   const monthStr = todayStr.slice(0, 7);
   const monthName = today.toLocaleDateString('en-US', { month: 'long' });
@@ -139,6 +148,38 @@ const ShareableCard = forwardRef(function ShareableCard({ habit, stat, appUrl },
                 </div>
               ))}
             </div>
+          </>
+        )}
+
+        {stat === '30days' && (
+          <>
+            <div style={{ fontSize: '72px', fontWeight: '800', color: 'white', lineHeight: 1, marginBottom: '8px' }}>
+              {last30Count}<span style={{ fontSize: '32px', color: 'rgba(203,213,225,0.5)', fontWeight: '600' }}>/30</span>
+            </div>
+            <div style={{ fontSize: '16px', color: 'rgba(203,213,225,0.7)', fontWeight: '500', marginBottom: '20px' }}>
+              days in last 30
+            </div>
+            {/* 5×6 dot grid */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              {Array.from({ length: 5 }, (_, row) => (
+                <div key={row} style={{ display: 'flex', gap: '6px' }}>
+                  {Array.from({ length: 6 }, (_, col) => {
+                    const idx = row * 6 + col;
+                    const logged = last30Logged[idx];
+                    return (
+                      <div key={col} style={{
+                        width: '20px', height: '20px', borderRadius: '4px',
+                        background: logged
+                          ? 'linear-gradient(135deg, #6366f1, #818cf8)'
+                          : 'rgba(255,255,255,0.08)',
+                        border: logged ? 'none' : '1px solid rgba(255,255,255,0.15)',
+                      }} />
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+            <div style={{ fontSize: '14px', color: 'rgba(165,180,252,0.8)', fontWeight: '600', marginTop: '14px' }}>{last30Pct}% consistency</div>
           </>
         )}
 

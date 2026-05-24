@@ -3,10 +3,11 @@ import html2canvas from 'html2canvas';
 import ShareableCard from './ShareableCard';
 
 const TABS = [
-  { key: 'streak', label: '🔥 Streak' },
-  { key: '7days',  label: '📅 7 Days' },
-  { key: 'month',  label: '📆 Month'  },
-  { key: 'year',   label: '🗓 Year'   },
+  { key: 'streak', label: '🔥 Streak'  },
+  { key: '7days',  label: '📅 7 Days'  },
+  { key: '30days', label: '📊 30 Days' },
+  { key: 'month',  label: '📆 Month'   },
+  { key: 'year',   label: '🗓 Year'    },
 ];
 
 const APP_URL = window.location.hostname === 'localhost'
