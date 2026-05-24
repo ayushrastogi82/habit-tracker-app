@@ -963,9 +963,12 @@ export default function HabitTracker() {
                         const curWeek = getWeekStart(new Date());
                         const startDay = new Date(startUTC).getDay(); // 0 = Sunday
                         const startWeek = getWeekStart(new Date(startUTC));
-                        // If habit starts mid-week, skip the partial first week
-                        const firstFullWeek = new Date(startDay === 0 ? startWeek.getTime() : startWeek.getTime() + 7 * 86400000);
-                        totalWeeks = Math.round((curWeek.getTime() - firstFullWeek.getTime()) / (7 * 86400000)) + 1;
+                        // Skip first week only if remaining days < target (impossible to hit goal)
+                        const daysRemainingInFirstWeek = 7 - startDay;
+                        const firstFullWeek = daysRemainingInFirstWeek >= wTarget
+                          ? startWeek
+                          : new Date(startWeek.getTime() + 7 * 86400000);
+                        totalWeeks = Math.max(0, Math.round((curWeek.getTime() - firstFullWeek.getTime()) / (7 * 86400000)) + 1);
                         for (let w = new Date(firstFullWeek); w.getTime() <= curWeek.getTime(); w.setDate(w.getDate() + 7)) {
                           if (isWeekGoalMet(habit.dates, wTarget, new Date(w))) weeksGoalMet++;
                         }
@@ -974,8 +977,14 @@ export default function HabitTracker() {
                       if (isMonthlyHabit) {
                         const startMonthStr = `${start.getUTCFullYear()}-${String(start.getUTCMonth()+1).padStart(2,'0')}`;
                         const curMonthStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-                        totalMonths = (now.getFullYear() * 12 + now.getMonth()) - (start.getUTCFullYear() * 12 + start.getUTCMonth()) + 1;
-                        let mm = startMonthStr;
+                        // Skip first month only if remaining days < target (impossible to hit goal)
+                        const startDayOfMonth = start.getUTCDate();
+                        const daysInStartMonth = new Date(start.getUTCFullYear(), start.getUTCMonth() + 1, 0).getDate();
+                        const daysRemainingInFirstMonth = daysInStartMonth - startDayOfMonth + 1;
+                        const firstCountedMonth = daysRemainingInFirstMonth >= mTargetExp ? startMonthStr : nextMonthStr(startMonthStr);
+                        const [fcy, fcm] = firstCountedMonth.split('-').map(Number);
+                        totalMonths = Math.max(0, (now.getFullYear() * 12 + now.getMonth()) - (fcy * 12 + fcm - 1) + 1);
+                        let mm = firstCountedMonth;
                         for (let i = 0; i < totalMonths; i++) {
                           if (isMonthGoalMet(habit.dates, mTargetExp, mm)) monthsGoalMet++;
                           mm = nextMonthStr(mm);
