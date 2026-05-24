@@ -58,6 +58,31 @@ export function drawCardToCanvas(habit, stat, appUrl) {
   const last30Count  = last30Logged.filter(Boolean).length;
   const last30Pct    = Math.min(100, Math.round((last30Count / 30) * 100));
 
+  // Best streak
+  let bestStreak = 0;
+  if (dates.length) {
+    const sorted = [...dates].sort();
+    let cur = 1; bestStreak = 1;
+    for (let i = 1; i < sorted.length; i++) {
+      const diff = (new Date(sorted[i]) - new Date(sorted[i - 1])) / 86400000;
+      if (diff === 1)      { cur++; bestStreak = Math.max(bestStreak, cur); }
+      else if (diff > 1)   { cur = 1; }
+    }
+  }
+
+  // All time (since start)
+  const startTs = parseInt(habit.startDate || habit.id);
+  const startDate = new Date(startTs); startDate.setHours(0, 0, 0, 0);
+  const startStr = startDate.toISOString().slice(0, 10);
+  const sinceCount = dates.filter(d => d >= startStr).length;
+  const totalDaysSince = Math.max(1, Math.floor((today - startDate) / 86400000) + 1);
+  const sinceLabel = startDate.toLocaleDateString('en-US',
+    startDate.getFullYear() !== today.getFullYear()
+      ? { month: 'short', day: 'numeric', year: 'numeric' }
+      : { month: 'short', day: 'numeric' }
+  );
+  const sincePct = Math.min(100, Math.round((sinceCount / totalDaysSince) * 100));
+
   // This month
   const monthStr  = todayStr.slice(0, 7);
   const monthName = today.toLocaleDateString('en-US', { month: 'long' });
@@ -236,6 +261,59 @@ export function drawCardToCanvas(habit, stat, appUrl) {
     ctx.font = `600 14px ${SYS}`;
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText(`${last30Pct}% consistency`, W / 2, gy0 + gridH + 18);
+  }
+
+  if (stat === 'best') {
+    ctx.font = '70px serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('🏆', W / 2, heroMid - 72);
+
+    ctx.fillStyle = 'white';
+    ctx.font = `800 86px ${SYS}`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(String(bestStreak), W / 2, heroMid + 16);
+
+    ctx.fillStyle = 'rgba(203,213,225,0.7)';
+    ctx.font = `500 17px ${SYS}`;
+    ctx.fillText('day best streak', W / 2, heroMid + 72);
+  }
+
+  if (stat === 'since') {
+    // Big count
+    ctx.fillStyle = 'white';
+    ctx.font = `800 80px ${SYS}`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(String(sinceCount), W / 2, heroMid - 72);
+
+    // "/ N days" muted
+    ctx.fillStyle = 'rgba(203,213,225,0.45)';
+    ctx.font = `600 22px ${SYS}`;
+    ctx.fillText(`/ ${totalDaysSince} days`, W / 2, heroMid - 28);
+
+    // "since May 1"
+    ctx.fillStyle = 'rgba(203,213,225,0.7)';
+    ctx.font = `500 16px ${SYS}`;
+    ctx.fillText(`since ${sinceLabel}`, W / 2, heroMid + 8);
+
+    // Progress bar
+    const barW = 200, barH = 6, barR = 3;
+    const barX = (W - barW) / 2, barY = heroMid + 32;
+    ctx.fillStyle = 'rgba(255,255,255,0.12)';
+    rr(barX, barY, barW, barH, barR); ctx.fill();
+    if (sincePct > 0) {
+      const fg = ctx.createLinearGradient(barX, 0, barX + barW, 0);
+      fg.addColorStop(0, '#6366f1'); fg.addColorStop(1, '#818cf8');
+      ctx.fillStyle = fg;
+      rr(barX, barY, barW * sincePct / 100, barH, barR); ctx.fill();
+    }
+
+    ctx.fillStyle = 'rgba(165,180,252,0.85)';
+    ctx.font = `600 14px ${SYS}`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(`${sincePct}% consistency`, W / 2, heroMid + 58);
   }
 
   if (stat === 'month' || stat === 'year') {

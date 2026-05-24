@@ -44,6 +44,31 @@ const ShareableCard = forwardRef(function ShareableCard({ habit, stat, appUrl },
   const last30Count = last30Logged.filter(Boolean).length;
   const last30Pct = Math.min(100, Math.round((last30Count / 30) * 100));
 
+  // --- Best streak ---
+  let bestStreak = 0;
+  if (dates.length) {
+    const sorted = [...dates].sort();
+    let cur = 1;
+    bestStreak = 1;
+    for (let i = 1; i < sorted.length; i++) {
+      const diff = (new Date(sorted[i]) - new Date(sorted[i - 1])) / 86400000;
+      if (diff === 1) { cur++; bestStreak = Math.max(bestStreak, cur); }
+      else if (diff > 1) cur = 1;
+    }
+  }
+
+  // --- All time (since start) ---
+  const startTs = parseInt(habit.startDate || habit.id);
+  const startDate = new Date(startTs); startDate.setHours(0, 0, 0, 0);
+  const startStr = startDate.toISOString().slice(0, 10);
+  const sinceCount = dates.filter(d => d >= startStr).length;
+  const totalDaysSince = Math.max(1, Math.floor((today - startDate) / 86400000) + 1);
+  const sinceLabel = startDate.toLocaleDateString('en-US',
+    startDate.getFullYear() !== today.getFullYear()
+      ? { month: 'short', day: 'numeric', year: 'numeric' }
+      : { month: 'short', day: 'numeric' }
+  );
+
   // --- This month ---
   const monthStr = todayStr.slice(0, 7);
   const monthName = today.toLocaleDateString('en-US', { month: 'long' });
@@ -180,6 +205,39 @@ const ShareableCard = forwardRef(function ShareableCard({ habit, stat, appUrl },
               <div style={{ width: `${monthPct}%`, height: '100%', borderRadius: '3px', background: 'linear-gradient(90deg, #6366f1, #818cf8)' }} />
             </div>
             <div style={{ fontSize: '14px', color: 'rgba(165,180,252,0.85)', fontWeight: '600' }}>{monthPct}% consistency</div>
+          </>
+        )}
+
+        {stat === 'best' && (
+          <>
+            <div style={{ fontSize: '68px', marginBottom: '4px', lineHeight: 1 }}>🏆</div>
+            <div style={{ fontSize: '80px', fontWeight: '800', color: 'white', lineHeight: 1, marginBottom: '8px' }}>
+              {bestStreak}
+            </div>
+            <div style={{ fontSize: '17px', color: 'rgba(203,213,225,0.7)', fontWeight: '500' }}>
+              day best streak
+            </div>
+          </>
+        )}
+
+        {stat === 'since' && (
+          <>
+            <div style={{ fontSize: '72px', fontWeight: '800', color: 'white', lineHeight: 1, marginBottom: '4px' }}>
+              {sinceCount}
+            </div>
+            <div style={{ fontSize: '22px', color: 'rgba(203,213,225,0.45)', fontWeight: '600', marginBottom: '10px' }}>
+              / {totalDaysSince} days
+            </div>
+            <div style={{ fontSize: '16px', color: 'rgba(203,213,225,0.7)', fontWeight: '500', marginBottom: '20px' }}>
+              since {sinceLabel}
+            </div>
+            {/* Progress bar */}
+            <div style={{ width: '200px', height: '6px', borderRadius: '3px', background: 'rgba(255,255,255,0.12)', overflow: 'hidden', marginBottom: '8px' }}>
+              <div style={{ width: `${Math.min(100, Math.round((sinceCount / totalDaysSince) * 100))}%`, height: '100%', borderRadius: '3px', background: 'linear-gradient(90deg, #6366f1, #818cf8)' }} />
+            </div>
+            <div style={{ fontSize: '14px', color: 'rgba(165,180,252,0.85)', fontWeight: '600' }}>
+              {Math.min(100, Math.round((sinceCount / totalDaysSince) * 100))}% consistency
+            </div>
           </>
         )}
 
