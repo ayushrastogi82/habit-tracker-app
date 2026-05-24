@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
-import { Plus, Check, TrendingUp, Calendar, ChevronDown, ChevronLeft, ChevronRight, Rocket, Undo2, Download, Upload, MoreHorizontal } from 'lucide-react';
+import { Plus, Check, TrendingUp, Calendar, ChevronDown, ChevronLeft, ChevronRight, Rocket, Undo2, Download, Upload, MoreHorizontal, Share2 } from 'lucide-react';
+import ShareModal from './ShareModal';
 
 export default function HabitTracker() {
   const [habits, setHabits] = useState([]);
@@ -28,6 +29,7 @@ export default function HabitTracker() {
   const [nameError, setNameError] = useState(false);
   const [showSettingsSheet, setShowSettingsSheet] = useState(false);
   const [showBackupReminder, setShowBackupReminder] = useState(false);
+  const [shareHabit, setShareHabit] = useState(null);
   const fileInputRef = React.useRef(null);
 
   const BACKUP_REMINDER_DAYS = 5;
@@ -543,6 +545,9 @@ export default function HabitTracker() {
         </div>
       )}
 
+      {/* Share modal */}
+      {shareHabit && <ShareModal habit={shareHabit} onClose={() => setShareHabit(null)} />}
+
       {/* Settings tray */}
       <div
         className={`fixed z-50 transition-opacity duration-200 ${showSettingsSheet ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
@@ -921,6 +926,16 @@ export default function HabitTracker() {
                   <div className={`overflow-hidden transition-opacity duration-300 ${isExpanded ? 'opacity-100' : 'opacity-0'}`}>
                   <div className="px-2 pb-2">
                     <div className="h-px bg-indigo-100 mb-2" />
+                    {/* Share button */}
+                    <div className="flex justify-end mb-2">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setShareHabit(habit); }}
+                        className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 active:scale-95 transition-all text-indigo-600 text-xs font-semibold"
+                      >
+                        <Share2 className="w-3 h-3" />
+                        Share
+                      </button>
+                    </div>
                     {/* Stats row */}
                     {(() => {
                       const now = new Date();
