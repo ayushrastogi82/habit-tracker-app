@@ -872,15 +872,15 @@ export default function HabitTracker() {
                         {/* Streak/gap pill — fixed w-16 so all pills are same width */}
                         {isWeekly ? (
                           weeklyStreak.current >= 1
-                            ? <span className={`w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center gap-0.5 ${weekGoalMet ? 'bg-green-100 text-green-700' : 'bg-indigo-100 text-indigo-600'}`}>{weeklyStreak.current}w<Rocket className="w-2.5 h-2.5" /></span>
+                            ? <span className={`w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center gap-0.5 ${weekGoalMet ? 'bg-green-100 text-green-700' : 'bg-indigo-100 text-indigo-600'}`}>{weeklyStreak.current}w🔥</span>
                             : weeklyGap !== null && weeklyGap >= 1 ? <span className="w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center bg-rose-100 text-rose-500">{weeklyGap}w gap</span> : <div className="w-16" />
                         ) : isMonthly ? (
                           monthlyStreak.current >= 1
-                            ? <span className={`w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center gap-0.5 ${monthGoalMet ? 'bg-green-100 text-green-700' : 'bg-indigo-100 text-indigo-600'}`}>{monthlyStreak.current}m<Rocket className="w-2.5 h-2.5" /></span>
+                            ? <span className={`w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center gap-0.5 ${monthGoalMet ? 'bg-green-100 text-green-700' : 'bg-indigo-100 text-indigo-600'}`}>{monthlyStreak.current}m🔥</span>
                             : monthlyGap !== null && monthlyGap >= 1 ? <span className="w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center bg-rose-100 text-rose-500">{monthlyGap}m gap</span> : <div className="w-16" />
                         ) : (
                           streak.current > 1
-                            ? <span className={`w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center gap-0.5 ${loggedToday ? 'bg-green-100 text-green-700' : 'bg-indigo-100 text-indigo-600'}`}>{streak.current}d<Rocket className="w-2.5 h-2.5" /></span>
+                            ? <span className={`w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center gap-0.5 ${loggedToday ? 'bg-green-100 text-green-700' : 'bg-indigo-100 text-indigo-600'}`}>{streak.current}d🔥</span>
                             : daysSince !== null && daysSince > 0 ? <span className="w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center bg-rose-100 text-rose-500">{daysSince}d gap</span> : <div className="w-16" />
                         )}
 
