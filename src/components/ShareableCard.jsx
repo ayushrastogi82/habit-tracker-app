@@ -1,6 +1,7 @@
 import React, { forwardRef } from 'react';
 
-// All styles are inline — html2canvas doesn't reliably capture Tailwind classes
+// All styles are inline — html2canvas is no longer used for capture,
+// but this component is kept for the live in-modal preview.
 
 const ShareableCard = forwardRef(function ShareableCard({ habit, stat, appUrl }, ref) {
   const today = new Date(); today.setHours(0, 0, 0, 0);
@@ -57,13 +58,14 @@ const ShareableCard = forwardRef(function ShareableCard({ habit, stat, appUrl },
   const daysElapsedThisYear = Math.floor((today - startOfYear) / 86400000) + 1;
   const yearPct = daysElapsedThisYear > 0 ? Math.round((yearCount / daysElapsedThisYear) * 100) : 0;
 
-  const habitTypeLabel = habit.type === 'weekly' ? 'Weekly' : habit.type === 'monthly' ? 'Monthly' : 'Daily';
+  const typeLabel =
+    habit.type === 'weekly'  ? 'Weekly habit'  :
+    habit.type === 'monthly' ? 'Monthly habit' : 'Daily habit';
 
-  // Card styles
   const card = {
     width: '360px',
     height: '500px',
-    background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)',
+    background: 'linear-gradient(180deg, #312e81 0%, #1e1b4b 35%, #0d0c24 70%, #05050f 100%)',
     borderRadius: '24px',
     display: 'flex',
     flexDirection: 'column',
@@ -74,10 +76,8 @@ const ShareableCard = forwardRef(function ShareableCard({ habit, stat, appUrl },
     overflow: 'hidden',
   };
 
-  // Subtle dot-grid background
   const dotGrid = {
-    position: 'absolute',
-    top: 0, left: 0, right: 0, bottom: 0,
+    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
     backgroundImage: 'radial-gradient(circle, rgba(99,102,241,0.15) 1px, transparent 1px)',
     backgroundSize: '24px 24px',
     pointerEvents: 'none',
@@ -85,29 +85,15 @@ const ShareableCard = forwardRef(function ShareableCard({ habit, stat, appUrl },
 
   return (
     <div ref={ref} style={card}>
-      {/* Dot grid */}
       <div style={dotGrid} />
 
-      {/* Brand */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '24px' }}>
-        <div style={{
-          width: '24px', height: '24px', borderRadius: '6px',
-          background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '13px', fontWeight: '800', color: 'white',
-        }}>H</div>
-        <span style={{ fontSize: '12px', fontWeight: '600', color: 'rgba(165,180,252,0.8)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-          Habit Tracker
-        </span>
-      </div>
-
-      {/* Habit name + type */}
-      <div style={{ marginBottom: '32px' }}>
-        <div style={{ fontSize: '26px', fontWeight: '800', color: 'white', lineHeight: 1.2, marginBottom: '4px' }}>
+      {/* Habit name — centered, large */}
+      <div style={{ textAlign: 'center', marginBottom: '6px' }}>
+        <div style={{ fontSize: '28px', fontWeight: '800', color: 'white', lineHeight: 1.2 }}>
           {habit.name}
         </div>
-        <div style={{ fontSize: '13px', color: 'rgba(165,180,252,0.7)', fontWeight: '500' }}>
-          {habitTypeLabel}
+        <div style={{ fontSize: '13px', color: 'rgba(165,180,252,0.65)', fontWeight: '500', marginTop: '6px' }}>
+          {typeLabel}
         </div>
       </div>
 
@@ -115,32 +101,29 @@ const ShareableCard = forwardRef(function ShareableCard({ habit, stat, appUrl },
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
         {stat === 'streak' && (
           <>
-            <div style={{ fontSize: '56px', marginBottom: '4px' }}>🔥</div>
-            <div style={{ fontSize: '72px', fontWeight: '800', color: 'white', lineHeight: 1, marginBottom: '8px' }}>
+            <div style={{ fontSize: '68px', marginBottom: '4px', lineHeight: 1 }}>🔥</div>
+            <div style={{ fontSize: '80px', fontWeight: '800', color: 'white', lineHeight: 1, marginBottom: '8px' }}>
               {streakCount}
             </div>
-            <div style={{ fontSize: '16px', color: 'rgba(203,213,225,0.7)', fontWeight: '500' }}>
-              {streakCount === 1 ? 'day streak' : 'day streak'}
+            <div style={{ fontSize: '17px', color: 'rgba(203,213,225,0.7)', fontWeight: '500' }}>
+              day streak
             </div>
           </>
         )}
 
         {stat === '7days' && (
           <>
-            <div style={{ fontSize: '56px', fontWeight: '800', color: 'white', lineHeight: 1, marginBottom: '6px' }}>
-              {last7Count}<span style={{ fontSize: '32px', color: 'rgba(203,213,225,0.5)', fontWeight: '600' }}>/7</span>
+            <div style={{ fontSize: '64px', fontWeight: '800', color: 'white', lineHeight: 1, marginBottom: '6px' }}>
+              {last7Count}<span style={{ fontSize: '34px', color: 'rgba(203,213,225,0.45)', fontWeight: '600' }}>/7</span>
             </div>
-            <div style={{ fontSize: '14px', color: 'rgba(203,213,225,0.7)', fontWeight: '500', marginBottom: '16px' }}>
+            <div style={{ fontSize: '14px', color: 'rgba(203,213,225,0.7)', fontWeight: '500', marginBottom: '18px' }}>
               days this week
             </div>
-            {/* 7 dots */}
             <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
               {last7Logged.map((logged, i) => (
                 <div key={i} style={{
                   width: '28px', height: '28px', borderRadius: '50%',
-                  background: logged
-                    ? 'linear-gradient(135deg, #34d399, #10b981)'
-                    : 'rgba(255,255,255,0.1)',
+                  background: logged ? 'linear-gradient(135deg, #34d399, #10b981)' : 'rgba(255,255,255,0.1)',
                   border: logged ? 'none' : '1px solid rgba(255,255,255,0.2)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
@@ -153,10 +136,10 @@ const ShareableCard = forwardRef(function ShareableCard({ habit, stat, appUrl },
 
         {stat === '30days' && (
           <>
-            <div style={{ fontSize: '72px', fontWeight: '800', color: 'white', lineHeight: 1, marginBottom: '8px' }}>
+            <div style={{ fontSize: '80px', fontWeight: '800', color: 'white', lineHeight: 1, marginBottom: '8px' }}>
               {last30Count}
             </div>
-            <div style={{ fontSize: '16px', color: 'rgba(203,213,225,0.7)', fontWeight: '500', marginBottom: '20px' }}>
+            <div style={{ fontSize: '16px', color: 'rgba(203,213,225,0.7)', fontWeight: '500', marginBottom: '18px' }}>
               days in last 30
             </div>
             {/* 10×3 dot grid */}
@@ -168,65 +151,71 @@ const ShareableCard = forwardRef(function ShareableCard({ habit, stat, appUrl },
                     const logged = last30Logged[idx];
                     return (
                       <div key={col} style={{
-                        width: '20px', height: '20px', borderRadius: '4px',
+                        width: '22px', height: '22px', borderRadius: '4px',
                         background: logged
                           ? 'linear-gradient(135deg, #6366f1, #818cf8)'
                           : 'rgba(255,255,255,0.08)',
-                        border: logged ? 'none' : '1px solid rgba(255,255,255,0.15)',
+                        border: logged ? 'none' : '1px solid rgba(255,255,255,0.12)',
                       }} />
                     );
                   })}
                 </div>
               ))}
             </div>
-            <div style={{ fontSize: '14px', color: 'rgba(165,180,252,0.8)', fontWeight: '600', marginTop: '14px' }}>{last30Pct}% consistency</div>
+            <div style={{ fontSize: '14px', color: 'rgba(165,180,252,0.85)', fontWeight: '600', marginTop: '14px' }}>
+              {last30Pct}% consistency
+            </div>
           </>
         )}
 
         {stat === 'month' && (
           <>
-            <div style={{ fontSize: '72px', fontWeight: '800', color: 'white', lineHeight: 1, marginBottom: '8px' }}>
+            <div style={{ fontSize: '80px', fontWeight: '800', color: 'white', lineHeight: 1, marginBottom: '8px' }}>
               {monthCount}
             </div>
             <div style={{ fontSize: '16px', color: 'rgba(203,213,225,0.7)', fontWeight: '500', marginBottom: '20px' }}>
               days in {monthName}
             </div>
-            {/* Progress bar */}
             <div style={{ width: '200px', height: '6px', borderRadius: '3px', background: 'rgba(255,255,255,0.12)', overflow: 'hidden', marginBottom: '8px' }}>
               <div style={{ width: `${monthPct}%`, height: '100%', borderRadius: '3px', background: 'linear-gradient(90deg, #6366f1, #818cf8)' }} />
             </div>
-            <div style={{ fontSize: '14px', color: 'rgba(165,180,252,0.8)', fontWeight: '600' }}>{monthPct}% consistency</div>
+            <div style={{ fontSize: '14px', color: 'rgba(165,180,252,0.85)', fontWeight: '600' }}>{monthPct}% consistency</div>
           </>
         )}
 
         {stat === 'year' && (
           <>
-            <div style={{ fontSize: '72px', fontWeight: '800', color: 'white', lineHeight: 1, marginBottom: '8px' }}>
+            <div style={{ fontSize: '80px', fontWeight: '800', color: 'white', lineHeight: 1, marginBottom: '8px' }}>
               {yearCount}
             </div>
             <div style={{ fontSize: '16px', color: 'rgba(203,213,225,0.7)', fontWeight: '500', marginBottom: '20px' }}>
               days in {yearStr}
             </div>
-            {/* Progress bar */}
             <div style={{ width: '200px', height: '6px', borderRadius: '3px', background: 'rgba(255,255,255,0.12)', overflow: 'hidden', marginBottom: '8px' }}>
               <div style={{ width: `${yearPct}%`, height: '100%', borderRadius: '3px', background: 'linear-gradient(90deg, #6366f1, #818cf8)' }} />
             </div>
-            <div style={{ fontSize: '14px', color: 'rgba(165,180,252,0.8)', fontWeight: '600' }}>{yearPct}% consistency</div>
+            <div style={{ fontSize: '14px', color: 'rgba(165,180,252,0.85)', fontWeight: '600' }}>{yearPct}% consistency</div>
           </>
         )}
       </div>
 
-      {/* Divider */}
-      <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', margin: '20px 0 16px' }} />
+      {/* Thin divider */}
+      <div style={{ height: '1px', background: 'rgba(255,255,255,0.08)', margin: '16px 0 14px' }} />
 
-      {/* CTA + URL */}
-      <div>
-        <div style={{ fontSize: '13px', color: 'rgba(203,213,225,0.6)', marginBottom: '2px' }}>
-          Start tracking your habits →
-        </div>
-        <div style={{ fontSize: '14px', fontWeight: '700', color: '#818cf8' }}>
-          {appUrl}
-        </div>
+      {/* Footer — H logo + brand + subtitle, all centered */}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+        <div style={{
+          width: '26px', height: '26px', borderRadius: '7px',
+          background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: '13px', fontWeight: '800', color: 'white',
+        }}>H</div>
+        <span style={{ fontSize: '12px', fontWeight: '700', color: 'rgba(203,213,225,0.75)' }}>
+          Habit Tracker
+        </span>
+        <span style={{ fontSize: '11px', color: 'rgba(148,163,184,0.5)', fontWeight: '400' }}>
+          Log your progress, stay motivated
+        </span>
       </div>
     </div>
   );

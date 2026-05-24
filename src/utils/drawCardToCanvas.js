@@ -1,10 +1,11 @@
 /**
- * Draws the shareable habit card directly onto a Canvas using the 2D API.
- * Returns the canvas element (not yet converted to blob).
+ * Draws the shareable habit card directly to a Canvas using the 2D API.
+ * Returns the canvas element ready for .toBlob().
  *
- * This bypasses html2canvas entirely — no DOM capture, no font/gradient
- * rendering quirks. Everything is drawn programmatically at 3× pixel density
- * so the result looks crisp on Retina / high-DPI screens.
+ * Layout (360 × 500):
+ *   Top area    — habit name (large, centered) + type label
+ *   Hero area   — stat-specific content (emoji, number, dots, bars)
+ *   Footer      — H logo + "Habit Tracker" + subtitle, all centered
  */
 export function drawCardToCanvas(habit, stat, appUrl) {
   const SCALE = 3;
@@ -63,8 +64,7 @@ export function drawCardToCanvas(habit, stat, appUrl) {
   const monthCount = dates.filter(d => d.startsWith(monthStr)).length;
   const daysElapsedThisMonth = today.getDate();
   const monthPct = daysElapsedThisMonth > 0
-    ? Math.round((monthCount / daysElapsedThisMonth) * 100)
-    : 0;
+    ? Math.round((monthCount / daysElapsedThisMonth) * 100) : 0;
 
   // This year
   const yearStr  = todayStr.slice(0, 4);
@@ -72,12 +72,11 @@ export function drawCardToCanvas(habit, stat, appUrl) {
   const daysElapsedThisYear =
     Math.floor((today - new Date(today.getFullYear(), 0, 1)) / 86400000) + 1;
   const yearPct = daysElapsedThisYear > 0
-    ? Math.round((yearCount / daysElapsedThisYear) * 100)
-    : 0;
+    ? Math.round((yearCount / daysElapsedThisYear) * 100) : 0;
 
   const typeLabel =
-    habit.type === 'weekly' ? 'Weekly' :
-    habit.type === 'monthly' ? 'Monthly' : 'Daily';
+    habit.type === 'weekly'  ? 'Weekly habit'  :
+    habit.type === 'monthly' ? 'Monthly habit' : 'Daily habit';
 
   // ── Helpers ────────────────────────────────────────────────────────────────
   function rr(x, y, w, h, r) {
@@ -104,16 +103,18 @@ export function drawCardToCanvas(habit, stat, appUrl) {
 
   const SYS = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
 
-  // ── Background ─────────────────────────────────────────────────────────────
-  const bg = ctx.createLinearGradient(0, 0, W, H);
-  bg.addColorStop(0, '#0f172a');
-  bg.addColorStop(1, '#1e1b4b');
+  // ── Background — top lighter indigo → bottom near-black ───────────────────
+  const bg = ctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0,    '#312e81');   // indigo-900 — lighter at top
+  bg.addColorStop(0.35, '#1e1b4b');   // indigo-950
+  bg.addColorStop(0.70, '#0d0c24');   // near-black purple
+  bg.addColorStop(1,    '#05050f');   // almost black
   ctx.fillStyle = bg;
   rr(0, 0, W, H, 24);
   ctx.fill();
 
   // ── Dot grid ───────────────────────────────────────────────────────────────
-  ctx.fillStyle = 'rgba(99,102,241,0.18)';
+  ctx.fillStyle = 'rgba(99,102,241,0.15)';
   for (let x = 12; x < W; x += 24) {
     for (let y = 12; y < H; y += 24) {
       ctx.beginPath();
@@ -122,85 +123,61 @@ export function drawCardToCanvas(habit, stat, appUrl) {
     }
   }
 
-  // ── Brand ──────────────────────────────────────────────────────────────────
-  const brandGrad = ctx.createLinearGradient(32, 32, 56, 56);
-  brandGrad.addColorStop(0, '#6366f1');
-  brandGrad.addColorStop(1, '#4f46e5');
-  ctx.fillStyle = brandGrad;
-  rr(32, 32, 24, 24, 6);
-  ctx.fill();
-
+  // ── Habit name (centered, large) ───────────────────────────────────────────
   ctx.fillStyle = 'white';
-  ctx.font = `800 13px ${SYS}`;
+  ctx.font = `800 30px ${SYS}`;
   ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('H', 44, 44.5);
-
-  ctx.fillStyle = 'rgba(165,180,252,0.85)';
-  ctx.font = `600 10.5px ${SYS}`;
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('HABIT TRACKER', 64, 44);
-
-  // ── Habit name + type ──────────────────────────────────────────────────────
-  ctx.fillStyle = 'white';
-  ctx.font = `800 26px ${SYS}`;
-  ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
-  ctx.fillText(truncate(habit.name, W - 64), 32, 108);
+  ctx.fillText(truncate(habit.name, W - 48), W / 2, 78);
 
-  ctx.fillStyle = 'rgba(165,180,252,0.7)';
+  // ── Type label (centered, muted) ───────────────────────────────────────────
+  ctx.fillStyle = 'rgba(165,180,252,0.65)';
   ctx.font = `500 13px ${SYS}`;
-  ctx.fillText(typeLabel, 32, 128);
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText(typeLabel, W / 2, 100);
 
-  // ── Hero stat (vertically centred between y=150 and y=415) ─────────────────
-  const heroMid = 283; // midpoint between 150 and 415
+  // ── Hero stat section (centred between y=110 and y=400) ────────────────────
+  const heroMid = 258;
 
   if (stat === 'streak') {
-    // Flame emoji
-    ctx.font = '54px serif';
+    ctx.font = '70px serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('🔥', W / 2, heroMid - 65);
+    ctx.fillText('🔥', W / 2, heroMid - 72);
 
     ctx.fillStyle = 'white';
-    ctx.font = `800 80px ${SYS}`;
+    ctx.font = `800 86px ${SYS}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(String(streakCount), W / 2, heroMid + 12);
+    ctx.fillText(String(streakCount), W / 2, heroMid + 16);
 
     ctx.fillStyle = 'rgba(203,213,225,0.7)';
-    ctx.font = `500 16px ${SYS}`;
-    ctx.fillText('day streak', W / 2, heroMid + 64);
+    ctx.font = `500 17px ${SYS}`;
+    ctx.fillText('day streak', W / 2, heroMid + 72);
   }
 
   if (stat === '7days') {
-    // Count / 7
     ctx.fillStyle = 'white';
-    ctx.font = `800 64px ${SYS}`;
+    ctx.font = `800 72px ${SYS}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    const countW = ctx.measureText(String(last7Count)).width;
-    const slashX  = W / 2 - countW / 2 - 2;
     ctx.fillText(String(last7Count), W / 2 - 22, heroMid - 52);
 
     ctx.fillStyle = 'rgba(203,213,225,0.45)';
-    ctx.font = `600 32px ${SYS}`;
-    ctx.textBaseline = 'middle';
-    ctx.fillText('/7', W / 2 + countW / 2 - 10, heroMid - 52);
+    ctx.font = `600 36px ${SYS}`;
+    ctx.fillText('/7', W / 2 + 32, heroMid - 52);
 
     ctx.fillStyle = 'rgba(203,213,225,0.7)';
     ctx.font = `500 14px ${SYS}`;
     ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
     ctx.fillText('days this week', W / 2, heroMid - 4);
 
     // 7 dots
-    const dotR  = 14;
-    const gap   = 8;
+    const dotR = 14, gap = 8;
     const total = 7 * (dotR * 2) + 6 * gap;
-    const sx    = (W - total) / 2 + dotR;
-    const dotY  = heroMid + 48;
+    const sx = (W - total) / 2 + dotR;
+    const dotY = heroMid + 46;
     last7Logged.forEach((logged, i) => {
       const cx = sx + i * (dotR * 2 + gap);
       ctx.beginPath();
@@ -210,122 +187,123 @@ export function drawCardToCanvas(habit, stat, appUrl) {
         g.addColorStop(0, '#34d399');
         g.addColorStop(1, '#10b981');
         ctx.fillStyle = g;
+        ctx.fill();
+        ctx.strokeStyle = 'white'; ctx.lineWidth = 2;
+        ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+        ctx.beginPath();
+        ctx.moveTo(cx - 5, dotY); ctx.lineTo(cx - 1, dotY + 4); ctx.lineTo(cx + 5, dotY - 4);
+        ctx.stroke();
       } else {
         ctx.fillStyle = 'rgba(255,255,255,0.1)';
         ctx.fill();
-        ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-        ctx.lineWidth = 1;
+        ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 1;
         ctx.stroke();
-        return;
       }
-      ctx.fill();
-      // Check mark
-      ctx.strokeStyle = 'white';
-      ctx.lineWidth = 2;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      ctx.beginPath();
-      ctx.moveTo(cx - 5, dotY);
-      ctx.lineTo(cx - 1, dotY + 4);
-      ctx.lineTo(cx + 5, dotY - 4);
-      ctx.stroke();
     });
   }
 
   if (stat === '30days') {
     ctx.fillStyle = 'white';
-    ctx.font = `800 80px ${SYS}`;
+    ctx.font = `800 86px ${SYS}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(String(last30Count), W / 2, heroMid - 70);
+    ctx.fillText(String(last30Count), W / 2, heroMid - 68);
 
     ctx.fillStyle = 'rgba(203,213,225,0.7)';
     ctx.font = `500 16px ${SYS}`;
-    ctx.fillText('days in last 30', W / 2, heroMid - 20);
+    ctx.fillText('days in last 30', W / 2, heroMid - 18);
 
-    // 10 × 3 grid
     const dW = 22, dH = 22, dR = 4, gX = 6, gY = 6;
     const gridW = 10 * dW + 9 * gX;
     const gridH = 3  * dH + 2 * gY;
     const gx0 = (W - gridW) / 2;
-    const gy0 = heroMid + 2;
-
+    const gy0 = heroMid + 6;
     last30Logged.forEach((logged, i) => {
-      const col = i % 10;
-      const row = Math.floor(i / 10);
+      const col = i % 10, row = Math.floor(i / 10);
       const x = gx0 + col * (dW + gX);
       const y = gy0 + row * (dH + gY);
       if (logged) {
         const g = ctx.createLinearGradient(x, y, x + dW, y + dH);
-        g.addColorStop(0, '#6366f1');
-        g.addColorStop(1, '#818cf8');
+        g.addColorStop(0, '#6366f1'); g.addColorStop(1, '#818cf8');
         ctx.fillStyle = g;
       } else {
         ctx.fillStyle = 'rgba(255,255,255,0.08)';
       }
-      rr(x, y, dW, dH, dR);
-      ctx.fill();
+      rr(x, y, dW, dH, dR); ctx.fill();
     });
 
     ctx.fillStyle = 'rgba(165,180,252,0.85)';
     ctx.font = `600 14px ${SYS}`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText(`${last30Pct}% consistency`, W / 2, gy0 + gridH + 18);
   }
 
   if (stat === 'month' || stat === 'year') {
-    const count   = stat === 'month' ? monthCount : yearCount;
-    const label   = stat === 'month' ? `days in ${monthName}` : `days in ${yearStr}`;
-    const pct     = stat === 'month' ? monthPct : yearPct;
+    const count = stat === 'month' ? monthCount : yearCount;
+    const label = stat === 'month' ? `days in ${monthName}` : `days in ${yearStr}`;
+    const pct   = stat === 'month' ? monthPct : yearPct;
 
     ctx.fillStyle = 'white';
-    ctx.font = `800 80px ${SYS}`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(String(count), W / 2, heroMid - 56);
+    ctx.font = `800 86px ${SYS}`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(String(count), W / 2, heroMid - 52);
 
     ctx.fillStyle = 'rgba(203,213,225,0.7)';
     ctx.font = `500 16px ${SYS}`;
-    ctx.fillText(label, W / 2, heroMid - 4);
+    ctx.fillText(label, W / 2, heroMid - 2);
 
-    // Progress bar
     const barW = 200, barH = 6, barR = 3;
-    const barX = (W - barW) / 2;
-    const barY = heroMid + 24;
+    const barX = (W - barW) / 2, barY = heroMid + 26;
     ctx.fillStyle = 'rgba(255,255,255,0.12)';
-    rr(barX, barY, barW, barH, barR);
-    ctx.fill();
+    rr(barX, barY, barW, barH, barR); ctx.fill();
     if (pct > 0) {
       const fg = ctx.createLinearGradient(barX, 0, barX + barW, 0);
-      fg.addColorStop(0, '#6366f1');
-      fg.addColorStop(1, '#818cf8');
+      fg.addColorStop(0, '#6366f1'); fg.addColorStop(1, '#818cf8');
       ctx.fillStyle = fg;
-      rr(barX, barY, barW * pct / 100, barH, barR);
-      ctx.fill();
+      rr(barX, barY, barW * pct / 100, barH, barR); ctx.fill();
     }
 
     ctx.fillStyle = 'rgba(165,180,252,0.85)';
     ctx.font = `600 14px ${SYS}`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText(`${pct}% consistency`, W / 2, heroMid + 52);
   }
 
-  // ── Divider ────────────────────────────────────────────────────────────────
-  ctx.fillStyle = 'rgba(255,255,255,0.1)';
-  ctx.fillRect(32, 438, W - 64, 1);
+  // ── Footer — centered logo + brand + subtitle ──────────────────────────────
+  const footerY = 418;
 
-  // ── CTA ────────────────────────────────────────────────────────────────────
-  ctx.fillStyle = 'rgba(203,213,225,0.6)';
-  ctx.font = `400 12px ${SYS}`;
-  ctx.textAlign = 'left';
+  // Thin divider
+  ctx.fillStyle = 'rgba(255,255,255,0.08)';
+  ctx.fillRect(32, footerY, W - 64, 1);
+
+  // H logo box — centered
+  const logoSize = 26, logoR = 7;
+  const logoX = (W - logoSize) / 2;
+  const logoY = footerY + 12;
+  const logoGrad = ctx.createLinearGradient(logoX, logoY, logoX + logoSize, logoY + logoSize);
+  logoGrad.addColorStop(0, '#6366f1');
+  logoGrad.addColorStop(1, '#4f46e5');
+  ctx.fillStyle = logoGrad;
+  rr(logoX, logoY, logoSize, logoSize, logoR);
+  ctx.fill();
+
+  ctx.fillStyle = 'white';
+  ctx.font = `800 13px ${SYS}`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('H', W / 2, logoY + logoSize / 2 + 0.5);
+
+  // App name
+  ctx.fillStyle = 'rgba(203,213,225,0.75)';
+  ctx.font = `700 12px ${SYS}`;
+  ctx.textAlign = 'center';
   ctx.textBaseline = 'alphabetic';
-  ctx.fillText('Start tracking your habits →', 32, 460);
+  ctx.fillText('Habit Tracker', W / 2, logoY + logoSize + 16);
 
-  ctx.fillStyle = '#818cf8';
-  ctx.font = `700 13px ${SYS}`;
-  ctx.fillText(appUrl, 32, 478);
+  // Subtitle
+  ctx.fillStyle = 'rgba(148,163,184,0.5)';
+  ctx.font = `400 11px ${SYS}`;
+  ctx.fillText('Log your progress, stay motivated', W / 2, logoY + logoSize + 32);
 
   return canvas;
 }
