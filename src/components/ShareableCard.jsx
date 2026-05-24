@@ -154,17 +154,17 @@ const ShareableCard = forwardRef(function ShareableCard({ habit, stat, appUrl },
         {stat === '30days' && (
           <>
             <div style={{ fontSize: '72px', fontWeight: '800', color: 'white', lineHeight: 1, marginBottom: '8px' }}>
-              {last30Count}<span style={{ fontSize: '32px', color: 'rgba(203,213,225,0.5)', fontWeight: '600' }}>/30</span>
+              {last30Count}
             </div>
             <div style={{ fontSize: '16px', color: 'rgba(203,213,225,0.7)', fontWeight: '500', marginBottom: '20px' }}>
               days in last 30
             </div>
-            {/* 5×6 dot grid */}
+            {/* 10×3 dot grid */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              {Array.from({ length: 5 }, (_, row) => (
+              {Array.from({ length: 3 }, (_, row) => (
                 <div key={row} style={{ display: 'flex', gap: '6px' }}>
-                  {Array.from({ length: 6 }, (_, col) => {
-                    const idx = row * 6 + col;
+                  {Array.from({ length: 10 }, (_, col) => {
+                    const idx = row * 10 + col;
                     const logged = last30Logged[idx];
                     return (
                       <div key={col} style={{
