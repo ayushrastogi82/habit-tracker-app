@@ -57,16 +57,20 @@ const ShareableCard = forwardRef(function ShareableCard({ habit, stat, appUrl },
     }
   }
 
-  // --- All time (since start) ---
-  const startTs = parseInt(habit.startDate || habit.id);
-  const startDate = new Date(startTs); startDate.setHours(0, 0, 0, 0);
-  const startStr = startDate.toISOString().slice(0, 10);
-  const sinceCount = dates.filter(d => d >= startStr).length;
-  const totalDaysSince = Math.max(1, Math.floor((today - startDate) / 86400000) + 1);
-  const sinceLabel = startDate.toLocaleDateString('en-US',
-    startDate.getFullYear() !== today.getFullYear()
-      ? { month: 'short', day: 'numeric', year: 'numeric' }
-      : { month: 'short', day: 'numeric' }
+  // --- All time (since start) — UTC-safe, matches app logic ---
+  const dateToUTC = (s) => { const [y,m,d] = s.split('-').map(Number); return Date.UTC(y, m-1, d); };
+  const nowUTC = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+  const creation = new Date(parseInt(habit.startDate || habit.id));
+  const creationUTC = Date.UTC(creation.getFullYear(), creation.getMonth(), creation.getDate());
+  const earliestUTC = dates.length ? dateToUTC([...dates].sort()[0]) : creationUTC;
+  const startUTC = Math.min(earliestUTC, creationUTC);
+  const sinceCount = dates.length;
+  const totalDaysSince = Math.max(1, (nowUTC - startUTC) / 86400000 + 1);
+  const startDateObj = new Date(startUTC);
+  const sinceLabel = startDateObj.toLocaleDateString('en-US',
+    startDateObj.getUTCFullYear() !== today.getFullYear()
+      ? { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }
+      : { month: 'short', day: 'numeric', timeZone: 'UTC' }
   );
 
   // --- This month ---
