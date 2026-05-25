@@ -568,7 +568,8 @@ export default function HabitTracker() {
             <div className="px-1 pb-2" style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}>
               <button
                 onClick={() => { setIsReorderMode(true); setShowSettingsSheet(false); }}
-                className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 dark:hover:bg-gray-800 active:bg-gray-100 dark:active:bg-gray-700 rounded-xl transition-colors"
+                disabled={habits.length === 0}
+                className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 dark:hover:bg-gray-800 active:bg-gray-100 dark:active:bg-gray-700 rounded-xl transition-colors disabled:opacity-40 disabled:pointer-events-none"
               >
                 <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-900/40 flex items-center justify-center shrink-0">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -581,7 +582,8 @@ export default function HabitTracker() {
               <div className="h-px bg-gray-100 dark:bg-gray-800 mx-4" />
               <button
                 onClick={() => { exportBackup(); setShowSettingsSheet(false); }}
-                className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 dark:hover:bg-gray-800 active:bg-gray-100 dark:active:bg-gray-700 rounded-xl transition-colors"
+                disabled={habits.length === 0}
+                className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 dark:hover:bg-gray-800 active:bg-gray-100 dark:active:bg-gray-700 rounded-xl transition-colors disabled:opacity-40 disabled:pointer-events-none"
               >
                 <div className="w-8 h-8 rounded-lg bg-green-50 dark:bg-green-900/40 flex items-center justify-center shrink-0">
                   <Download className="w-4 h-4 text-green-600 dark:text-green-400" />
