@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import ShareableCard from './ShareableCard';
 
 const SLIDES = [
-  { id: 0, backdropBlur: '', theme: 'dark' },
-  { id: 1, backdropBlur: '', theme: 'light' },
-  { id: 2, backdropBlur: '', theme: 'dark' },
+  { id: 0, theme: 'dark' },   // Problem — guilt
+  { id: 1, theme: 'dark' },   // Bridge — 3 beliefs
+  { id: 2, theme: 'light' },  // Belief 1 — one tap
+  { id: 3, theme: 'dark' },   // Belief 2 — come back + grid
+  { id: 4, theme: 'dark' },   // Belief 3 — share card
 ];
 
-// Demo habit for the share card on slide 3 — 42-day streak ending today
+// Demo habit for share card — 42-day streak ending today
 const today = new Date(); today.setHours(0, 0, 0, 0);
 const DEMO_HABIT = {
   id: '1000000000000',
@@ -20,12 +22,11 @@ const DEMO_HABIT = {
   }),
 };
 
-// GitHub-style activity grid — 7 rows (days) × 10 cols (weeks), ~70% fill
+// Activity grid — 7 rows × 10 cols, real-life pattern with gaps
 const GRID_ROWS = 7;
 const GRID_COLS = 10;
 const GRID_DATA = Array.from({ length: GRID_ROWS }, (_, row) =>
   Array.from({ length: GRID_COLS }, (_, col) => {
-    // Last 2 cols fully filled, earlier cols ~75% filled with a pattern
     if (col >= GRID_COLS - 2) return 1;
     return ((row * 3 + col * 7) % 4) !== 0 ? 1 : 0;
   })
@@ -60,8 +61,6 @@ export default function Onboarding({ onDone, darkMode }) {
             key={s.id}
             slideIndex={i}
             isDark={s.theme === 'dark'}
-            backdropClass={s.backdropClass}
-            backdropBlur={s.backdropBlur}
             onAdvance={advance}
             onBack={goBack}
             onSkip={handleDone}
@@ -75,11 +74,10 @@ export default function Onboarding({ onDone, darkMode }) {
   );
 }
 
-function SlidePanel({ slideIndex, isDark, backdropBlur, onAdvance, onBack, onSkip, exiting, totalSlides, darkMode }) {
+function SlidePanel({ slideIndex, isDark, onAdvance, onBack, onSkip, exiting, totalSlides, darkMode }) {
   const isFirst = slideIndex === 0;
   const isLast = slideIndex === totalSlides - 1;
 
-  // Slide 3 always dark; slides 1 & 2 follow system dark mode
   const backdropClass = isDark
     ? 'bg-gray-950'
     : darkMode
@@ -88,11 +86,11 @@ function SlidePanel({ slideIndex, isDark, backdropBlur, onAdvance, onBack, onSki
 
   return (
     <div
-      className={`relative shrink-0 w-full h-full flex flex-col items-center justify-between px-6 py-10 ${backdropClass} ${backdropBlur} transition-opacity duration-300 ${exiting ? 'opacity-0' : 'opacity-100'}`}
+      className={`relative shrink-0 w-full h-full flex flex-col items-center justify-between px-6 py-10 ${backdropClass} transition-opacity duration-300 ${exiting ? 'opacity-0' : 'opacity-100'}`}
       style={{ minWidth: '100%' }}
       onClick={onAdvance}
     >
-      {/* Back button — slides 2 & 3 */}
+      {/* Back button */}
       {!isFirst && (
         <button
           onClick={(e) => { e.stopPropagation(); onBack(); }}
@@ -104,7 +102,7 @@ function SlidePanel({ slideIndex, isDark, backdropBlur, onAdvance, onBack, onSki
         </button>
       )}
 
-      {/* Skip link — slides 1 & 2 */}
+      {/* Skip link */}
       {!isLast && (
         <button
           onClick={(e) => { e.stopPropagation(); onSkip(); }}
@@ -116,9 +114,11 @@ function SlidePanel({ slideIndex, isDark, backdropBlur, onAdvance, onBack, onSki
 
       {/* Slide content */}
       <div className="flex-1 flex flex-col items-center justify-center gap-6 w-full max-w-xs text-center">
-        {slideIndex === 0 && <Slide1Content darkMode={darkMode} />}
-        {slideIndex === 1 && <Slide2Content darkMode={darkMode} />}
-        {slideIndex === 2 && <Slide3Content />}
+        {slideIndex === 0 && <Slide1Content />}
+        {slideIndex === 1 && <Slide2Content />}
+        {slideIndex === 2 && <Slide3Content darkMode={darkMode} />}
+        {slideIndex === 3 && <Slide4Content darkMode={darkMode} />}
+        {slideIndex === 4 && <Slide5Content />}
       </div>
 
       {/* Bottom: dots + CTA */}
@@ -150,7 +150,8 @@ function SlidePanel({ slideIndex, isDark, backdropBlur, onAdvance, onBack, onSki
   );
 }
 
-function Slide1Content({ darkMode }) {
+// Slide 1 — The Problem (always dark)
+function Slide1Content() {
   return (
     <>
       <div className="flex flex-col items-center gap-0.5">
@@ -173,23 +174,45 @@ function Slide1Content({ darkMode }) {
   );
 }
 
-function Slide2Content({ darkMode }) {
+// Slide 2 — Bridge: 3 beliefs (always dark, minimal)
+function Slide2Content() {
+  return (
+    <>
+      <div className="flex flex-col items-center gap-0.5">
+        <div className="text-[20px] font-bold tracking-widest uppercase text-indigo-400">Beacon</div>
+        <div className="text-xs font-medium text-gray-500">No BS Habit Tracker</div>
+      </div>
+      <div className="flex flex-col gap-4">
+        <p className="text-[32px] font-bold leading-tight text-white">
+          We built Beacon on
+        </p>
+        <p className="text-[32px] font-bold leading-tight text-indigo-400">
+          3 beliefs.
+        </p>
+      </div>
+    </>
+  );
+}
+
+// Slide 3 — Belief 1: One tap to log (light)
+function Slide3Content({ darkMode }) {
   return (
     <>
       <div className="flex flex-col items-center gap-0.5">
         <div className="text-[20px] font-bold tracking-widest uppercase text-indigo-400">Beacon</div>
         <div className={`text-xs font-medium ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>No BS Habit Tracker</div>
       </div>
-
-      <div className="flex flex-col gap-2">
-        <p className={`text-[26px] font-bold leading-tight ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>We built Beacon on 3 beliefs.</p>
+      <div className="flex flex-col gap-2 text-left w-full">
+        <p className={`text-xs font-semibold uppercase tracking-widest ${darkMode ? 'text-indigo-400' : 'text-indigo-500'}`}>Belief 1</p>
+        <p className={`text-[26px] font-bold leading-tight ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+          Logging should be easier than Notes.
+        </p>
       </div>
-
-      {/* Belief 1 — mock habit card */}
+      {/* Mock habit card */}
       <div className={`w-full rounded-2xl shadow-lg border px-4 py-3 flex items-center gap-3 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
         <div className="flex-1 min-w-0">
           <div className={`font-bold text-sm mb-0.5 ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Morning Run 🏃</div>
-          <div className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>① One tap to log.</div>
+          <div className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>Daily · 42d streak 🔗</div>
         </div>
         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center shadow-sm shrink-0">
           <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
@@ -197,29 +220,54 @@ function Slide2Content({ darkMode }) {
           </svg>
         </div>
       </div>
+      <p className={`text-base font-semibold ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+        One tap to log. That's it.
+      </p>
+    </>
+  );
+}
 
-      {/* Belief 2 — come back */}
-      <div className={`w-full rounded-2xl border px-4 py-3 flex items-center gap-3 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
-        <span className="text-2xl shrink-0">↩</span>
-        <div className="min-w-0">
-          <p className={`font-semibold text-sm ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>② Miss a day? Just come back.</p>
-          <p className={`text-xs mt-0.5 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>We help you return, not feel guilty.</p>
-        </div>
+// Slide 4 — Belief 2: Miss a day, come back (dark + grid)
+function Slide4Content({ darkMode }) {
+  return (
+    <>
+      <div className="flex flex-col items-center gap-0.5">
+        <div className="text-[20px] font-bold tracking-widest uppercase text-indigo-400">Beacon</div>
+        <div className="text-xs font-medium text-gray-500">No BS Habit Tracker</div>
       </div>
-
-      {/* Belief 3 — share */}
-      <div className={`w-full rounded-2xl border px-4 py-3 flex items-center gap-3 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
-        <span className="text-2xl shrink-0">↗</span>
-        <div className="min-w-0">
-          <p className={`font-semibold text-sm ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>③ Progress shared is progress doubled.</p>
-          <p className={`text-xs mt-0.5 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>Share your journey. Stay accountable.</p>
+      <div className="flex flex-col gap-2 text-left w-full">
+        <p className="text-xs font-semibold uppercase tracking-widest text-indigo-400">Belief 2</p>
+        <p className="text-[26px] font-bold leading-tight text-white">
+          Miss a day? Just come back when you're ready.
+        </p>
+      </div>
+      <p className="text-sm text-gray-400 leading-relaxed text-left w-full">
+        Logged days are{' '}
+        <span className="text-gray-200 font-medium">far more important than streaks.</span>
+        {' '}We'll always be here.
+      </p>
+      {/* Activity grid */}
+      <div className="w-full rounded-2xl border border-gray-800 bg-gray-900 p-4">
+        <div className="text-[10px] font-semibold mb-2 uppercase tracking-wider text-left text-gray-500">Your progress, always</div>
+        <div className="flex gap-1 justify-center">
+          {Array.from({ length: GRID_COLS }, (_, col) => (
+            <div key={col} className="flex flex-col gap-1">
+              {Array.from({ length: GRID_ROWS }, (_, row) => (
+                <div
+                  key={row}
+                  className={`w-[18px] h-[18px] rounded-sm ${GRID_DATA[row][col] ? 'bg-indigo-500' : 'bg-gray-700'}`}
+                />
+              ))}
+            </div>
+          ))}
         </div>
       </div>
     </>
   );
 }
 
-function Slide3Content() {
+// Slide 5 — Belief 3: Share (always dark + share card)
+function Slide5Content() {
   const CARD_W = 360;
   const CARD_H = 500;
   const SCALE = 0.62;
@@ -230,17 +278,12 @@ function Slide3Content() {
         <div className="text-[20px] font-bold tracking-widest uppercase text-indigo-400">Beacon</div>
         <div className="text-xs font-medium text-gray-500">No BS Habit Tracker</div>
       </div>
-
-      <div className="flex flex-col gap-2">
-        <p className="text-[28px] font-bold leading-tight text-white">Show up when you can.</p>
-        <p className="text-[28px] font-bold leading-tight text-white" style={{ opacity: 0.85 }}>Come back when you're ready.</p>
-        <p className="text-[28px] font-bold leading-tight text-indigo-400">We'll always be here.</p>
+      <div className="flex flex-col gap-2 text-left w-full">
+        <p className="text-xs font-semibold uppercase tracking-widest text-indigo-400">Belief 3</p>
+        <p className="text-[26px] font-bold leading-tight text-white">
+          Progress shared is progress doubled.
+        </p>
       </div>
-
-      <p className="text-sm text-gray-400 leading-relaxed">
-        Share your progress. Let the numbers speak.
-      </p>
-
       {/* Scaled share card preview */}
       <div
         style={{
