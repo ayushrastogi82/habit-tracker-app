@@ -32,7 +32,11 @@ export default function HabitTracker() {
   const [showSettingsSheet, setShowSettingsSheet] = useState(false);
   const [showBackupReminder, setShowBackupReminder] = useState(false);
   const [shareHabit, setShareHabit] = useState(null);
-  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('dark-mode') === 'true');
+  const [darkMode, setDarkMode] = useState(() => {
+    const override = localStorage.getItem('dark-mode-override');
+    if (override !== null) return override === 'true';
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  });
   const fileInputRef = React.useRef(null);
 
   const BACKUP_REMINDER_DAYS = 5;
@@ -48,8 +52,17 @@ export default function HabitTracker() {
   }, []);
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode);
-    localStorage.setItem('dark-mode', darkMode);
   }, [darkMode]);
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const handler = (e) => {
+      if (localStorage.getItem('dark-mode-override') === null) {
+        setDarkMode(e.matches);
+      }
+    };
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
   useEffect(() => { if (habits.length === 0) setIsReorderMode(false); }, [habits.length]);
   useEffect(() => {
     const last = localStorage.getItem('lastBackupDate');
@@ -592,7 +605,7 @@ export default function HabitTracker() {
                 </div>
                 <span className="flex-1 text-left text-sm font-medium text-gray-800 dark:text-gray-100">Dark Mode</span>
                 <button
-                  onClick={() => setDarkMode(d => !d)}
+                  onClick={() => setDarkMode(d => { const next = !d; localStorage.setItem('dark-mode-override', String(next)); return next; })}
                   className={`relative w-11 h-6 rounded-full transition-colors duration-200 shrink-0 ${darkMode ? 'bg-indigo-600' : 'bg-gray-300'}`}
                 >
                   <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200 ${darkMode ? 'translate-x-5' : 'translate-x-0'}`} />
