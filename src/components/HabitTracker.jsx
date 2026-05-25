@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
-import { Plus, Check, TrendingUp, Calendar, ChevronDown, ChevronLeft, ChevronRight, Rocket, Undo2, Download, Upload, MoreHorizontal, Share2, Moon, Sun } from 'lucide-react';
+import { Plus, Check, TrendingUp, Calendar, ChevronDown, ChevronLeft, ChevronRight, Undo2, Download, Upload, MoreHorizontal, Share2, Moon, Sun } from 'lucide-react';
 import ShareModal from './ShareModal';
 
 export default function HabitTracker() {
@@ -141,7 +141,7 @@ export default function HabitTracker() {
       const file = new File([json], fileName, { type: 'application/json' });
       if (navigator.canShare({ files: [file] })) {
         try {
-          await navigator.share({ files: [file], title: 'Habit Tracker Backup' });
+          await navigator.share({ files: [file], title: 'Logit Backup' });
           localStorage.setItem('lastBackupDate', new Date().toISOString());
           setShowBackupReminder(false);
           showFeedback('✅ Backup shared!');
@@ -668,8 +668,8 @@ export default function HabitTracker() {
         {/* Header — large centered when empty, compact with controls when habits exist */}
         {habits.length === 0 && !isAddingHabit ? (
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-800 dark:text-gray-100 mb-2">Habit Tracker</h1>
-            <p className="text-gray-600 dark:text-gray-400">Log your progress, stay motivated</p>
+            <h1 className="text-4xl font-bold text-gray-800 dark:text-gray-100 mb-2">Logit</h1>
+            <p className="text-gray-600 dark:text-gray-400">Just log it.</p>
           </div>
         ) : (
           <div className="flex items-center gap-2 pb-3 mb-4 border-b border-indigo-100 dark:border-gray-800">
@@ -680,8 +680,8 @@ export default function HabitTracker() {
                 </button>
               : <div className="w-8 shrink-0" />}
             <div className="flex-1 text-center">
-              <h1 className="text-lg font-bold text-gray-800 dark:text-gray-100 leading-tight">Habit Tracker</h1>
-              <p className="text-xs text-gray-500 dark:text-gray-400 leading-tight">Log your progress, stay motivated</p>
+              <h1 className="text-lg font-bold text-gray-800 dark:text-gray-100 leading-tight">Logit</h1>
+              <p className="text-xs text-gray-500 dark:text-gray-400 leading-tight">Just log it.</p>
             </div>
             {isReorderMode
               ? <button onClick={() => setIsReorderMode(false)}
@@ -926,15 +926,15 @@ export default function HabitTracker() {
                         {/* Streak/gap pill — fixed w-16 so all pills are same width */}
                         {isWeekly ? (
                           weeklyStreak.current >= 1
-                            ? <span className={`w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center gap-0.5 ${weekGoalMet ? 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400' : 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400'}`}>{weeklyStreak.current}w<Rocket className="w-2.5 h-2.5" /></span>
+                            ? <span className={`w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center gap-0.5 ${weekGoalMet ? 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400' : 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400'}`}>{weeklyStreak.current}w<span className="text-[8px]">🔗</span></span>
                             : weeklyGap !== null && weeklyGap >= 1 ? <span className="w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center bg-rose-100 dark:bg-rose-950/40 text-rose-500 dark:text-rose-400">{weeklyGap}w gap</span> : <div className="w-16" />
                         ) : isMonthly ? (
                           monthlyStreak.current >= 1
-                            ? <span className={`w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center gap-0.5 ${monthGoalMet ? 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400' : 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400'}`}>{monthlyStreak.current}m<Rocket className="w-2.5 h-2.5" /></span>
+                            ? <span className={`w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center gap-0.5 ${monthGoalMet ? 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400' : 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400'}`}>{monthlyStreak.current}m<span className="text-[8px]">🔗</span></span>
                             : monthlyGap !== null && monthlyGap >= 1 ? <span className="w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center bg-rose-100 dark:bg-rose-950/40 text-rose-500 dark:text-rose-400">{monthlyGap}m gap</span> : <div className="w-16" />
                         ) : (
                           streak.current > 1
-                            ? <span className={`w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center gap-0.5 ${loggedToday ? 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400' : 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400'}`}>{streak.current}d<Rocket className="w-2.5 h-2.5" /></span>
+                            ? <span className={`w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center gap-0.5 ${loggedToday ? 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400' : 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400'}`}>{streak.current}d<span className="text-[8px]">🔗</span></span>
                             : daysSince !== null && daysSince > 0 ? <span className="w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center bg-rose-100 dark:bg-rose-950/40 text-rose-500 dark:text-rose-400">{daysSince}d gap</span> : <div className="w-16" />
                         )}
 
