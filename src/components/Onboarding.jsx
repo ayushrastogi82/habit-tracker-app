@@ -75,9 +75,16 @@ export default function Onboarding({ onDone, darkMode }) {
   );
 }
 
-function SlidePanel({ slideIndex, isDark, backdropClass, backdropBlur, onAdvance, onBack, onSkip, exiting, totalSlides, darkMode }) {
+function SlidePanel({ slideIndex, isDark, backdropBlur, onAdvance, onBack, onSkip, exiting, totalSlides, darkMode }) {
   const isFirst = slideIndex === 0;
   const isLast = slideIndex === totalSlides - 1;
+
+  // Slide 3 always dark; slides 1 & 2 follow system dark mode
+  const backdropClass = isDark
+    ? 'bg-gray-950'
+    : darkMode
+    ? (slideIndex === 1 ? 'bg-gray-900/75' : 'bg-gray-900/90')
+    : (slideIndex === 1 ? 'bg-white/75' : 'bg-white/90');
 
   return (
     <div
@@ -110,7 +117,7 @@ function SlidePanel({ slideIndex, isDark, backdropClass, backdropBlur, onAdvance
       {/* Slide content */}
       <div className="flex-1 flex flex-col items-center justify-center gap-6 w-full max-w-xs text-center">
         {slideIndex === 0 && <Slide1Content darkMode={darkMode} />}
-        {slideIndex === 1 && <Slide2Content />}
+        {slideIndex === 1 && <Slide2Content darkMode={darkMode} />}
         {slideIndex === 2 && <Slide3Content />}
       </div>
 
@@ -167,19 +174,19 @@ function Slide1Content({ darkMode }) {
   );
 }
 
-function Slide2Content() {
+function Slide2Content({ darkMode }) {
   return (
     <>
       <div className="flex flex-col gap-2">
-        <p className="text-[28px] font-bold leading-tight text-gray-900">One tap to log.</p>
-        <p className="text-[22px] font-semibold leading-tight text-gray-500">That's the whole app.</p>
+        <p className={`text-[28px] font-bold leading-tight ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>One tap to log.</p>
+        <p className={`text-[22px] font-semibold leading-tight ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>That's the whole app.</p>
       </div>
 
       {/* Mock habit card */}
-      <div className="w-full bg-white rounded-2xl shadow-lg border border-gray-100 px-4 py-3 flex items-center gap-3">
+      <div className={`w-full rounded-2xl shadow-lg border px-4 py-3 flex items-center gap-3 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
         <div className="flex-1 min-w-0">
-          <div className="font-bold text-sm text-gray-800 mb-0.5">Morning Run 🏃</div>
-          <div className="text-xs text-gray-400">Daily · 42d streak 🚀</div>
+          <div className={`font-bold text-sm mb-0.5 ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Morning Run 🏃</div>
+          <div className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>Daily · 42d streak 🔗</div>
         </div>
         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center shadow-sm shrink-0">
           <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
@@ -189,15 +196,15 @@ function Slide2Content() {
       </div>
 
       {/* GitHub-style activity grid */}
-      <div className="w-full bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-        <div className="text-[10px] font-semibold text-gray-400 mb-2 uppercase tracking-wider text-left">Activity</div>
+      <div className={`w-full rounded-2xl shadow-sm border p-4 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
+        <div className={`text-[10px] font-semibold mb-2 uppercase tracking-wider text-left ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>Activity</div>
         <div className="flex gap-1 justify-center">
           {Array.from({ length: GRID_COLS }, (_, col) => (
             <div key={col} className="flex flex-col gap-1">
               {Array.from({ length: GRID_ROWS }, (_, row) => (
                 <div
                   key={row}
-                  className={`w-[18px] h-[18px] rounded-sm ${GRID_DATA[row][col] ? 'bg-indigo-500' : 'bg-gray-100'}`}
+                  className={`w-[18px] h-[18px] rounded-sm ${GRID_DATA[row][col] ? 'bg-indigo-500' : darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}
                 />
               ))}
             </div>
