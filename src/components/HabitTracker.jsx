@@ -1028,7 +1028,7 @@ export default function HabitTracker() {
                           if (isWeekGoalMet(habit.dates, wTarget, new Date(w))) weeksGoalMet++;
                         }
                       }
-                      let monthsGoalMet = 0, totalMonths = 0;
+                      let monthsGoalMet = 0, totalMonths = 0, firstCountedMonth = '';
                       if (isMonthlyHabit) {
                         const startMonthStr = `${start.getUTCFullYear()}-${String(start.getUTCMonth()+1).padStart(2,'0')}`;
                         const curMonthStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
@@ -1036,7 +1036,7 @@ export default function HabitTracker() {
                         const startDayOfMonth = start.getUTCDate();
                         const daysInStartMonth = new Date(start.getUTCFullYear(), start.getUTCMonth() + 1, 0).getDate();
                         const daysRemainingInFirstMonth = daysInStartMonth - startDayOfMonth + 1;
-                        const firstCountedMonth = daysRemainingInFirstMonth >= mTargetExp ? startMonthStr : nextMonthStr(startMonthStr);
+                        firstCountedMonth = daysRemainingInFirstMonth >= mTargetExp ? startMonthStr : nextMonthStr(startMonthStr);
                         const [fcy, fcm] = firstCountedMonth.split('-').map(Number);
                         totalMonths = Math.max(0, (now.getFullYear() * 12 + now.getMonth()) - (fcy * 12 + fcm - 1) + 1);
                         let mm = firstCountedMonth;
@@ -1045,19 +1045,65 @@ export default function HabitTracker() {
                           mm = nextMonthStr(mm);
                         }
                       }
+
+                      // Card 1 hero: logged/total for each type
+                      const card1Hero = isWeeklyHabit
+                        ? `${weeksGoalMet} of ${totalWeeks}w`
+                        : isMonthlyHabit
+                        ? `${monthsGoalMet} of ${totalMonths}m`
+                        : `${loggedDays} of ${Math.round(totalDaysVal)}d`;
+
+                      // Card 2: count of chainstreaks (runs of ≥2 consecutive periods meeting goal)
+                      let chainsBuilt = 0;
+                      if (isWeeklyHabit && totalWeeks > 0) {
+                        const curWeek = getWeekStart(new Date());
+                        const startDayRaw = new Date(startUTC).getDay();
+                        const startDay = weekStart === 1 ? (startDayRaw === 0 ? 6 : startDayRaw - 1) : startDayRaw;
+                        const startWeek = getWeekStart(new Date(startUTC));
+                        const daysRemainingInFirstWeek = 7 - startDay;
+                        const firstFullWeek = daysRemainingInFirstWeek >= wTarget
+                          ? startWeek
+                          : new Date(startWeek.getTime() + 7 * 86400000);
+                        let run = 0;
+                        for (let w = new Date(firstFullWeek); w.getTime() <= curWeek.getTime(); w.setDate(w.getDate() + 7)) {
+                          if (isWeekGoalMet(habit.dates, wTarget, new Date(w))) { run++; }
+                          else { if (run >= 2) chainsBuilt++; run = 0; }
+                        }
+                        if (run >= 2) chainsBuilt++;
+                      } else if (isMonthlyHabit && totalMonths > 0) {
+                        let run = 0, mm = firstCountedMonth;
+                        for (let i = 0; i < totalMonths; i++) {
+                          if (isMonthGoalMet(habit.dates, mTargetExp, mm)) { run++; }
+                          else { if (run >= 2) chainsBuilt++; run = 0; }
+                          mm = nextMonthStr(mm);
+                        }
+                        if (run >= 2) chainsBuilt++;
+                      } else if (!isWeeklyHabit && !isMonthlyHabit) {
+                        const sorted = [...habit.dates].sort();
+                        let run = 1;
+                        for (let i = 1; i < sorted.length; i++) {
+                          const [ay,am,ad] = sorted[i-1].split('-').map(Number);
+                          const [by,bm,bd] = sorted[i].split('-').map(Number);
+                          const diff = (Date.UTC(by,bm-1,bd) - Date.UTC(ay,am-1,ad)) / 86400000;
+                          if (diff === 1) { run++; }
+                          else { if (run >= 2) chainsBuilt++; run = 1; }
+                        }
+                        if (sorted.length >= 2 && run >= 2) chainsBuilt++;
+                      }
+
                       return (
                         <div className="grid grid-cols-3 gap-1.5 mb-2">
                           <div className="bg-white dark:bg-gray-800 rounded-xl p-2 text-center border border-gray-100 dark:border-gray-700 shadow-md overflow-hidden">
-                            <div className="text-[13px] font-bold text-indigo-600 dark:text-indigo-400 whitespace-nowrap">{loggedDays} of {totalDaysVal}d</div>
+                            <div className="text-[13px] font-bold text-indigo-600 dark:text-indigo-400 whitespace-nowrap">{card1Hero}</div>
                             <div className="text-[10px] text-gray-500 dark:text-gray-400 leading-tight mt-0.5 whitespace-nowrap">since {sinceLabel}</div>
                           </div>
                           <div className="bg-white dark:bg-gray-800 rounded-xl p-2 text-center border border-gray-100 dark:border-gray-700 shadow-md overflow-hidden">
-                            <div className="text-[13px] font-bold text-indigo-600 dark:text-indigo-400 whitespace-nowrap">{isWeeklyHabit ? `${weeksGoalMet} of ${totalWeeks}w` : isMonthlyHabit ? `${monthsGoalMet} of ${totalMonths}m` : `${last30Logged}d`}</div>
-                            <div className="text-[10px] text-gray-500 dark:text-gray-400 leading-tight mt-0.5 whitespace-nowrap">{isWeeklyHabit || isMonthlyHabit ? `since ${sinceLabel}` : 'in last 30 days'}</div>
+                            <div className="text-[13px] font-bold text-indigo-600 dark:text-indigo-400 whitespace-nowrap">{chainsBuilt}</div>
+                            <div className="text-[10px] text-gray-500 dark:text-gray-400 leading-tight mt-0.5 whitespace-nowrap">chainstreaks</div>
                           </div>
                           <div className="bg-white dark:bg-gray-800 rounded-xl p-2 text-center border border-gray-100 dark:border-gray-700 shadow-md overflow-hidden">
                             <div className="text-[13px] font-bold text-amber-500 dark:text-amber-400 whitespace-nowrap">🏆 {isWeeklyHabit ? `${wStreak.longest}w` : isMonthlyHabit ? `${mStreakExp.longest}m` : `${streak.longest}d`}</div>
-                            <div className="text-[10px] text-gray-500 dark:text-gray-400 leading-tight mt-0.5">best streak</div>
+                            <div className="text-[10px] text-gray-500 dark:text-gray-400 leading-tight mt-0.5">best chainstreak</div>
                           </div>
                         </div>
                       );
