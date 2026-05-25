@@ -154,7 +154,7 @@ function Slide1Content({ darkMode }) {
   return (
     <>
       <div className="flex flex-col items-center gap-0.5">
-        <div className="text-2xl font-bold tracking-widest uppercase text-indigo-400">Beacon</div>
+        <div className="text-[22px] font-bold tracking-widest uppercase text-indigo-400">Beacon</div>
         <div className={`text-xs font-medium ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>No BS Habit Tracker</div>
       </div>
       <div className="flex flex-col gap-3">
@@ -179,7 +179,7 @@ function Slide2Content({ darkMode }) {
   return (
     <>
       <div className="flex flex-col items-center gap-0.5">
-        <div className="text-2xl font-bold tracking-widest uppercase text-indigo-400">Beacon</div>
+        <div className="text-[22px] font-bold tracking-widest uppercase text-indigo-400">Beacon</div>
         <div className={`text-xs font-medium ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>No BS Habit Tracker</div>
       </div>
       <div className="flex flex-col gap-2">
@@ -228,7 +228,7 @@ function Slide3Content() {
   return (
     <>
       <div className="flex flex-col items-center gap-0.5">
-        <div className="text-2xl font-bold tracking-widest uppercase text-indigo-400">Beacon</div>
+        <div className="text-[22px] font-bold tracking-widest uppercase text-indigo-400">Beacon</div>
         <div className="text-xs font-medium text-gray-500">No BS Habit Tracker</div>
       </div>
 
