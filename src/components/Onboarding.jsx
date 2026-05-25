@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import ShareableCard from './ShareableCard';
 
 const SLIDES = [
-  { id: 0, backdropClass: 'bg-white/90', backdropBlur: 'backdrop-blur-sm', theme: 'light' },
-  { id: 1, backdropClass: 'bg-white/75', backdropBlur: 'backdrop-blur-[2px]', theme: 'light' },
-  { id: 2, backdropClass: 'bg-gray-950', backdropBlur: '', theme: 'dark' },
+  { id: 0, backdropBlur: '', theme: 'light' },
+  { id: 1, backdropBlur: '', theme: 'light' },
+  { id: 2, backdropBlur: '', theme: 'dark' },
 ];
 
 // Demo habit for the share card on slide 3 — 42-day streak ending today
@@ -83,8 +83,8 @@ function SlidePanel({ slideIndex, isDark, backdropBlur, onAdvance, onBack, onSki
   const backdropClass = isDark
     ? 'bg-gray-950'
     : darkMode
-    ? (slideIndex === 1 ? 'bg-gray-900/75' : 'bg-gray-900/90')
-    : (slideIndex === 1 ? 'bg-white/75' : 'bg-white/90');
+    ? 'bg-gray-900'
+    : 'bg-white';
 
   return (
     <div
