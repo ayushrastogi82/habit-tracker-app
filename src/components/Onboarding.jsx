@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import ShareableCard from './ShareableCard';
 
 const SLIDES = [
-  { id: 0, backdropBlur: '', theme: 'light' },
+  { id: 0, backdropBlur: '', theme: 'dark' },
   { id: 1, backdropBlur: '', theme: 'light' },
   { id: 2, backdropBlur: '', theme: 'dark' },
 ];
@@ -155,21 +155,19 @@ function Slide1Content({ darkMode }) {
     <>
       <div className="flex flex-col items-center gap-0.5">
         <div className="text-[20px] font-bold tracking-widest uppercase text-indigo-400">Beacon</div>
-        <div className={`text-xs font-medium ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>No BS Habit Tracker</div>
+        <div className="text-xs font-medium text-gray-500">No BS Habit Tracker</div>
       </div>
       <div className="flex flex-col gap-3">
-        <p className={`text-[28px] font-bold leading-tight ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-          Most habit apps promise to change your life.
+        <p className="text-[28px] font-bold leading-tight text-gray-100">
+          Millions track habits in Notes.
         </p>
-        <p className={`text-[28px] font-bold leading-tight ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>
-          We don't.
+        <p className="text-[28px] font-bold leading-tight text-indigo-400">
+          Not because they're lazy.
         </p>
       </div>
-      <p className={`text-base leading-relaxed ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-        You build the habit.{' '}
-        <span className={darkMode ? 'text-gray-200 font-medium' : 'text-gray-700 font-medium'}>
-          We help you show up.
-        </span>
+      <p className="text-base leading-relaxed text-gray-400">
+        Because habit apps made them feel{' '}
+        <span className="text-gray-200 font-medium">guilty for being human.</span>
       </p>
     </>
   );
@@ -182,16 +180,16 @@ function Slide2Content({ darkMode }) {
         <div className="text-[20px] font-bold tracking-widest uppercase text-indigo-400">Beacon</div>
         <div className={`text-xs font-medium ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>No BS Habit Tracker</div>
       </div>
+
       <div className="flex flex-col gap-2">
-        <p className={`text-[28px] font-bold leading-tight ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>One tap to log.</p>
-        <p className={`text-[22px] font-semibold leading-tight ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>That's the whole app.</p>
+        <p className={`text-[26px] font-bold leading-tight ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>We built Beacon on 3 beliefs.</p>
       </div>
 
-      {/* Mock habit card */}
+      {/* Belief 1 — mock habit card */}
       <div className={`w-full rounded-2xl shadow-lg border px-4 py-3 flex items-center gap-3 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
         <div className="flex-1 min-w-0">
           <div className={`font-bold text-sm mb-0.5 ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Morning Run 🏃</div>
-          <div className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>Daily · 42d streak 🔗</div>
+          <div className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>① One tap to log.</div>
         </div>
         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center shadow-sm shrink-0">
           <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
@@ -200,20 +198,21 @@ function Slide2Content({ darkMode }) {
         </div>
       </div>
 
-      {/* GitHub-style activity grid */}
-      <div className={`w-full rounded-2xl shadow-sm border p-4 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
-        <div className={`text-[10px] font-semibold mb-2 uppercase tracking-wider text-left ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>Activity</div>
-        <div className="flex gap-1 justify-center">
-          {Array.from({ length: GRID_COLS }, (_, col) => (
-            <div key={col} className="flex flex-col gap-1">
-              {Array.from({ length: GRID_ROWS }, (_, row) => (
-                <div
-                  key={row}
-                  className={`w-[18px] h-[18px] rounded-sm ${GRID_DATA[row][col] ? 'bg-indigo-500' : darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}
-                />
-              ))}
-            </div>
-          ))}
+      {/* Belief 2 — come back */}
+      <div className={`w-full rounded-2xl border px-4 py-3 flex items-center gap-3 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
+        <span className="text-2xl shrink-0">↩</span>
+        <div className="min-w-0">
+          <p className={`font-semibold text-sm ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>② Miss a day? Just come back.</p>
+          <p className={`text-xs mt-0.5 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>We help you return, not feel guilty.</p>
+        </div>
+      </div>
+
+      {/* Belief 3 — share */}
+      <div className={`w-full rounded-2xl border px-4 py-3 flex items-center gap-3 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
+        <span className="text-2xl shrink-0">↗</span>
+        <div className="min-w-0">
+          <p className={`font-semibold text-sm ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>③ Progress shared is progress doubled.</p>
+          <p className={`text-xs mt-0.5 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>Share your journey. Stay accountable.</p>
         </div>
       </div>
     </>
@@ -232,12 +231,10 @@ function Slide3Content() {
         <div className="text-xs font-medium text-gray-500">No BS Habit Tracker</div>
       </div>
 
-      <div className="flex flex-col gap-1">
-        {['No coaching.', 'No AI.', 'No BS.'].map((line, i) => (
-          <p key={i} className="text-[30px] font-bold leading-tight text-white" style={{ opacity: 1 - i * 0.08 }}>
-            {line}
-          </p>
-        ))}
+      <div className="flex flex-col gap-2">
+        <p className="text-[28px] font-bold leading-tight text-white">Show up when you can.</p>
+        <p className="text-[28px] font-bold leading-tight text-white" style={{ opacity: 0.85 }}>Come back when you're ready.</p>
+        <p className="text-[28px] font-bold leading-tight text-indigo-400">We'll always be here.</p>
       </div>
 
       <p className="text-sm text-gray-400 leading-relaxed">
