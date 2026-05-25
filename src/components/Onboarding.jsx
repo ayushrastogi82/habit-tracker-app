@@ -147,7 +147,7 @@ function Slide1Content({ darkMode }) {
   return (
     <>
       <div className="text-xs font-bold tracking-widest uppercase text-indigo-400">
-        Habit Tracker
+        Beacon
       </div>
       <div className="flex flex-col gap-3">
         <p className={`text-[28px] font-bold leading-tight ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
@@ -216,7 +216,7 @@ function Slide3Content() {
   return (
     <>
       <div className="text-xs font-bold tracking-widest uppercase text-indigo-400">
-        No BS Habit Tracker
+        Beacon
       </div>
 
       <div className="flex flex-col gap-1">

@@ -263,13 +263,13 @@ const ShareableCard = forwardRef(function ShareableCard({ habit, stat, appUrl },
             background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: '11px', fontWeight: '800', color: 'white', flexShrink: 0,
-          }}>H</div>
+          }}>B</div>
           <span style={{ fontSize: '13px', fontWeight: '700', color: 'rgba(203,213,225,0.8)' }}>
-            Habit Tracker
+            Beacon
           </span>
         </div>
         <span style={{ fontSize: '11px', color: 'rgba(148,163,184,0.5)', fontWeight: '400' }}>
-          Log your progress, stay motivated
+          No BS Habit Tracker. Keep showing up.
         </span>
       </div>
     </div>
