@@ -669,7 +669,7 @@ export default function HabitTracker() {
         {habits.length === 0 && !isAddingHabit ? (
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-gray-800 dark:text-gray-100 mb-2">Chain</h1>
-            <p className="text-gray-600 dark:text-gray-400">Log your progress, build good chains</p>
+            <p className="text-gray-600 dark:text-gray-400">Log your progress, build your chains</p>
           </div>
         ) : (
           <div className="flex items-center gap-2 pb-3 mb-4 border-b border-indigo-100 dark:border-gray-800">
@@ -681,7 +681,7 @@ export default function HabitTracker() {
               : <div className="w-8 shrink-0" />}
             <div className="flex-1 text-center">
               <h1 className="text-lg font-bold text-gray-800 dark:text-gray-100 leading-tight">Chain</h1>
-              <p className="text-xs text-gray-500 dark:text-gray-400 leading-tight">Log your progress, build good chains</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 leading-tight">Log your progress, build your chains</p>
             </div>
             {isReorderMode
               ? <button onClick={() => setIsReorderMode(false)}
