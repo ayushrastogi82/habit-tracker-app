@@ -650,8 +650,8 @@ export default function HabitTracker() {
         {/* Header — large centered when empty, compact with controls when habits exist */}
         {habits.length === 0 && !isAddingHabit ? (
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-800 dark:text-gray-100 mb-2">Beacon</h1>
-            <p className="text-gray-600 dark:text-gray-400">No BS Habit Tracker. Keep showing up.</p>
+            <div className="text-sm font-bold tracking-widest uppercase text-indigo-500 dark:text-indigo-400">Beacon</div>
+            <div className="text-xs font-medium text-gray-400 dark:text-gray-500 mt-0.5">No BS Habit Tracker</div>
           </div>
         ) : (
           <div className="flex items-center gap-2 pb-3 mb-4 border-b border-indigo-100 dark:border-gray-800">
@@ -662,8 +662,8 @@ export default function HabitTracker() {
                 </button>
               : <div className="w-8 shrink-0" />}
             <div className="flex-1 text-center">
-              <h1 className="text-lg font-bold text-gray-800 dark:text-gray-100 leading-tight">Beacon</h1>
-              <p className="text-xs text-gray-500 dark:text-gray-400 leading-tight">No BS Habit Tracker. Keep showing up.</p>
+              <div className="text-xs font-bold tracking-widest uppercase text-indigo-500 dark:text-indigo-400 leading-tight">Beacon</div>
+              <div className="text-[10px] font-medium text-gray-400 dark:text-gray-500 leading-tight mt-0.5">No BS Habit Tracker</div>
             </div>
             {isReorderMode
               ? <button onClick={() => setIsReorderMode(false)}
