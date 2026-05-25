@@ -1,7 +1,7 @@
 {
   "name": "Beacon — Habit Tracker",
   "short_name": "Beacon",
-  "description": "No BS Habit Tracker. Keep showing up.",
+  "description": "Habit tracking simplified.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#6366f1",

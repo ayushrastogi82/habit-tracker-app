@@ -269,7 +269,7 @@ const ShareableCard = forwardRef(function ShareableCard({ habit, stat, appUrl },
           </span>
         </div>
         <span style={{ fontSize: '11px', color: 'rgba(148,163,184,0.5)', fontWeight: '400' }}>
-          No BS Habit Tracker. Keep showing up.
+          Habit tracking simplified
         </span>
       </div>
     </div>

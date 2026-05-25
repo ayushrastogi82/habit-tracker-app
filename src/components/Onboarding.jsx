@@ -156,7 +156,7 @@ function Slide1Content() {
     <>
       <div className="flex flex-col items-center gap-0.5">
         <div className="text-[20px] font-bold tracking-widest uppercase text-indigo-400">Beacon</div>
-        <div className="text-xs font-medium text-gray-500">No BS Habit Tracker</div>
+        <div className="text-xs font-medium text-gray-500">Habit tracking simplified</div>
       </div>
       <div className="flex flex-col gap-3">
         <p className="text-[28px] font-bold leading-tight text-gray-100">
@@ -180,7 +180,7 @@ function Slide2Content() {
     <>
       <div className="flex flex-col items-center gap-0.5">
         <div className="text-[20px] font-bold tracking-widest uppercase text-indigo-400">Beacon</div>
-        <div className="text-xs font-medium text-gray-500">No BS Habit Tracker</div>
+        <div className="text-xs font-medium text-gray-500">Habit tracking simplified</div>
       </div>
       <div className="flex flex-col gap-4">
         <p className="text-[32px] font-bold leading-tight text-white">
@@ -205,7 +205,7 @@ function Slide3Content() {
     <>
       <div className="flex flex-col items-center gap-0.5">
         <div className="text-[20px] font-bold tracking-widest uppercase text-indigo-400">Beacon</div>
-        <div className="text-xs font-medium text-gray-500">No BS Habit Tracker</div>
+        <div className="text-xs font-medium text-gray-500">Habit tracking simplified</div>
       </div>
       <div className="flex flex-col gap-2 text-left w-full">
         <p className="text-xs font-semibold uppercase tracking-widest text-indigo-400">Belief 1</p>
@@ -246,7 +246,7 @@ function Slide4Content({ darkMode }) {
     <>
       <div className="flex flex-col items-center gap-0.5">
         <div className="text-[20px] font-bold tracking-widest uppercase text-indigo-400">Beacon</div>
-        <div className="text-xs font-medium text-gray-500">No BS Habit Tracker</div>
+        <div className="text-xs font-medium text-gray-500">Habit tracking simplified</div>
       </div>
       <div className="flex flex-col gap-2 text-left w-full">
         <p className="text-xs font-semibold uppercase tracking-widest text-indigo-400">Belief 2</p>
@@ -289,7 +289,7 @@ function Slide5Content() {
     <>
       <div className="flex flex-col items-center gap-0.5">
         <div className="text-[20px] font-bold tracking-widest uppercase text-indigo-400">Beacon</div>
-        <div className="text-xs font-medium text-gray-500">No BS Habit Tracker</div>
+        <div className="text-xs font-medium text-gray-500">Habit tracking simplified</div>
       </div>
       <div className="flex flex-col gap-2 text-left w-full">
         <p className="text-xs font-semibold uppercase tracking-widest text-indigo-400">Belief 3</p>
