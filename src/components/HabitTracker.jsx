@@ -650,7 +650,7 @@ export default function HabitTracker() {
         {/* Header — large centered when empty, compact with controls when habits exist */}
         {habits.length === 0 && !isAddingHabit ? (
           <div className="text-center mb-8">
-            <div className="text-[22px] font-bold tracking-widest uppercase text-indigo-500 dark:text-indigo-400">Beacon</div>
+            <div className="text-[20px] font-bold tracking-widest uppercase text-indigo-500 dark:text-indigo-400">Beacon</div>
             <div className="text-xs font-medium text-gray-400 dark:text-gray-500 mt-0.5">No BS Habit Tracker</div>
           </div>
         ) : (
@@ -662,7 +662,7 @@ export default function HabitTracker() {
                 </button>
               : <div className="w-8 shrink-0" />}
             <div className="flex-1 text-center">
-              <div className="text-[22px] font-bold tracking-widest uppercase text-indigo-500 dark:text-indigo-400 leading-tight">Beacon</div>
+              <div className="text-[20px] font-bold tracking-widest uppercase text-indigo-500 dark:text-indigo-400 leading-tight">Beacon</div>
               <div className="text-xs font-medium text-gray-400 dark:text-gray-500 leading-tight mt-0.5">No BS Habit Tracker</div>
             </div>
             {isReorderMode
