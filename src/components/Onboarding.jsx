@@ -4,7 +4,7 @@ import ShareableCard from './ShareableCard';
 const SLIDES = [
   { id: 0, theme: 'dark' },   // Problem — guilt
   { id: 1, theme: 'dark' },   // Bridge — 3 beliefs
-  { id: 2, theme: 'light' },  // Belief 1 — one tap
+  { id: 2, theme: 'dark' },   // Belief 1 — one tap
   { id: 3, theme: 'dark' },   // Belief 2 — come back + grid
   { id: 4, theme: 'dark' },   // Belief 3 — share card
 ];
@@ -116,7 +116,7 @@ function SlidePanel({ slideIndex, isDark, onAdvance, onBack, onSkip, exiting, to
       <div className="flex-1 flex flex-col items-center justify-center gap-6 w-full max-w-xs text-center">
         {slideIndex === 0 && <Slide1Content />}
         {slideIndex === 1 && <Slide2Content />}
-        {slideIndex === 2 && <Slide3Content darkMode={darkMode} />}
+        {slideIndex === 2 && <Slide3Content />}
         {slideIndex === 3 && <Slide4Content darkMode={darkMode} />}
         {slideIndex === 4 && <Slide5Content />}
       </div>
@@ -160,7 +160,7 @@ function Slide1Content() {
       </div>
       <div className="flex flex-col gap-3">
         <p className="text-[28px] font-bold leading-tight text-gray-100">
-          Millions track habits in Notes.
+          Millions track habits in notes.
         </p>
         <p className="text-[28px] font-bold leading-tight text-indigo-400">
           Not because they're lazy.
@@ -194,35 +194,48 @@ function Slide2Content() {
   );
 }
 
-// Slide 3 — Belief 1: One tap to log (light)
-function Slide3Content({ darkMode }) {
+// Slide 3 — Belief 1: One tap to log (always dark)
+function Slide3Content() {
+  const habits = [
+    { name: 'Morning Run 🏃', days: '42 of 48 days', logged: true },
+    { name: 'Read 📚', days: '18 of 48 days', logged: false },
+    { name: 'Meditate 🧘', days: '33 of 48 days', logged: true },
+  ];
   return (
     <>
       <div className="flex flex-col items-center gap-0.5">
         <div className="text-[20px] font-bold tracking-widest uppercase text-indigo-400">Beacon</div>
-        <div className={`text-xs font-medium ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>No BS Habit Tracker</div>
+        <div className="text-xs font-medium text-gray-500">No BS Habit Tracker</div>
       </div>
       <div className="flex flex-col gap-2 text-left w-full">
-        <p className={`text-xs font-semibold uppercase tracking-widest ${darkMode ? 'text-indigo-400' : 'text-indigo-500'}`}>Belief 1</p>
-        <p className={`text-[26px] font-bold leading-tight ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-          Logging should be easier than Notes.
+        <p className="text-xs font-semibold uppercase tracking-widest text-indigo-400">Belief 1</p>
+        <p className="text-[26px] font-bold leading-tight text-white">
+          Logging should be easier than notes.
         </p>
       </div>
-      {/* Mock habit card */}
-      <div className={`w-full rounded-2xl shadow-lg border px-4 py-3 flex items-center gap-3 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
-        <div className="flex-1 min-w-0">
-          <div className={`font-bold text-sm mb-0.5 ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Morning Run 🏃</div>
-          <div className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>Daily · 42d streak 🔗</div>
-        </div>
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center shadow-sm shrink-0">
-          <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-          </svg>
-        </div>
-      </div>
-      <p className={`text-base font-semibold ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+      <p className="text-base font-semibold text-gray-300 text-left w-full">
         One tap to log. That's it.
       </p>
+      {/* Mock habit cards */}
+      <div className="w-full flex flex-col gap-2">
+        {habits.map((h, i) => (
+          <div key={i} className="w-full rounded-xl bg-gray-800 border border-gray-700 px-3 py-2.5 flex items-center gap-3">
+            <div className="flex-1 min-w-0">
+              <div className="font-bold text-sm text-gray-100 truncate">{h.name}</div>
+              <div className="text-xs text-gray-500">Daily · {h.days}</div>
+            </div>
+            {h.logged ? (
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center shrink-0">
+                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            ) : (
+              <div className="w-9 h-9 rounded-full border-2 border-indigo-400 shrink-0" />
+            )}
+          </div>
+        ))}
+      </div>
     </>
   );
 }
@@ -297,7 +310,7 @@ function Slide5Content() {
         onClick={(e) => e.stopPropagation()}
       >
         <div style={{ transform: `scale(${SCALE})`, transformOrigin: 'top left', width: `${CARD_W}px`, height: `${CARD_H}px` }}>
-          <ShareableCard habit={DEMO_HABIT} stat="streak" />
+          <ShareableCard habit={DEMO_HABIT} stat="month" />
         </div>
       </div>
     </>
