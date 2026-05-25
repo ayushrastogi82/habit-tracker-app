@@ -39,6 +39,14 @@ export default function HabitTracker() {
 
   useEffect(() => { loadHabits(); }, []);
   useEffect(() => {
+    // Reload at midnight so date-dependent calculations (streaks, logged today) stay fresh
+    const now = new Date();
+    const midnight = new Date(now);
+    midnight.setHours(24, 0, 0, 0);
+    const timer = setTimeout(() => window.location.reload(), midnight - now);
+    return () => clearTimeout(timer);
+  }, []);
+  useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode);
     localStorage.setItem('dark-mode', darkMode);
   }, [darkMode]);
