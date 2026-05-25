@@ -153,8 +153,9 @@ function SlidePanel({ slideIndex, isDark, backdropBlur, onAdvance, onBack, onSki
 function Slide1Content({ darkMode }) {
   return (
     <>
-      <div className="text-xs font-bold tracking-widest uppercase text-indigo-400">
-        Beacon
+      <div className="flex flex-col items-center gap-0.5">
+        <div className="text-xs font-bold tracking-widest uppercase text-indigo-400">Beacon</div>
+        <div className={`text-[11px] font-medium ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>No BS Habit Tracker</div>
       </div>
       <div className="flex flex-col gap-3">
         <p className={`text-[28px] font-bold leading-tight ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
@@ -222,8 +223,9 @@ function Slide3Content() {
 
   return (
     <>
-      <div className="text-xs font-bold tracking-widest uppercase text-indigo-400">
-        Beacon
+      <div className="flex flex-col items-center gap-0.5">
+        <div className="text-xs font-bold tracking-widest uppercase text-indigo-400">Beacon</div>
+        <div className="text-[11px] font-medium text-gray-500">No BS Habit Tracker</div>
       </div>
 
       <div className="flex flex-col gap-1">
