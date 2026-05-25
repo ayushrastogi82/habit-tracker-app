@@ -927,15 +927,15 @@ export default function HabitTracker() {
                         {isWeekly ? (
                           weeklyStreak.current >= 1
                             ? <span className={`w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center gap-0.5 ${weekGoalMet ? 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400' : 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400'}`}>{weeklyStreak.current}w<span className="text-[8px]">🔗</span></span>
-                            : weeklyGap !== null && weeklyGap >= 1 ? <span className="w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center bg-rose-100 dark:bg-rose-950/40 text-rose-500 dark:text-rose-400">{weeklyGap}w gap</span> : <div className="w-16" />
+                            : weeklyGap !== null && weeklyGap >= 1 ? <span className="w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center bg-rose-100 dark:bg-rose-950/40 text-rose-500 dark:text-rose-400">{weeklyGap}w missed</span> : <div className="w-16" />
                         ) : isMonthly ? (
                           monthlyStreak.current >= 1
                             ? <span className={`w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center gap-0.5 ${monthGoalMet ? 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400' : 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400'}`}>{monthlyStreak.current}m<span className="text-[8px]">🔗</span></span>
-                            : monthlyGap !== null && monthlyGap >= 1 ? <span className="w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center bg-rose-100 dark:bg-rose-950/40 text-rose-500 dark:text-rose-400">{monthlyGap}m gap</span> : <div className="w-16" />
+                            : monthlyGap !== null && monthlyGap >= 1 ? <span className="w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center bg-rose-100 dark:bg-rose-950/40 text-rose-500 dark:text-rose-400">{monthlyGap}m missed</span> : <div className="w-16" />
                         ) : (
                           streak.current > 1
                             ? <span className={`w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center gap-0.5 ${loggedToday ? 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400' : 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400'}`}>{streak.current}d<span className="text-[8px]">🔗</span></span>
-                            : daysSince !== null && daysSince > 0 ? <span className="w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center bg-rose-100 dark:bg-rose-950/40 text-rose-500 dark:text-rose-400">{daysSince}d gap</span> : <div className="w-16" />
+                            : daysSince !== null && daysSince > 0 ? <span className="w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center bg-rose-100 dark:bg-rose-950/40 text-rose-500 dark:text-rose-400">{daysSince}d missed</span> : <div className="w-16" />
                         )}
 
                         {/* Tracker */}
