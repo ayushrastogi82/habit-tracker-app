@@ -107,7 +107,7 @@ const ShareableCard = forwardRef(function ShareableCard({ habit, stat, appUrl },
 
   const dotGrid = {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-    backgroundImage: 'radial-gradient(circle, rgba(99,102,241,0.15) 1px, transparent 1px)',
+    backgroundImage: 'radial-gradient(circle, rgba(249,115,22,0.15) 1px, transparent 1px)',
     backgroundSize: '24px 24px',
     pointerEvents: 'none',
   };
@@ -260,16 +260,16 @@ const ShareableCard = forwardRef(function ShareableCard({ habit, stat, appUrl },
         <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
           <div style={{
             width: '22px', height: '22px', borderRadius: '6px',
-            background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+            background: 'linear-gradient(135deg, #f97316, #d97706)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: '11px', fontWeight: '800', color: 'white', flexShrink: 0,
-          }}>H</div>
+          }}>B</div>
           <span style={{ fontSize: '13px', fontWeight: '700', color: 'rgba(203,213,225,0.8)' }}>
-            Habit Tracker
+            Beacon
           </span>
         </div>
         <span style={{ fontSize: '11px', color: 'rgba(148,163,184,0.5)', fontWeight: '400' }}>
-          Log your progress, stay motivated
+          No guilt. Just progress.
         </span>
       </div>
     </div>

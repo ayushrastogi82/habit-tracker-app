@@ -1,11 +1,11 @@
 {
-  "name": "Habit Tracker",
-  "short_name": "Habit Tracker",
-  "description": "Track your daily habits and build streaks",
+  "name": "Beacon — Habit Tracker",
+  "short_name": "Beacon",
+  "description": "No guilt. Just progress. Track your habits daily.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#6366f1",
-  "theme_color": "#6366f1",
+  "background_color": "#f97316",
+  "theme_color": "#f97316",
   "orientation": "portrait",
   "icons": [
     { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }

@@ -96,7 +96,7 @@ export default function ShareModal({ habit, onClose }) {
               onClick={() => setActiveStat(tab.key)}
               className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
                 activeStat === tab.key
-                  ? 'bg-indigo-600 text-white shadow-md'
+                  ? 'bg-orange-500 text-white shadow-md'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
@@ -133,7 +133,7 @@ export default function ShareModal({ habit, onClose }) {
           <button
             onClick={handleShare}
             disabled={sharing}
-            className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-indigo-500 to-blue-600 text-white font-semibold text-sm shadow-lg active:scale-[0.98] transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+            className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-orange-400 to-amber-600 text-white font-semibold text-sm shadow-lg active:scale-[0.98] transition-all disabled:opacity-60 flex items-center justify-center gap-2"
           >
             {sharing ? (
               <>
