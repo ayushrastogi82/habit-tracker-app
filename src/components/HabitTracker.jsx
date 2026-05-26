@@ -1028,7 +1028,7 @@ export default function HabitTracker() {
                       const mTarget = habit.monthlyTarget || 1;
 
                       // Per-habit state
-                      const hs = heatmapStates[habit.id] || { view: 'year', yearOffset: 0, monthOffset: 0 };
+                      const hs = heatmapStates[habit.id] || { view: 'month', yearOffset: 0, monthOffset: 0 };
                       const setHS = (patch) => setHeatmapStates(s => {
                         const prev = s[habit.id] || { view: 'year', yearOffset: 0, monthOffset: 0 };
                         const next = { ...prev, ...patch };
@@ -1144,86 +1144,62 @@ export default function HabitTracker() {
                           : 'bg-gray-200 dark:bg-gray-700';
 
                       // ── PERIOD CHIPS ────────────────────────────────────────
-                      const earliestYear = dates.length ? parseInt([...dates].sort()[0].slice(0, 4)) : today.getFullYear();
-                      const yearChips = Array.from({ length: today.getFullYear() - earliestYear + 1 }, (_, i) => earliestYear + i);
+                      // Past complete years → year chips; current year → month chips
+                      const chipCurrentYear = today.getFullYear();
+                      const chipCurrentMonth = today.getMonth();
+                      const earliestYear = dates.length ? parseInt([...dates].sort()[0].slice(0, 4)) : chipCurrentYear;
+                      const pastYearChips = Array.from({ length: chipCurrentYear - earliestYear }, (_, i) => earliestYear + i);
+                      const currentYearMonthChips = Array.from({ length: chipCurrentMonth + 1 }, (_, i) => i); // 0=Jan … chipCurrentMonth
 
-                      const earliestMonthStr = dates.length ? [...dates].sort()[0].slice(0, 7) : `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}`;
-                      const [_eyStr, _emStr] = earliestMonthStr.split('-');
-                      const _ey = parseInt(_eyStr), _em = parseInt(_emStr) - 1;
-                      const monthChips = [];
-                      for (let cy = _ey, cm = _em; cy < today.getFullYear() || (cy === today.getFullYear() && cm <= today.getMonth()); ) {
-                        monthChips.push({ year: cy, month: cm });
-                        cm++; if (cm > 11) { cm = 0; cy++; }
-                      }
+                      // Active chip: year chip if view=year and not current year; else month chip
+                      const chipActiveYear = hs.view === 'year' && selectedYear < chipCurrentYear ? selectedYear : null;
+                      const chipActiveMonth = hs.view === 'month' ? mMonth : (hs.view === 'year' && selectedYear === chipCurrentYear ? chipCurrentMonth : null);
 
                       return (
                         <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-2 mb-2">
-                          {/* Top row: view toggle + share */}
-                          <div className="flex items-center justify-between mb-1.5">
-                            <div className="flex items-center gap-2">
-                              {['year', 'month'].map(v => (
-                                <button key={v} onClick={(e) => { e.stopPropagation(); setHS({ view: v }); }}
-                                  className={`text-[10px] font-semibold transition-colors pb-0.5 ${
-                                    hs.view === v
-                                      ? 'text-indigo-600 dark:text-indigo-400 border-b border-indigo-500 dark:border-indigo-400'
-                                      : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
-                                  }`}>
-                                  {v === 'year' ? 'Year' : 'Month'}
-                                </button>
-                              ))}
-                            </div>
-                            <button onClick={(e) => { e.stopPropagation(); setShareHabit(habit); }}
-                              className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-400 dark:text-gray-500 hover:text-indigo-500 dark:hover:text-indigo-400 active:scale-95 transition-all">
-                              <Share2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-
-                          {/* Scrollable period chips */}
+                          {/* Unified scrollable period chips — no toggle, no share */}
                           <div className="flex gap-1 overflow-x-auto mb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-                            {hs.view === 'year'
-                              ? yearChips.map(year => {
-                                  const isActive = year === selectedYear;
-                                  return (
-                                    <button key={year}
-                                      ref={isActive ? (el => el && el.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' })) : null}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setHS({ yearOffset: year - today.getFullYear() });
-                                        e.currentTarget.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' });
-                                      }}
-                                      className={`shrink-0 px-2.5 py-0.5 rounded-full text-[10px] font-semibold transition-all ${
-                                        isActive
-                                          ? 'bg-indigo-600 text-white'
-                                          : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600'
-                                      }`}>
-                                      {year}
-                                    </button>
-                                  );
-                                })
-                              : monthChips.map(({ year: cy, month: cm }) => {
-                                  const isActive = cy === mYear && cm === mMonth;
-                                  const offset = (cy - today.getFullYear()) * 12 + (cm - today.getMonth());
-                                  const label = cy !== today.getFullYear()
-                                    ? `${MONTH_NAMES_FULL[cm].slice(0,3)} '${String(cy).slice(2)}`
-                                    : MONTH_NAMES_FULL[cm].slice(0,3);
-                                  return (
-                                    <button key={`${cy}-${cm}`}
-                                      ref={isActive ? (el => el && el.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' })) : null}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setHS({ monthOffset: offset });
-                                        e.currentTarget.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' });
-                                      }}
-                                      className={`shrink-0 px-2.5 py-0.5 rounded-full text-[10px] font-semibold transition-all ${
-                                        isActive
-                                          ? 'bg-indigo-600 text-white'
-                                          : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600'
-                                      }`}>
-                                      {label}
-                                    </button>
-                                  );
-                                })
-                            }
+                            {/* Past year chips */}
+                            {pastYearChips.map(year => {
+                              const isActive = chipActiveYear === year;
+                              return (
+                                <button key={`y-${year}`}
+                                  ref={isActive ? (el => el && el.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' })) : null}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setHS({ view: 'year', yearOffset: year - chipCurrentYear });
+                                    e.currentTarget.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' });
+                                  }}
+                                  className={`shrink-0 px-2.5 py-0.5 rounded-full text-[10px] font-semibold transition-all ${
+                                    isActive
+                                      ? 'bg-indigo-600 text-white'
+                                      : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600'
+                                  }`}>
+                                  {year}
+                                </button>
+                              );
+                            })}
+                            {/* Current year month chips */}
+                            {currentYearMonthChips.map(monthIdx => {
+                              const isActive = chipActiveMonth === monthIdx && (hs.view === 'month' ? mYear === chipCurrentYear : selectedYear === chipCurrentYear);
+                              const monthOffset = monthIdx - chipCurrentMonth;
+                              return (
+                                <button key={`m-${monthIdx}`}
+                                  ref={isActive ? (el => el && el.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' })) : null}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setHS({ view: 'month', yearOffset: 0, monthOffset });
+                                    e.currentTarget.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' });
+                                  }}
+                                  className={`shrink-0 px-2.5 py-0.5 rounded-full text-[10px] font-semibold transition-all ${
+                                    isActive
+                                      ? 'bg-indigo-600 text-white'
+                                      : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600'
+                                  }`}>
+                                  {MONTH_NAMES_FULL[monthIdx].slice(0, 3)}
+                                </button>
+                              );
+                            })}
                           </div>
 
                           {/* Grid */}
