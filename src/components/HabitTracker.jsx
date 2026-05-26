@@ -1144,23 +1144,23 @@ export default function HabitTracker() {
                           : 'bg-gray-200 dark:bg-gray-700';
 
                       // ── PERIOD CHIPS ────────────────────────────────────────
-                      // Past complete years → year chips; current year → month chips
+                      // All years (incl. current) → year chips; current year months → month chips
                       const chipCurrentYear = today.getFullYear();
                       const chipCurrentMonth = today.getMonth();
                       const earliestYear = dates.length ? parseInt([...dates].sort()[0].slice(0, 4)) : chipCurrentYear;
-                      const pastYearChips = Array.from({ length: chipCurrentYear - earliestYear }, (_, i) => earliestYear + i);
+                      const allYearChips = Array.from({ length: chipCurrentYear - earliestYear + 1 }, (_, i) => earliestYear + i);
                       const currentYearMonthChips = Array.from({ length: chipCurrentMonth + 1 }, (_, i) => i); // 0=Jan … chipCurrentMonth
 
-                      // Active chip: year chip if view=year and not current year; else month chip
-                      const chipActiveYear = hs.view === 'year' && selectedYear < chipCurrentYear ? selectedYear : null;
-                      const chipActiveMonth = hs.view === 'month' ? mMonth : (hs.view === 'year' && selectedYear === chipCurrentYear ? chipCurrentMonth : null);
+                      // Active: year chip when view=year, month chip when view=month
+                      const chipActiveYear = hs.view === 'year' ? selectedYear : null;
+                      const chipActiveMonth = hs.view === 'month' ? mMonth : null;
 
                       return (
                         <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-2 mb-2">
                           {/* Unified scrollable period chips — no toggle, no share */}
                           <div className="flex gap-1 overflow-x-auto mb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-                            {/* Past year chips */}
-                            {pastYearChips.map(year => {
+                            {/* Year chips (all years including current) */}
+                            {allYearChips.map(year => {
                               const isActive = chipActiveYear === year;
                               return (
                                 <button key={`y-${year}`}
@@ -1181,7 +1181,7 @@ export default function HabitTracker() {
                             })}
                             {/* Current year month chips */}
                             {currentYearMonthChips.map(monthIdx => {
-                              const isActive = chipActiveMonth === monthIdx && (hs.view === 'month' ? mYear === chipCurrentYear : selectedYear === chipCurrentYear);
+                              const isActive = chipActiveMonth === monthIdx && mYear === chipCurrentYear;
                               const monthOffset = monthIdx - chipCurrentMonth;
                               return (
                                 <button key={`m-${monthIdx}`}
