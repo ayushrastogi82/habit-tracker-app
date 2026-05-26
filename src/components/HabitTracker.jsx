@@ -803,12 +803,12 @@ export default function HabitTracker() {
               </button>
               <div className="flex items-center gap-1.5">
                 {_isPast && <span className="text-xs">📅</span>}
-                <span className={`text-xs font-semibold ${_isPast ? 'text-amber-600 dark:text-amber-400' : 'text-gray-400 dark:text-gray-500'}`}>
+                <span className={`text-sm font-semibold ${_isPast ? 'text-amber-600 dark:text-amber-400' : 'text-gray-700 dark:text-gray-200'}`}>
                   {_label}
                 </span>
                 {_isPast && (
                   <button onClick={() => setViewDateOffset(0)}
-                    className="text-[10px] font-medium text-amber-500 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 underline ml-1">
+                    className="text-xs font-medium text-amber-500 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 underline ml-1">
                     back to today
                   </button>
                 )}
