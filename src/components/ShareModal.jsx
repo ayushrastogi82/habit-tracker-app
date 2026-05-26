@@ -2,22 +2,43 @@ import React, { useState } from 'react';
 import ShareableCard from './ShareableCard';
 import { drawCardToCanvas } from '../utils/drawCardToCanvas';
 
-const TABS = [
-  { key: 'streak', label: '🔥 Streak'    },
-  { key: 'best',   label: '🏆 Best'      },
-  { key: '7days',  label: '📅 Last 7 Days' },
-  { key: '30days', label: '📊 30 Days'   },
-  { key: 'month',  label: '📆 Month'     },
-  { key: 'year',   label: '🗓 Year'      },
-  { key: 'since',  label: '📈 All Time'  },
-];
-
 const APP_URL = window.location.hostname === 'localhost'
   ? 'habittracker.vercel.app'
   : window.location.hostname;
 
+function getCurrentStreak(dates) {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const todayStr = today.toISOString().slice(0, 10);
+  const yStr = new Date(today.getTime() - 86400000).toISOString().slice(0, 10);
+  const sorted = [...dates].sort().reverse();
+  if (!sorted.length || (sorted[0] !== todayStr && sorted[0] !== yStr)) return 0;
+  let count = 1;
+  let check = new Date(sorted[0]);
+  for (let i = 1; i < sorted.length; i++) {
+    check.setDate(check.getDate() - 1);
+    if (sorted[i] === check.toISOString().slice(0, 10)) count++;
+    else break;
+  }
+  return count;
+}
+
 export default function ShareModal({ habit, onClose }) {
-  const [activeStat, setActiveStat] = useState('streak');
+  const currentStreak = getCurrentStreak(habit.dates || []);
+  const showStreakTab = currentStreak >= 7;
+
+  const TABS = [
+    { key: 'heatmap',   label: '🗓 Heatmap'   },
+    { key: 'milestone', label: '🎯 Milestone'  },
+    { key: 'month',     label: '📆 Month'      },
+    { key: 'since',     label: '📈 All Time'   },
+    { key: '30days',    label: '📊 30 Days'    },
+    { key: '7days',     label: '📅 7 Days'     },
+    { key: 'year',      label: '🗓 Year'       },
+    { key: 'best',      label: '🏆 Best'       },
+    ...(showStreakTab ? [{ key: 'streak', label: '🔥 Streak' }] : []),
+  ];
+
+  const [activeStat, setActiveStat] = useState('heatmap');
   const [sharing, setSharing] = useState(false);
 
   async function handleShare() {

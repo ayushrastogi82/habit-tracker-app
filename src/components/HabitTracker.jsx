@@ -28,6 +28,18 @@ export default function HabitTracker() {
   const [heatmapMode, setHeatmapMode] = useState(() => localStorage.getItem('heatmap-mode') || 'month');
   const [weekStart, setWeekStart] = useState(() => parseInt(localStorage.getItem('week-start') || '0')); // 0=Sun, 1=Mon
   const [monthOffset, setMonthOffset] = useState(0);
+  const [viewDateOffset, setViewDateOffset] = useState(0); // 0 = today, -1 = yesterday, etc.
+  const [heatmapStates, setHeatmapStates] = useState(() => {
+    // Restore saved view (year/month) per habit from localStorage
+    try {
+      const saved = JSON.parse(localStorage.getItem('heatmap-views') || '{}');
+      const states = {};
+      Object.entries(saved).forEach(([id, view]) => {
+        states[id] = { view, yearOffset: 0, monthOffset: 0 };
+      });
+      return states;
+    } catch { return {}; }
+  }); // per-habit: { view:'year'|'month', yearOffset:0, monthOffset:0 }
   const [nameError, setNameError] = useState(false);
   const [showSettingsSheet, setShowSettingsSheet] = useState(false);
   const [showBackupReminder, setShowBackupReminder] = useState(false);
@@ -774,12 +786,52 @@ export default function HabitTracker() {
         <input ref={fileInputRef} type="file" accept=".json" className="hidden" onChange={handleImportFile} />
 
 
+        {/* Date navigator */}
+        {(() => {
+          const _now = new Date(); _now.setHours(0,0,0,0);
+          const _vd = new Date(_now); _vd.setDate(_now.getDate() + viewDateOffset);
+          const _vdStr = _vd.toISOString().slice(0,10);
+          const _label = viewDateOffset === 0 ? 'Today'
+            : viewDateOffset === -1 ? 'Yesterday'
+            : _vd.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+          const _isPast = viewDateOffset < 0;
+          return (
+            <div className={`flex items-center justify-between px-1 mb-2 ${_isPast ? 'py-1.5 bg-amber-50 dark:bg-amber-950/30 rounded-xl border border-amber-200 dark:border-amber-800/50' : ''}`}>
+              <button onClick={() => setViewDateOffset(o => o - 1)}
+                className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 dark:text-gray-500 active:scale-95 transition-all">
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <div className="flex items-center gap-1.5">
+                {_isPast && <span className="text-xs">📅</span>}
+                <span className={`text-xs font-semibold ${_isPast ? 'text-amber-600 dark:text-amber-400' : 'text-gray-400 dark:text-gray-500'}`}>
+                  {_label}
+                </span>
+                {_isPast && (
+                  <button onClick={() => setViewDateOffset(0)}
+                    className="text-[10px] font-medium text-amber-500 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 underline ml-1">
+                    back to today
+                  </button>
+                )}
+              </div>
+              <button onClick={() => setViewDateOffset(o => Math.min(0, o + 1))}
+                disabled={viewDateOffset >= 0}
+                className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 dark:text-gray-500 disabled:opacity-20 active:scale-95 transition-all">
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          );
+        })()}
+
         {/* Habits grid */}
         <div className={viewMode === '2col' ? 'grid grid-cols-2 gap-x-3 gap-y-6' : 'space-y-1.5'}>
           {habits.map((habit, index) => {
+            const _nowBase = new Date(); _nowBase.setHours(0,0,0,0);
+            const viewDate = new Date(_nowBase); viewDate.setDate(_nowBase.getDate() + viewDateOffset);
+            const viewDateStr = viewDate.toISOString().slice(0,10);
+            const isViewingToday = viewDateOffset === 0;
             const streak = getStreakInfo(habit.dates);
             const daysSince = getDaysSinceLastLog(habit.dates);
-            const loggedToday = isLoggedToday(habit.dates);
+            const loggedToday = habit.dates.includes(viewDateStr);
             const isExpanded = expandedHabits.has(habit.id);
             const isRenaming = renamingHabit === habit.id;
             const totalDays = getTotalDays(habit.id, habit.dates, habit.startDate);
@@ -878,11 +930,11 @@ export default function HabitTracker() {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        if (!loggedToday) logToday(habit.id);
+                        toggleDate(habit.id, viewDateStr, loggedToday);
                       }}
                       className={`shrink-0 self-center h-8 w-14 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1 ${
                         loggedToday
-                          ? 'bg-gradient-to-r from-green-200 to-green-300 text-green-700 cursor-default'
+                          ? 'bg-gradient-to-r from-green-200 to-green-300 text-green-700 active:scale-95'
                           : goalAlreadyMet
                           ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white active:scale-95 shadow-md'
                           : 'bg-gradient-to-r from-indigo-500 to-blue-600 text-white active:scale-95 shadow-md'
@@ -911,15 +963,15 @@ export default function HabitTracker() {
                         {isWeekly ? (
                           weeklyStreak.current >= 1
                             ? <span className={`w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center gap-0.5 ${weekGoalMet ? 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400' : 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400'}`}>{weeklyStreak.current}w<span className="text-[8px]">🔗</span></span>
-                            : weeklyGap !== null && weeklyGap >= 1 ? <span className="w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center bg-rose-100 dark:bg-rose-950/40 text-rose-500 dark:text-rose-400">{weeklyGap}w gap</span> : <div className="w-16" />
+                            : weeklyGap !== null && weeklyGap >= 1 ? <span className="w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center bg-amber-100 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400">{weeklyGap}w off</span> : <div className="w-16" />
                         ) : isMonthly ? (
                           monthlyStreak.current >= 1
                             ? <span className={`w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center gap-0.5 ${monthGoalMet ? 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400' : 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400'}`}>{monthlyStreak.current}m<span className="text-[8px]">🔗</span></span>
-                            : monthlyGap !== null && monthlyGap >= 1 ? <span className="w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center bg-rose-100 dark:bg-rose-950/40 text-rose-500 dark:text-rose-400">{monthlyGap}m gap</span> : <div className="w-16" />
+                            : monthlyGap !== null && monthlyGap >= 1 ? <span className="w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center bg-amber-100 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400">{monthlyGap}m off</span> : <div className="w-16" />
                         ) : (
                           streak.current > 1
                             ? <span className={`w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center gap-0.5 ${loggedToday ? 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400' : 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400'}`}>{streak.current}d<span className="text-[8px]">🔗</span></span>
-                            : daysSince !== null && daysSince > 0 ? <span className="w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center bg-rose-100 dark:bg-rose-950/40 text-rose-500 dark:text-rose-400">{daysSince}d gap</span> : <div className="w-16" />
+                            : daysSince !== null && daysSince > 0 ? <span className="w-16 py-0.5 rounded-full text-xs font-semibold flex items-center justify-center bg-amber-100 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400">{daysSince}d off</span> : <div className="w-16" />
                         )}
 
                         {/* Tracker */}
@@ -964,149 +1016,249 @@ export default function HabitTracker() {
                   <div className={`overflow-hidden transition-opacity duration-300 ${isExpanded ? 'opacity-100' : 'opacity-0'}`}>
                   <div className="px-2 pb-2">
                     <div className="h-px bg-indigo-100 dark:bg-indigo-900 mb-2" />
-                    {/* Share button */}
-                    <div className="flex justify-end mb-2">
-                      <button
-                        onClick={(e) => { e.stopPropagation(); setShareHabit(habit); }}
-                        className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-900/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/70 active:scale-95 transition-all text-indigo-600 dark:text-indigo-400 text-xs font-semibold"
-                      >
-                        <Share2 className="w-3 h-3" />
-                        Share
-                      </button>
-                    </div>
-                    {/* Stats row */}
+
+                    {/* HEATMAP — year or month view, per-habit independent state */}
                     {(() => {
-                      const now = new Date();
-                      const creation = new Date(parseInt(habit.startDate || habit.id));
-                      const creationUTC = Date.UTC(creation.getFullYear(), creation.getMonth(), creation.getDate());
-                      const earliestUTC = habit.dates.length ? dateToUTC([...habit.dates].sort()[0]) : creationUTC;
-                      const startUTC = Math.min(earliestUTC, creationUTC);
-                      const totalDaysVal = todayUTC() / 86400000 - startUTC / 86400000 + 1;
-                      const start = new Date(startUTC);
-                      const sinceLabel = start.toLocaleDateString('en-US', start.getUTCFullYear() === now.getFullYear() ? { month: 'short', day: 'numeric', timeZone: 'UTC' } : { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
-                      const last30Dates = Array.from({ length: 30 }, (_, i) => {
-                        const d = new Date(now); d.setDate(now.getDate() - i);
-                        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-                      });
-                      const last30Logged = habit.dates.filter(d => last30Dates.includes(d)).length;
-                      const last30Pct = Math.round((last30Logged / 30) * 100);
+                      const today = new Date(); today.setHours(0, 0, 0, 0);
+                      const todayStr = today.toISOString().slice(0, 10);
+                      const dates = habit.dates || [];
                       const isWeeklyHabit = habit.type === 'weekly';
                       const isMonthlyHabit = habit.type === 'monthly';
                       const wTarget = habit.weeklyTarget || 3;
-                      const mTargetExp = habit.monthlyTarget || 1;
-                      const wStreak = isWeeklyHabit ? getWeeklyStreakInfo(habit.dates, wTarget) : null;
-                      const mStreakExp = isMonthlyHabit ? getMonthlyStreakInfo(habit.dates, mTargetExp) : null;
-                      let weeksGoalMet = 0, totalWeeks = 0;
+                      const mTarget = habit.monthlyTarget || 1;
+
+                      // Per-habit state
+                      const hs = heatmapStates[habit.id] || { view: 'year', yearOffset: 0, monthOffset: 0 };
+                      const setHS = (patch) => setHeatmapStates(s => {
+                        const prev = s[habit.id] || { view: 'year', yearOffset: 0, monthOffset: 0 };
+                        const next = { ...prev, ...patch };
+                        const updated = { ...s, [habit.id]: next };
+                        if (patch.view !== undefined) {
+                          try {
+                            const views = {};
+                            Object.entries(updated).forEach(([id, st]) => { views[id] = st.view; });
+                            localStorage.setItem('heatmap-views', JSON.stringify(views));
+                          } catch {}
+                        }
+                        return updated;
+                      });
+
+                      const GAP = 1;
+                      const availW = window.innerWidth - 60;
+
+                      // ── YEAR VIEW ──────────────────────────────────────────
+                      const selectedYear = today.getFullYear() + hs.yearOffset;
+                      const isCurrentYear = selectedYear === today.getFullYear();
+                      const jan1 = new Date(selectedYear, 0, 1);
+                      const jan1Dow = jan1.getDay();
+                      const leadingDays = weekStart === 1 ? (jan1Dow === 0 ? 6 : jan1Dow - 1) : jan1Dow;
+                      const gridStart = new Date(selectedYear, 0, 1 - leadingDays);
+                      const dec31 = new Date(selectedYear, 11, 31);
+                      const YEAR_WEEKS = Math.ceil(((dec31 - gridStart) / 86400000 + 1) / 7);
+                      const DOT_YEAR = Math.max(4, (availW - (YEAR_WEEKS - 1) * GAP) / YEAR_WEEKS);
+
+                      const yearGrid = Array.from({ length: YEAR_WEEKS }, (_, w) =>
+                        Array.from({ length: 7 }, (_, d) => {
+                          const date = new Date(gridStart);
+                          date.setDate(gridStart.getDate() + w * 7 + d);
+                          const ds = date.toISOString().slice(0, 10);
+                          const inYear = ds.startsWith(String(selectedYear));
+                          return { logged: inYear && dates.includes(ds), outOfYear: !inYear, isToday: ds === todayStr };
+                        })
+                      );
+
+                      let actCount = 0;
                       if (isWeeklyHabit) {
-                        const curWeek = getWeekStart(new Date());
-                        const startDayRaw = new Date(startUTC).getDay(); // 0 = Sunday
-                        const startDay = weekStart === 1 ? (startDayRaw === 0 ? 6 : startDayRaw - 1) : startDayRaw;
-                        const startWeek = getWeekStart(new Date(startUTC));
-                        // Skip first week only if remaining days < target (impossible to hit goal)
-                        const daysRemainingInFirstWeek = 7 - startDay;
-                        const firstFullWeek = daysRemainingInFirstWeek >= wTarget
-                          ? startWeek
-                          : new Date(startWeek.getTime() + 7 * 86400000);
-                        totalWeeks = Math.max(0, Math.round((curWeek.getTime() - firstFullWeek.getTime()) / (7 * 86400000)) + 1);
-                        for (let w = new Date(firstFullWeek); w.getTime() <= curWeek.getTime(); w.setDate(w.getDate() + 7)) {
-                          if (isWeekGoalMet(habit.dates, wTarget, new Date(w))) weeksGoalMet++;
+                        const yearEnd = new Date(selectedYear, 11, 31);
+                        for (let w = new Date(getWeekStart(new Date(selectedYear, 0, 1))); w <= yearEnd; w.setDate(w.getDate() + 7)) {
+                          if (w.getFullYear() <= selectedYear && isWeekGoalMet(dates, wTarget, new Date(w))) actCount++;
                         }
-                      }
-                      let monthsGoalMet = 0, totalMonths = 0;
-                      if (isMonthlyHabit) {
-                        const startMonthStr = `${start.getUTCFullYear()}-${String(start.getUTCMonth()+1).padStart(2,'0')}`;
-                        const curMonthStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-                        // Skip first month only if remaining days < target (impossible to hit goal)
-                        const startDayOfMonth = start.getUTCDate();
-                        const daysInStartMonth = new Date(start.getUTCFullYear(), start.getUTCMonth() + 1, 0).getDate();
-                        const daysRemainingInFirstMonth = daysInStartMonth - startDayOfMonth + 1;
-                        const firstCountedMonth = daysRemainingInFirstMonth >= mTargetExp ? startMonthStr : nextMonthStr(startMonthStr);
-                        const [fcy, fcm] = firstCountedMonth.split('-').map(Number);
-                        totalMonths = Math.max(0, (now.getFullYear() * 12 + now.getMonth()) - (fcy * 12 + fcm - 1) + 1);
-                        let mm = firstCountedMonth;
-                        for (let i = 0; i < totalMonths; i++) {
-                          if (isMonthGoalMet(habit.dates, mTargetExp, mm)) monthsGoalMet++;
-                          mm = nextMonthStr(mm);
+                      } else if (isMonthlyHabit) {
+                        for (let m = 0; m < 12; m++) {
+                          if (isMonthGoalMet(dates, mTarget, `${selectedYear}-${String(m + 1).padStart(2, '0')}`)) actCount++;
                         }
-                      }
-                      return (
-                        <div className="grid grid-cols-3 gap-1.5 mb-2">
-                          <div className="bg-white dark:bg-gray-800 rounded-xl p-2 text-center border border-gray-100 dark:border-gray-700 shadow-md overflow-hidden">
-                            <div className="text-[13px] font-bold text-indigo-600 dark:text-indigo-400 whitespace-nowrap">{loggedDays} of {totalDaysVal}d</div>
-                            <div className="text-[10px] text-gray-500 dark:text-gray-400 leading-tight mt-0.5 whitespace-nowrap">since {sinceLabel}</div>
-                          </div>
-                          <div className="bg-white dark:bg-gray-800 rounded-xl p-2 text-center border border-gray-100 dark:border-gray-700 shadow-md overflow-hidden">
-                            <div className="text-[13px] font-bold text-indigo-600 dark:text-indigo-400 whitespace-nowrap">{isWeeklyHabit ? `${weeksGoalMet} of ${totalWeeks}w` : isMonthlyHabit ? `${monthsGoalMet} of ${totalMonths}m` : `${last30Logged}d`}</div>
-                            <div className="text-[10px] text-gray-500 dark:text-gray-400 leading-tight mt-0.5 whitespace-nowrap">{isWeeklyHabit || isMonthlyHabit ? `since ${sinceLabel}` : 'in last 30 days'}</div>
-                          </div>
-                          <div className="bg-white dark:bg-gray-800 rounded-xl p-2 text-center border border-gray-100 dark:border-gray-700 shadow-md overflow-hidden">
-                            <div className="text-[13px] font-bold text-amber-500 dark:text-amber-400 whitespace-nowrap">🏆 {isWeeklyHabit ? `${wStreak.longest}w` : isMonthlyHabit ? `${mStreakExp.longest}m` : `${streak.longest}d`}</div>
-                            <div className="text-[10px] text-gray-500 dark:text-gray-400 leading-tight mt-0.5">best streak</div>
-                          </div>
-                        </div>
-                      );
-                    })()}
-                    {(() => {
-                      const today = new Date(); today.setHours(0, 0, 0, 0);
-                      const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
-                      let days = [], leadingBlanks = 0, monthLabel = null;
-                      if (heatmapMode === '30d') {
-                        days = Array.from({ length: 30 }, (_, i) => {
-                          const d = new Date(today); d.setDate(today.getDate() - (29 - i));
-                          return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-                        });
                       } else {
-                        const ref = new Date(today.getFullYear(), today.getMonth() + monthOffset, 1);
-                        const year = ref.getFullYear(); const month = ref.getMonth();
-                        const daysInMonth = new Date(year, month + 1, 0).getDate();
-                        const isCurrentYear = year === today.getFullYear();
-                        monthLabel = ref.toLocaleDateString('en-US', isCurrentYear ? { month: 'short' } : { month: 'short', year: 'numeric' });
-                        leadingBlanks = weekStart === 1
-                          ? (new Date(year, month, 1).getDay() + 6) % 7
-                          : new Date(year, month, 1).getDay();
-                        days = Array.from({ length: daysInMonth }, (_, i) =>
-                          `${year}-${String(month+1).padStart(2,'0')}-${String(i+1).padStart(2,'0')}`
-                        );
+                        actCount = yearGrid.flat().filter(c => !c.outOfYear && c.logged).length;
                       }
-                      const dayLabels = weekStart === 1 ? ['M','T','W','T','F','S','S'] : ['S','M','T','W','T','F','S'];
+
+                      const canGoBack = dates.some(d => d.startsWith(String(selectedYear - 1)));
+                      const canGoForward = !isCurrentYear;
+
+                      // ── MONTH VIEW ─────────────────────────────────────────
+                      const refDate = new Date(today.getFullYear(), today.getMonth() + hs.monthOffset, 1);
+                      const mYear = refDate.getFullYear();
+                      const mMonth = refDate.getMonth();
+                      const mStr = `${mYear}-${String(mMonth + 1).padStart(2, '0')}`;
+                      const MONTH_NAMES_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+                      const firstDow = refDate.getDay();
+                      const mLeading = weekStart === 1 ? (firstDow === 0 ? 6 : firstDow - 1) : firstDow;
+                      const mGridStart = new Date(mYear, mMonth, 1 - mLeading);
+                      const daysInMonth = new Date(mYear, mMonth + 1, 0).getDate();
+                      const MONTH_WEEKS = Math.ceil((mLeading + daysInMonth) / 7);
+                      // Month view: cells fill full width (like year) but use same height as year dots
+                      const DOT_MONTH_W = Math.max(4, (availW - (MONTH_WEEKS - 1) * GAP) / MONTH_WEEKS);
+                      const DOT_MONTH_H = DOT_YEAR;
+
+                      const monthGrid = Array.from({ length: MONTH_WEEKS }, (_, w) =>
+                        Array.from({ length: 7 }, (_, d) => {
+                          const date = new Date(mGridStart);
+                          date.setDate(mGridStart.getDate() + w * 7 + d);
+                          const ds = date.toISOString().slice(0, 10);
+                          const inMonth = ds.startsWith(mStr);
+                          return { logged: inMonth && dates.includes(ds), outOfMonth: !inMonth, isToday: ds === todayStr };
+                        })
+                      );
+                      const mCount = monthGrid.flat().filter(c => !c.outOfMonth && c.logged).length;
+                      const canGoMonthBack = hs.monthOffset > -120;
+                      const canGoMonthForward = hs.monthOffset < 0;
+
+                      // ── SHARED ─────────────────────────────────────────────
+                      let totalAllTime = 0;
+                      if (isWeeklyHabit) {
+                        const allWeekStarts = new Set(dates.map(d => getWeekStart(new Date(d)).toISOString().slice(0, 10)));
+                        allWeekStarts.forEach(ws => { if (isWeekGoalMet(dates, wTarget, new Date(ws))) totalAllTime++; });
+                      } else if (isMonthlyHabit) {
+                        const allMonths = new Set(dates.map(d => d.slice(0, 7)));
+                        allMonths.forEach(ms => { if (isMonthGoalMet(dates, mTarget, ms)) totalAllTime++; });
+                      } else {
+                        totalAllTime = dates.length;
+                      }
+
+                      const bestStreak = isWeeklyHabit
+                        ? getWeeklyStreakInfo(dates, wTarget).longest
+                        : isMonthlyHabit
+                        ? getMonthlyStreakInfo(dates, mTarget).longest
+                        : getStreakInfo(dates).longest;
+                      const streakLabel = isWeeklyHabit ? 'wks' : isMonthlyHabit ? 'mos' : 'days';
+                      const countUnit = isWeeklyHabit ? (actCount === 1 ? 'wk' : 'wks') : isMonthlyHabit ? (actCount === 1 ? 'mo' : 'mos') : (actCount === 1 ? 'day' : 'days');
+                      const mCountUnit = isWeeklyHabit ? 'wks' : isMonthlyHabit ? 'mos' : (mCount === 1 ? 'day' : 'days');
+
+                      const dotStyle = (day, outKey) => ({
+                        borderRadius: '1px',
+                        boxSizing: 'border-box',
+                        ...(!day[outKey] && day.isToday ? { border: day.logged ? '1.5px solid #22c55e' : '1.5px solid #6366f1' } : {}),
+                      });
+                      const dotClass = (day, outKey) =>
+                        day[outKey] ? 'bg-transparent' : day.logged
+                          ? 'bg-indigo-500 dark:bg-indigo-400'
+                          : 'bg-gray-200 dark:bg-gray-700';
+
                       return (
-                        <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-1">
-                          {heatmapMode === 'month' && (
-                            <div className="flex items-center justify-between mb-1">
-                              <button onClick={(e) => { e.stopPropagation(); setMonthOffset(o => o - 1); }} className="p-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400"><ChevronLeft className="w-3 h-3" /></button>
-                              <span className="text-xs font-semibold text-gray-600 dark:text-gray-300">{monthLabel} ({days.filter(d => habit.dates.includes(d)).length}d)</span>
-                              <button onClick={(e) => { e.stopPropagation(); setMonthOffset(o => o + 1); }} disabled={monthOffset >= 0} className="p-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 disabled:opacity-30"><ChevronRight className="w-3 h-3" /></button>
-                            </div>
-                          )}
-                          {heatmapMode === 'month' && (
-                            <div className="grid grid-cols-7 gap-0.5 mb-0">
-                              {dayLabels.map((d, i) => <div key={i} className="text-center text-[8px] font-semibold text-gray-400 dark:text-gray-500">{d}</div>)}
-                            </div>
-                          )}
-                          <div className="grid grid-cols-7 gap-0.5">
-                            {heatmapMode === 'month' && Array.from({ length: leadingBlanks }, (_, i) => <div key={`b-${i}`} />)}
-                            {days.map(dateStr => {
-                              const isLogged = habit.dates.includes(dateStr);
-                              const isFuture = dateStr > todayStr;
-                              const isToday = dateStr === todayStr;
-                              return (
-                                <button key={dateStr} disabled={isFuture}
-                                  onClick={(e) => { e.stopPropagation(); !isFuture && toggleDate(habit.id, dateStr, isLogged); }}
-                                  title={formatDate(dateStr)}
-                                  className={`aspect-square rounded-sm transition-colors flex items-center justify-center ${
-                                    isFuture ? 'bg-gray-100 dark:bg-gray-700/50 cursor-default text-gray-300 dark:text-gray-600' :
-                                    isLogged ? 'bg-indigo-500 dark:bg-indigo-600 hover:bg-indigo-600 dark:hover:bg-indigo-500 text-white' :
-                                    'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-500 dark:text-gray-400'
-                                  } ${isToday ? 'ring-2 ring-indigo-400 ring-offset-1 dark:ring-offset-gray-900' : ''}`}
-                                >
-                                  <span className="text-[8px] font-medium leading-none select-none">{parseInt(dateStr.split('-')[2])}</span>
+                        <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-2 mb-2">
+                          {/* Toggle + nav + share header */}
+                          <div className="flex items-center justify-between mb-2">
+                            {/* Year/Month toggle pills */}
+                            <div className="flex gap-1">
+                              {['year', 'month'].map(v => (
+                                <button key={v} onClick={(e) => { e.stopPropagation(); setHS({ view: v }); }}
+                                  className={`px-2 py-0.5 rounded-full text-[10px] font-semibold transition-all ${hs.view === v ? 'bg-indigo-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
+                                  {v === 'year' ? 'Year' : 'Month'}
                                 </button>
-                              );
-                            })}
+                              ))}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {/* Nav: year or month */}
+                              <div className="flex items-center gap-1">
+                                <button onClick={(e) => { e.stopPropagation(); if (hs.view === 'year' ? canGoBack : canGoMonthBack) setHS(hs.view === 'year' ? { yearOffset: hs.yearOffset - 1 } : { monthOffset: hs.monthOffset - 1 }); }}
+                                  disabled={hs.view === 'year' ? !canGoBack : !canGoMonthBack}
+                                  className="p-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 disabled:opacity-20 transition-colors">
+                                  <ChevronLeft className="w-3 h-3" />
+                                </button>
+                                <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 min-w-[60px] text-center">
+                                  {hs.view === 'year' ? selectedYear : `${MONTH_NAMES_FULL[mMonth].slice(0,3)} ${mYear}`}
+                                </span>
+                                <button onClick={(e) => { e.stopPropagation(); if (hs.view === 'year' ? canGoForward : canGoMonthForward) setHS(hs.view === 'year' ? { yearOffset: hs.yearOffset + 1 } : { monthOffset: hs.monthOffset + 1 }); }}
+                                  disabled={hs.view === 'year' ? !canGoForward : !canGoMonthForward}
+                                  className="p-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 disabled:opacity-20 transition-colors">
+                                  <ChevronRight className="w-3 h-3" />
+                                </button>
+                              </div>
+                              {/* Share icon */}
+                              <button onClick={(e) => { e.stopPropagation(); setShareHabit(habit); }}
+                                className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-400 dark:text-gray-500 hover:text-indigo-500 dark:hover:text-indigo-400 active:scale-95 transition-all">
+                                <Share2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Grid */}
+                          {hs.view === 'year' ? (
+                            <div className="flex gap-px">
+                              {yearGrid.map((week, wi) => (
+                                <div key={wi} className="flex flex-col gap-px shrink-0">
+                                  {week.map((day, di) => (
+                                    <div key={di} style={{ width: `${DOT_YEAR}px`, height: `${DOT_YEAR}px`, ...dotStyle(day, 'outOfYear') }}
+                                      className={dotClass(day, 'outOfYear')} />
+                                  ))}
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="flex gap-px">
+                              {monthGrid.map((week, wi) => (
+                                <div key={wi} className="flex flex-col gap-px shrink-0">
+                                  {week.map((day, di) => (
+                                    <div key={di} style={{ width: `${DOT_MONTH_W}px`, height: `${DOT_MONTH_H}px`, borderRadius: '1px', boxSizing: 'border-box', ...( !day.outOfMonth && day.isToday ? { border: day.logged ? '1.5px solid #22c55e' : '1.5px solid #6366f1' } : {}) }}
+                                      className={dotClass(day, 'outOfMonth')} />
+                                  ))}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Footer */}
+                          <div className="flex items-center justify-between mt-1.5">
+                            <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400">
+                              {hs.view === 'year' ? (
+                                <>
+                                  {actCount} {countUnit} in {selectedYear}
+                                  <span className="text-gray-400 dark:text-gray-600"> · {totalAllTime} {countUnit} total</span>
+                                </>
+                              ) : (
+                                <>
+                                  {mCount} {mCountUnit} in {MONTH_NAMES_FULL[mMonth].slice(0,3)}
+                                  <span className="text-gray-400 dark:text-gray-600"> · {totalAllTime} {countUnit} total</span>
+                                </>
+                              )}
+                              <span className="text-amber-500 dark:text-amber-400 ml-2">🏆 {bestStreak} {streakLabel} streak</span>
+                            </span>
                           </div>
                         </div>
                       );
                     })()}
+
+                    {/* 3. MILESTONE + SHARE — celebration then action, always at bottom */}
+                    {(() => {
+                      const MILESTONES = [7, 21, 30, 50, 100, 200, 365];
+                      const MILESTONE_COPY = {
+                        7:   "Most people quit by day 3. You're still here.",
+                        21:  "You're building something real.",
+                        30:  "This is becoming part of who you are.",
+                        50:  "Quiet consistency is underrated.",
+                        100: "That's not a streak — that's a lifestyle.",
+                        200: "You showed up more than most people ever will.",
+                        365: "Some people start habits. You built one.",
+                      };
+                      const EARLY_COPY = [
+                        "Log your first day — every streak starts here.",
+                        "Day 1 done. The hardest part is starting.",
+                        "2 days in. You're already ahead of most.",
+                        "3 days — you're building a real pattern.",
+                        "4 days. Don't stop now.",
+                        "5 days in. Your first milestone is close.",
+                        "6 days. One more and you hit your first milestone!",
+                      ];
+                      const lastMilestone = [...MILESTONES].reverse().find(m => m <= habit.dates.length);
+                      const earlyMotivation = !lastMilestone ? EARLY_COPY[Math.min(habit.dates.length, 6)] : null;
+                      return (lastMilestone || earlyMotivation) ? (
+                        <div className="flex items-center gap-1.5 bg-indigo-50 dark:bg-indigo-950/40 rounded-lg px-2.5 py-1.5 border border-indigo-100 dark:border-indigo-900/50 overflow-hidden">
+                          <span className="text-xs shrink-0">🎯</span>
+                          {lastMilestone && <span className="text-[10px] font-bold text-indigo-700 dark:text-indigo-300 shrink-0">{habit.dates.length}d</span>}
+                          <span className="text-[10px] text-indigo-500 dark:text-indigo-400 truncate">{lastMilestone ? MILESTONE_COPY[lastMilestone] : earlyMotivation}</span>
+                        </div>
+                      ) : null;
+                    })()}
+
                   </div>
                   </div>
                   </div>
@@ -1131,9 +1283,7 @@ export default function HabitTracker() {
                   {!isReorderMode && (
                     <button
                       onClick={() => {
-                        const now = new Date();
-                        const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-                        loggedToday ? toggleDate(habit.id, todayStr, true) : logToday(habit.id);
+                        toggleDate(habit.id, viewDateStr, loggedToday);
                       }}
                       disabled={isRenaming}
                       className={`w-full px-3 py-2 rounded-lg font-normal transition-all text-sm mb-2 shadow-md hover:shadow-lg ${

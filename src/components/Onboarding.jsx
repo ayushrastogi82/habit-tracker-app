@@ -154,9 +154,9 @@ function SlidePanel({ slideIndex, isDark, onAdvance, onBack, onSkip, exiting, to
 function Slide1Content() {
   return (
     <>
-      <div className="flex flex-col items-center gap-0.5">
-        <div className="text-[20px] font-bold tracking-widest uppercase text-indigo-400">Beacon</div>
-        <div className="text-xs font-medium text-gray-500">Habit tracking simplified</div>
+      <div className="flex flex-col items-center gap-1">
+        <div className="text-[28px] font-bold tracking-widest uppercase text-indigo-400">Beacon</div>
+        <div className="text-sm font-medium text-gray-400">Habit tracking simplified</div>
       </div>
       <div className="flex flex-col gap-3">
         <p className="text-[28px] font-bold leading-tight text-gray-100">
@@ -178,9 +178,9 @@ function Slide1Content() {
 function Slide2Content() {
   return (
     <>
-      <div className="flex flex-col items-center gap-0.5">
-        <div className="text-[20px] font-bold tracking-widest uppercase text-indigo-400">Beacon</div>
-        <div className="text-xs font-medium text-gray-500">Habit tracking simplified</div>
+      <div className="flex flex-col items-center gap-1">
+        <div className="text-[28px] font-bold tracking-widest uppercase text-indigo-400">Beacon</div>
+        <div className="text-sm font-medium text-gray-400">Habit tracking simplified</div>
       </div>
       <div className="flex flex-col gap-4">
         <p className="text-[32px] font-bold leading-tight text-white">
@@ -203,9 +203,9 @@ function Slide3Content() {
   ];
   return (
     <>
-      <div className="flex flex-col items-center gap-0.5">
-        <div className="text-[20px] font-bold tracking-widest uppercase text-indigo-400">Beacon</div>
-        <div className="text-xs font-medium text-gray-500">Habit tracking simplified</div>
+      <div className="flex flex-col items-center gap-1">
+        <div className="text-[28px] font-bold tracking-widest uppercase text-indigo-400">Beacon</div>
+        <div className="text-sm font-medium text-gray-400">Habit tracking simplified</div>
       </div>
       <div className="flex flex-col gap-2 text-left w-full">
         <p className="text-xs font-semibold uppercase tracking-widest text-indigo-400">Belief 1</p>
@@ -244,9 +244,9 @@ function Slide3Content() {
 function Slide4Content({ darkMode }) {
   return (
     <>
-      <div className="flex flex-col items-center gap-0.5">
-        <div className="text-[20px] font-bold tracking-widest uppercase text-indigo-400">Beacon</div>
-        <div className="text-xs font-medium text-gray-500">Habit tracking simplified</div>
+      <div className="flex flex-col items-center gap-1">
+        <div className="text-[28px] font-bold tracking-widest uppercase text-indigo-400">Beacon</div>
+        <div className="text-sm font-medium text-gray-400">Habit tracking simplified</div>
       </div>
       <div className="flex flex-col gap-2 text-left w-full">
         <p className="text-xs font-semibold uppercase tracking-widest text-indigo-400">Belief 2</p>
@@ -287,9 +287,9 @@ function Slide5Content() {
 
   return (
     <>
-      <div className="flex flex-col items-center gap-0.5">
-        <div className="text-[20px] font-bold tracking-widest uppercase text-indigo-400">Beacon</div>
-        <div className="text-xs font-medium text-gray-500">Habit tracking simplified</div>
+      <div className="flex flex-col items-center gap-1">
+        <div className="text-[28px] font-bold tracking-widest uppercase text-indigo-400">Beacon</div>
+        <div className="text-sm font-medium text-gray-400">Habit tracking simplified</div>
       </div>
       <div className="flex flex-col gap-2 text-left w-full">
         <p className="text-xs font-semibold uppercase tracking-widest text-indigo-400">Belief 3</p>

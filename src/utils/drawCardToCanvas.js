@@ -335,6 +335,118 @@ export function drawCardToCanvas(habit, stat, appUrl) {
     ctx.fillText(`${pct}% consistency`, W / 2, heroMid + 52);
   }
 
+  if (stat === 'heatmap') {
+    // Dynamic grid width: use whichever is earlier — habit creation date OR first logged date
+    const habitCreation = new Date(parseInt(habit.startDate || habit.id));
+    const earliestDateStr = dates.length ? [...dates].sort()[0] : null;
+    let earliestDay = habitCreation;
+    if (earliestDateStr) {
+      const [ey, em, ed] = earliestDateStr.split('-').map(Number);
+      const logDate = new Date(ey, em - 1, ed);
+      if (logDate < earliestDay) earliestDay = logDate;
+    }
+    const daysOld = Math.ceil((today - earliestDay) / 86400000);
+    const weeksOld = Math.ceil(daysOld / 7);
+    const totalWeeks = Math.min(15, Math.max(1, weeksOld));
+    const weekLabel = totalWeeks === 1 ? 'last week' : `last ${totalWeeks} weeks`;
+
+    const dow = today.getDay();
+    const startDay = new Date(today);
+    startDay.setDate(today.getDate() - (dow === 0 ? 6 : dow - 1) - (totalWeeks - 1) * 7);
+
+    const grid = Array.from({ length: totalWeeks }, (_, w) =>
+      Array.from({ length: 7 }, (_, d) => {
+        const date = new Date(startDay);
+        date.setDate(startDay.getDate() + w * 7 + d);
+        const ds = date.toISOString().slice(0, 10);
+        return { logged: dates.includes(ds), isFuture: ds > todayStr };
+      })
+    );
+
+    const dotW = 14, dotH = 14, dotR = 3, gapX = 3, gapY = 3;
+    const gridW = totalWeeks * dotW + (totalWeeks - 1) * gapX;
+    const gridH = 7 * dotH + 6 * gapY;  // 116
+    const gx0 = (W - gridW) / 2;
+    const gy0 = heroMid - gridH / 2 - 28;
+
+    grid.forEach((week, wi) => {
+      week.forEach((day, di) => {
+        if (day.isFuture) return;
+        const x = gx0 + wi * (dotW + gapX);
+        const y = gy0 + di * (dotH + gapY);
+        if (day.logged) {
+          const g = ctx.createLinearGradient(x, y, x + dotW, y + dotH);
+          g.addColorStop(0, '#6366f1'); g.addColorStop(1, '#818cf8');
+          ctx.fillStyle = g;
+        } else {
+          ctx.fillStyle = 'rgba(255,255,255,0.08)';
+        }
+        rr(x, y, dotW, dotH, dotR); ctx.fill();
+      });
+    });
+
+    const heatmapCount = grid.flat().filter(d => !d.isFuture && d.logged).length;
+    ctx.fillStyle = 'white';
+    ctx.font = `700 19px ${SYS}`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(`${heatmapCount} ${heatmapCount === 1 ? 'day' : 'days'} in ${weekLabel}`, W / 2, gy0 + gridH + 26);
+
+    ctx.fillStyle = 'rgba(165,180,252,0.7)';
+    ctx.font = `500 13px ${SYS}`;
+    ctx.fillText('The pattern of showing up.', W / 2, gy0 + gridH + 50);
+  }
+
+  if (stat === 'milestone') {
+    const MILESTONES = [7, 21, 30, 50, 100, 200, 365];
+    const MILESTONE_COPY = {
+      7:   ['Most people quit by day 3.', "You're still here."],
+      21:  ['21 days in.', "You're building something real."],
+      30:  ['A month.', 'This is becoming part of who you are.'],
+      50:  ['50 days.', 'Quiet consistency is underrated.'],
+      100: ["100 days. That's not a streak —", "that's a lifestyle."],
+      200: ['200 days. You showed up more', 'than most people ever will.'],
+      365: ['A full year. Some people start habits.', 'You built one.'],
+    };
+    const lastMilestone = [...MILESTONES].reverse().find(m => m <= dates.length) || null;
+    const nextMilestone = MILESTONES.find(m => m > dates.length);
+
+    if (lastMilestone) {
+      ctx.fillStyle = 'white';
+      ctx.font = `800 86px ${SYS}`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(String(lastMilestone), W / 2, heroMid - 40);
+
+      ctx.fillStyle = 'rgba(203,213,225,0.7)';
+      ctx.font = `500 16px ${SYS}`;
+      ctx.fillText(`days of ${habit.name}`, W / 2, heroMid + 22);
+
+      const copy = MILESTONE_COPY[lastMilestone];
+      ctx.fillStyle = 'rgba(165,180,252,0.85)';
+      ctx.font = `500 14px ${SYS}`;
+      ctx.fillText(copy[0], W / 2, heroMid + 60);
+      ctx.fillText(copy[1], W / 2, heroMid + 80);
+    } else {
+      ctx.font = '60px serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('🌱', W / 2, heroMid - 44);
+
+      ctx.fillStyle = 'rgba(203,213,225,0.7)';
+      ctx.font = `500 16px ${SYS}`;
+      ctx.fillText('Keep going —', W / 2, heroMid + 14);
+      ctx.fillText('your first milestone is at', W / 2, heroMid + 38);
+
+      ctx.fillStyle = 'white';
+      ctx.font = `700 16px ${SYS}`;
+      ctx.fillText('7 days', W / 2, heroMid + 62);
+
+      if (nextMilestone) {
+        ctx.fillStyle = 'rgba(165,180,252,0.6)';
+        ctx.font = `500 13px ${SYS}`;
+        ctx.fillText(`${nextMilestone - dates.length} days to go`, W / 2, heroMid + 88);
+      }
+    }
+  }
+
   // ── Footer — centered logo + brand + subtitle ──────────────────────────────
   const footerY = 418;
 
@@ -342,9 +454,9 @@ export function drawCardToCanvas(habit, stat, appUrl) {
   ctx.fillStyle = 'rgba(255,255,255,0.08)';
   ctx.fillRect(32, footerY, W - 64, 1);
 
-  // H logo + "Habit Tracker" on same row, centered together
+  // B logo + "Beacon" on same row, centered together
   const logoSize = 22, logoR = 6;
-  const appNameText = 'Habit Tracker';
+  const appNameText = 'Beacon';
   ctx.font = `700 13px ${SYS}`;
   const nameW = ctx.measureText(appNameText).width;
   const gap7  = 7;
@@ -364,7 +476,7 @@ export function drawCardToCanvas(habit, stat, appUrl) {
   ctx.font = `800 11px ${SYS}`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText('H', rowX + logoSize / 2, rowY + logoSize / 2 + 0.5);
+  ctx.fillText('B', rowX + logoSize / 2, rowY + logoSize / 2 + 0.5);
 
   // App name — vertically centred with logo
   ctx.fillStyle = 'rgba(203,213,225,0.8)';
@@ -378,7 +490,7 @@ export function drawCardToCanvas(habit, stat, appUrl) {
   ctx.font = `400 11px ${SYS}`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'alphabetic';
-  ctx.fillText('Log your progress, stay motivated', W / 2, rowY + logoSize + 18);
+  ctx.fillText('Habit tracking simplified', W / 2, rowY + logoSize + 18);
 
   return canvas;
 }

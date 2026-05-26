@@ -250,6 +250,108 @@ const ShareableCard = forwardRef(function ShareableCard({ habit, stat, appUrl },
             <div style={{ fontSize: '14px', color: 'rgba(165,180,252,0.85)', fontWeight: '600' }}>{yearPct}% consistency</div>
           </>
         )}
+
+        {stat === 'heatmap' && (() => {
+          // Calendar-year heatmap — matches the expanded card year view
+          const cardInnerW = 304; // 360px card - 56px padding
+          const selectedYear = today.getFullYear();
+          const jan1 = new Date(selectedYear, 0, 1);
+          const leadingDays = jan1.getDay(); // Sunday-start
+          const gridStart = new Date(selectedYear, 0, 1 - leadingDays);
+          const dec31 = new Date(selectedYear, 11, 31);
+          const TOTAL_WEEKS = Math.ceil(((dec31 - gridStart) / 86400000 + 1) / 7);
+          const GAP = 1;
+          const DOT = Math.floor((cardInnerW - (TOTAL_WEEKS - 1) * GAP) / TOTAL_WEEKS);
+
+          const yearGrid = Array.from({ length: TOTAL_WEEKS }, (_, w) =>
+            Array.from({ length: 7 }, (_, d) => {
+              const date = new Date(gridStart);
+              date.setDate(gridStart.getDate() + w * 7 + d);
+              const ds = date.toISOString().slice(0, 10);
+              const inYear = ds.startsWith(String(selectedYear));
+              return { logged: inYear && dates.includes(ds), outOfYear: !inYear, isToday: ds === todayStr };
+            })
+          );
+          const yearCount = yearGrid.flat().filter(c => !c.outOfYear && c.logged).length;
+          const totalLogged = dates.length;
+
+          return (
+            <>
+              <div style={{ display: 'flex', gap: `${GAP}px` }}>
+                {yearGrid.map((week, wi) => (
+                  <div key={wi} style={{ display: 'flex', flexDirection: 'column', gap: `${GAP}px` }}>
+                    {week.map((day, di) => (
+                      <div key={di} style={{
+                        width: `${DOT}px`, height: `${DOT}px`, borderRadius: '1px',
+                        background: day.outOfYear
+                          ? 'transparent'
+                          : day.logged
+                          ? 'linear-gradient(135deg, #6366f1, #818cf8)'
+                          : 'rgba(255,255,255,0.10)',
+                        boxSizing: 'border-box',
+                        ...(day.isToday && !day.logged && !day.outOfYear
+                          ? { border: '1px solid #6366f1', background: 'transparent' }
+                          : {}),
+                      }} />
+                    ))}
+                  </div>
+                ))}
+              </div>
+              <div style={{ fontSize: '18px', fontWeight: '700', color: 'white', marginTop: '16px' }}>
+                {yearCount} {yearCount === 1 ? 'day' : 'days'} in {selectedYear}
+                {totalLogged !== yearCount && (
+                  <span style={{ fontSize: '14px', color: 'rgba(165,180,252,0.6)', fontWeight: '500' }}>
+                    {' '}· {totalLogged} total
+                  </span>
+                )}
+              </div>
+              <div style={{ fontSize: '13px', color: 'rgba(165,180,252,0.7)', fontWeight: '500', marginTop: '4px' }}>
+                The pattern of showing up.
+              </div>
+            </>
+          );
+        })()}
+
+        {stat === 'milestone' && (() => {
+          const MILESTONES = [7, 21, 30, 50, 100, 200, 365];
+          const MILESTONE_COPY = {
+            7:   "Most people quit by day 3.\nYou're still here.",
+            21:  "21 days in.\nYou're building something real.",
+            30:  "A month.\nThis is becoming part of who you are.",
+            50:  "50 days.\nQuiet consistency is underrated.",
+            100: "100 days. That's not a streak —\nthat's a lifestyle.",
+            200: "200 days. You showed up more\nthan most people ever will.",
+            365: "A full year. Some people start habits.\nYou built one.",
+          };
+          const lastMilestone = [...MILESTONES].reverse().find(m => m <= dates.length) || null;
+          const nextMilestone = MILESTONES.find(m => m > dates.length);
+          return lastMilestone ? (
+            <>
+              <div style={{ fontSize: '80px', fontWeight: '800', color: 'white', lineHeight: 1, marginBottom: '8px' }}>
+                {dates.length}
+              </div>
+              <div style={{ fontSize: '16px', color: 'rgba(203,213,225,0.7)', fontWeight: '500', marginBottom: '16px' }}>
+                days of {habit.name}
+              </div>
+              <div style={{ fontSize: '15px', color: 'rgba(165,180,252,0.85)', fontWeight: '500', textAlign: 'center', lineHeight: 1.6, whiteSpace: 'pre-line' }}>
+                {MILESTONE_COPY[lastMilestone]}
+              </div>
+            </>
+          ) : (
+            <>
+              <div style={{ fontSize: '56px', marginBottom: '12px', lineHeight: 1 }}>🌱</div>
+              <div style={{ fontSize: '16px', color: 'rgba(203,213,225,0.7)', fontWeight: '500', textAlign: 'center', lineHeight: 1.6, marginBottom: '8px' }}>
+                Keep going —<br />your first milestone is at{' '}
+                <span style={{ color: 'white', fontWeight: '700' }}>7 days</span>.
+              </div>
+              {nextMilestone && (
+                <div style={{ fontSize: '13px', color: 'rgba(165,180,252,0.6)', fontWeight: '400' }}>
+                  {nextMilestone - dates.length} days to go
+                </div>
+              )}
+            </>
+          );
+        })()}
       </div>
 
       {/* Thin divider */}
