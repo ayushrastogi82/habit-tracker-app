@@ -1143,42 +1143,87 @@ export default function HabitTracker() {
                           ? 'bg-indigo-500 dark:bg-indigo-400'
                           : 'bg-gray-200 dark:bg-gray-700';
 
+                      // ── PERIOD CHIPS ────────────────────────────────────────
+                      const earliestYear = dates.length ? parseInt([...dates].sort()[0].slice(0, 4)) : today.getFullYear();
+                      const yearChips = Array.from({ length: today.getFullYear() - earliestYear + 1 }, (_, i) => earliestYear + i);
+
+                      const earliestMonthStr = dates.length ? [...dates].sort()[0].slice(0, 7) : `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}`;
+                      const [_eyStr, _emStr] = earliestMonthStr.split('-');
+                      const _ey = parseInt(_eyStr), _em = parseInt(_emStr) - 1;
+                      const monthChips = [];
+                      for (let cy = _ey, cm = _em; cy < today.getFullYear() || (cy === today.getFullYear() && cm <= today.getMonth()); ) {
+                        monthChips.push({ year: cy, month: cm });
+                        cm++; if (cm > 11) { cm = 0; cy++; }
+                      }
+
                       return (
                         <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-2 mb-2">
-                          {/* Toggle + nav + share header */}
-                          <div className="flex items-center justify-between mb-2">
-                            {/* Year/Month toggle pills */}
-                            <div className="flex gap-1">
+                          {/* Top row: view toggle + share */}
+                          <div className="flex items-center justify-between mb-1.5">
+                            <div className="flex items-center gap-2">
                               {['year', 'month'].map(v => (
                                 <button key={v} onClick={(e) => { e.stopPropagation(); setHS({ view: v }); }}
-                                  className={`px-2 py-0.5 rounded-full text-[10px] font-semibold transition-all ${hs.view === v ? 'bg-indigo-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
+                                  className={`text-[10px] font-semibold transition-colors pb-0.5 ${
+                                    hs.view === v
+                                      ? 'text-indigo-600 dark:text-indigo-400 border-b border-indigo-500 dark:border-indigo-400'
+                                      : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
+                                  }`}>
                                   {v === 'year' ? 'Year' : 'Month'}
                                 </button>
                               ))}
                             </div>
-                            <div className="flex items-center gap-2">
-                              {/* Nav: year or month */}
-                              <div className="flex items-center gap-1">
-                                <button onClick={(e) => { e.stopPropagation(); if (hs.view === 'year' ? canGoBack : canGoMonthBack) setHS(hs.view === 'year' ? { yearOffset: hs.yearOffset - 1 } : { monthOffset: hs.monthOffset - 1 }); }}
-                                  disabled={hs.view === 'year' ? !canGoBack : !canGoMonthBack}
-                                  className="p-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 disabled:opacity-20 transition-colors">
-                                  <ChevronLeft className="w-3 h-3" />
-                                </button>
-                                <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 min-w-[60px] text-center">
-                                  {hs.view === 'year' ? selectedYear : `${MONTH_NAMES_FULL[mMonth].slice(0,3)} ${mYear}`}
-                                </span>
-                                <button onClick={(e) => { e.stopPropagation(); if (hs.view === 'year' ? canGoForward : canGoMonthForward) setHS(hs.view === 'year' ? { yearOffset: hs.yearOffset + 1 } : { monthOffset: hs.monthOffset + 1 }); }}
-                                  disabled={hs.view === 'year' ? !canGoForward : !canGoMonthForward}
-                                  className="p-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 disabled:opacity-20 transition-colors">
-                                  <ChevronRight className="w-3 h-3" />
-                                </button>
-                              </div>
-                              {/* Share icon */}
-                              <button onClick={(e) => { e.stopPropagation(); setShareHabit(habit); }}
-                                className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-400 dark:text-gray-500 hover:text-indigo-500 dark:hover:text-indigo-400 active:scale-95 transition-all">
-                                <Share2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
+                            <button onClick={(e) => { e.stopPropagation(); setShareHabit(habit); }}
+                              className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-400 dark:text-gray-500 hover:text-indigo-500 dark:hover:text-indigo-400 active:scale-95 transition-all">
+                              <Share2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+
+                          {/* Scrollable period chips */}
+                          <div className="flex gap-1 overflow-x-auto mb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                            {hs.view === 'year'
+                              ? yearChips.map(year => {
+                                  const isActive = year === selectedYear;
+                                  return (
+                                    <button key={year}
+                                      ref={isActive ? (el => el && el.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' })) : null}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setHS({ yearOffset: year - today.getFullYear() });
+                                        e.currentTarget.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' });
+                                      }}
+                                      className={`shrink-0 px-2.5 py-0.5 rounded-full text-[10px] font-semibold transition-all ${
+                                        isActive
+                                          ? 'bg-indigo-600 text-white'
+                                          : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600'
+                                      }`}>
+                                      {year}
+                                    </button>
+                                  );
+                                })
+                              : monthChips.map(({ year: cy, month: cm }) => {
+                                  const isActive = cy === mYear && cm === mMonth;
+                                  const offset = (cy - today.getFullYear()) * 12 + (cm - today.getMonth());
+                                  const label = cy !== today.getFullYear()
+                                    ? `${MONTH_NAMES_FULL[cm].slice(0,3)} '${String(cy).slice(2)}`
+                                    : MONTH_NAMES_FULL[cm].slice(0,3);
+                                  return (
+                                    <button key={`${cy}-${cm}`}
+                                      ref={isActive ? (el => el && el.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' })) : null}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setHS({ monthOffset: offset });
+                                        e.currentTarget.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' });
+                                      }}
+                                      className={`shrink-0 px-2.5 py-0.5 rounded-full text-[10px] font-semibold transition-all ${
+                                        isActive
+                                          ? 'bg-indigo-600 text-white'
+                                          : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600'
+                                      }`}>
+                                      {label}
+                                    </button>
+                                  );
+                                })
+                            }
                           </div>
 
                           {/* Grid */}
