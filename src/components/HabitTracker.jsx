@@ -796,7 +796,7 @@ export default function HabitTracker() {
             : _vd.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
           const _isPast = viewDateOffset < 0;
           return (
-            <div className={`flex items-center justify-between px-1 mb-2 ${_isPast ? 'py-1.5 bg-amber-50 dark:bg-amber-950/30 rounded-xl border border-amber-200 dark:border-amber-800/50' : ''}`}>
+            <div className="flex items-center justify-between px-1 mb-2">
               <button onClick={() => setViewDateOffset(o => o - 1)}
                 className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 dark:text-gray-500 active:scale-95 transition-all">
                 <ChevronLeft className="w-4 h-4" />
