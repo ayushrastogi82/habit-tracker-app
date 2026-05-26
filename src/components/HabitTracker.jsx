@@ -1170,10 +1170,10 @@ export default function HabitTracker() {
                                     setHS({ view: 'year', yearOffset: year - chipCurrentYear });
                                     e.currentTarget.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' });
                                   }}
-                                  className={`shrink-0 px-2.5 py-0.5 rounded-full text-[10px] font-semibold transition-all ${
+                                  className={`shrink-0 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
                                     isActive
                                       ? 'bg-indigo-600 text-white'
-                                      : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600'
+                                      : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
                                   }`}>
                                   {year}
                                 </button>
@@ -1191,10 +1191,10 @@ export default function HabitTracker() {
                                     setHS({ view: 'month', yearOffset: 0, monthOffset });
                                     e.currentTarget.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' });
                                   }}
-                                  className={`shrink-0 px-2.5 py-0.5 rounded-full text-[10px] font-semibold transition-all ${
+                                  className={`shrink-0 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
                                     isActive
                                       ? 'bg-indigo-600 text-white'
-                                      : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600'
+                                      : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
                                   }`}>
                                   {MONTH_NAMES_FULL[monthIdx].slice(0, 3)}
                                 </button>
@@ -1227,22 +1227,20 @@ export default function HabitTracker() {
                             </div>
                           )}
 
-                          {/* Footer */}
-                          <div className="flex items-center justify-between mt-1.5">
-                            <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400">
-                              {hs.view === 'year' ? (
-                                <>
-                                  {actCount} {countUnit} in {selectedYear}
-                                  <span className="text-gray-400 dark:text-gray-600"> · {totalAllTime} {countUnit} total</span>
-                                </>
-                              ) : (
-                                <>
-                                  {mCount} {mCountUnit} in {MONTH_NAMES_FULL[mMonth].slice(0,3)}
-                                  <span className="text-gray-400 dark:text-gray-600"> · {totalAllTime} {countUnit} total</span>
-                                </>
-                              )}
-                              <span className="text-amber-500 dark:text-amber-400 ml-2">🏆 {bestStreak} {streakLabel} streak</span>
+                          {/* Footer — two-tier: numbers bold+dark, labels readable */}
+                          <div className="flex items-baseline gap-1.5 flex-wrap mt-2">
+                            <span className="text-sm font-bold text-gray-800 dark:text-gray-100">
+                              {hs.view === 'year' ? actCount : mCount}
                             </span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                              {hs.view === 'year' ? `${countUnit} in ${selectedYear}` : `${mCountUnit} in ${MONTH_NAMES_FULL[mMonth].slice(0,3)}`}
+                            </span>
+                            <span className="text-xs text-gray-400 dark:text-gray-600">·</span>
+                            <span className="text-sm font-bold text-gray-800 dark:text-gray-100">{totalAllTime}</span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">total</span>
+                            <span className="text-xs text-gray-400 dark:text-gray-600 mx-0.5">·</span>
+                            <span className="text-sm font-bold text-amber-500 dark:text-amber-400">🏆 {bestStreak}</span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">{streakLabel} best</span>
                           </div>
                         </div>
                       );
@@ -1272,10 +1270,10 @@ export default function HabitTracker() {
                       const lastMilestone = [...MILESTONES].reverse().find(m => m <= habit.dates.length);
                       const earlyMotivation = !lastMilestone ? EARLY_COPY[Math.min(habit.dates.length, 6)] : null;
                       return (lastMilestone || earlyMotivation) ? (
-                        <div className="flex items-center gap-1.5 bg-indigo-50 dark:bg-indigo-950/40 rounded-lg px-2.5 py-1.5 border border-indigo-100 dark:border-indigo-900/50 overflow-hidden">
-                          <span className="text-xs shrink-0">🎯</span>
-                          {lastMilestone && <span className="text-[10px] font-bold text-indigo-700 dark:text-indigo-300 shrink-0">{habit.dates.length}d</span>}
-                          <span className="text-[10px] text-indigo-500 dark:text-indigo-400 truncate">{lastMilestone ? MILESTONE_COPY[lastMilestone] : earlyMotivation}</span>
+                        <div className="flex items-center gap-2 bg-indigo-50 dark:bg-indigo-950/40 rounded-lg px-3 py-2 border border-indigo-100 dark:border-indigo-900/50 overflow-hidden">
+                          <span className="text-sm shrink-0">🎯</span>
+                          {lastMilestone && <span className="text-sm font-bold text-indigo-700 dark:text-indigo-300 shrink-0">{habit.dates.length}d</span>}
+                          <span className="text-xs text-indigo-600 dark:text-indigo-400 truncate">{lastMilestone ? MILESTONE_COPY[lastMilestone] : earlyMotivation}</span>
                         </div>
                       ) : null;
                     })()}
