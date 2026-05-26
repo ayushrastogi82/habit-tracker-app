@@ -1129,9 +1129,8 @@ export default function HabitTracker() {
                         : isMonthlyHabit
                         ? getMonthlyStreakInfo(dates, mTarget).longest
                         : getStreakInfo(dates).longest;
-                      const streakLabel = isWeeklyHabit ? 'wks' : isMonthlyHabit ? 'mos' : 'days';
-                      const countUnit = isWeeklyHabit ? (actCount === 1 ? 'wk' : 'wks') : isMonthlyHabit ? (actCount === 1 ? 'mo' : 'mos') : (actCount === 1 ? 'day' : 'days');
-                      const mCountUnit = isWeeklyHabit ? 'wks' : isMonthlyHabit ? 'mos' : (mCount === 1 ? 'day' : 'days');
+                      const streakUnit = isWeeklyHabit ? 'wk' : isMonthlyHabit ? 'mo' : 'd';
+                      const countUnit = isWeeklyHabit ? 'wk' : isMonthlyHabit ? 'mo' : 'd';
 
                       const dotStyle = (day, outKey) => ({
                         borderRadius: '1px',
@@ -1241,17 +1240,17 @@ export default function HabitTracker() {
                           {/* Footer — two-tier: numbers bold+dark, labels readable */}
                           <div className="flex items-baseline gap-1.5 flex-wrap mt-2">
                             <span className="text-sm font-bold text-gray-800 dark:text-gray-100">
-                              {hs.view === 'year' ? actCount : mCount}
+                              {hs.view === 'year' ? actCount : mCount}{countUnit}
                             </span>
                             <span className="text-xs text-gray-500 dark:text-gray-400">
-                              {hs.view === 'year' ? `${countUnit} in ${selectedYear}` : `${mCountUnit} in ${MONTH_NAMES_FULL[mMonth].slice(0,3)}`}
+                              in {hs.view === 'year' ? selectedYear : MONTH_NAMES_FULL[mMonth].slice(0,3)}
                             </span>
                             <span className="text-xs text-gray-400 dark:text-gray-600">·</span>
-                            <span className="text-sm font-bold text-gray-800 dark:text-gray-100">{totalAllTime}</span>
+                            <span className="text-sm font-bold text-gray-800 dark:text-gray-100">{totalAllTime}{countUnit}</span>
                             <span className="text-xs text-gray-500 dark:text-gray-400">total</span>
                             <span className="text-xs text-gray-400 dark:text-gray-600 mx-0.5">·</span>
-                            <span className="text-sm font-bold text-amber-500 dark:text-amber-400">🏆 {bestStreak}</span>
-                            <span className="text-xs text-gray-500 dark:text-gray-400">{streakLabel} best</span>
+                            <span className="text-sm font-bold text-amber-500 dark:text-amber-400">🏆 {bestStreak}{streakUnit}</span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">best</span>
                           </div>
                         </div>
                       );
