@@ -1158,17 +1158,27 @@ export default function HabitTracker() {
                       return (
                         <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-2 mb-2">
                           {/* Unified scrollable period chips — no toggle, no share */}
-                          <div className="flex gap-1 overflow-x-auto mb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                          <div
+                            ref={el => {
+                              if (!el) return;
+                              const active = el.querySelector('[data-chip-active="true"]');
+                              if (active) {
+                                // Scroll only within the chip container — never touch page scroll
+                                el.scrollLeft = active.offsetLeft + active.offsetWidth / 2 - el.offsetWidth / 2;
+                              }
+                            }}
+                            className="flex gap-1 overflow-x-auto mb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                             {/* Year chips (all years including current) */}
                             {allYearChips.map(year => {
                               const isActive = chipActiveYear === year;
                               return (
                                 <button key={`y-${year}`}
-                                  ref={isActive ? (el => el && el.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' })) : null}
+                                  data-chip-active={isActive ? 'true' : undefined}
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     setHS({ view: 'year', yearOffset: year - chipCurrentYear });
-                                    e.currentTarget.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' });
+                                    const c = e.currentTarget.parentElement;
+                                    c.scrollTo({ left: e.currentTarget.offsetLeft + e.currentTarget.offsetWidth / 2 - c.offsetWidth / 2, behavior: 'smooth' });
                                   }}
                                   className={`shrink-0 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
                                     isActive
@@ -1185,11 +1195,12 @@ export default function HabitTracker() {
                               const monthOffset = monthIdx - chipCurrentMonth;
                               return (
                                 <button key={`m-${monthIdx}`}
-                                  ref={isActive ? (el => el && el.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' })) : null}
+                                  data-chip-active={isActive ? 'true' : undefined}
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     setHS({ view: 'month', yearOffset: 0, monthOffset });
-                                    e.currentTarget.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' });
+                                    const c = e.currentTarget.parentElement;
+                                    c.scrollTo({ left: e.currentTarget.offsetLeft + e.currentTarget.offsetWidth / 2 - c.offsetWidth / 2, behavior: 'smooth' });
                                   }}
                                   className={`shrink-0 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
                                     isActive
