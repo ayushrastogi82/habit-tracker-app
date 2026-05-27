@@ -307,13 +307,23 @@ export default function HabitTracker() {
 
   const toggleDate = async (habitId, dateStr, isLogged) => {
     if (isLogged) {
-      const updated = habitsRef.current.map(h =>
-        h.id === habitId ? { ...h, dates: h.dates.filter(d => d !== dateStr) } : h
-      );
+      // Unlogging — remove date AND remove logTimes entry for that date
+      const updated = habitsRef.current.map(h => {
+        if (h.id !== habitId) return h;
+        const logTimes = { ...(h.logTimes || {}) };
+        delete logTimes[dateStr];
+        return { ...h, dates: h.dates.filter(d => d !== dateStr), logTimes };
+      });
       await saveHabits(updated);
     } else {
+      // Logging via calendar — write a logTimes entry at 9am on that date
+      // (fixed time per date so pattern detection works for testing)
+      const [y, m, d] = dateStr.split('-').map(Number);
+      const ts = new Date(y, m - 1, d, 9, 0, 0).getTime();
       const updated = habitsRef.current.map(h =>
-        h.id === habitId ? { ...h, dates: [...h.dates, dateStr].sort().reverse() } : h
+        h.id === habitId
+          ? { ...h, dates: [...h.dates, dateStr].sort().reverse(), logTimes: { ...(h.logTimes || {}), [dateStr]: ts } }
+          : h
       );
       await saveHabits(updated);
     }
