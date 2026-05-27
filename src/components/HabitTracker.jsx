@@ -1156,7 +1156,8 @@ export default function HabitTracker() {
 
                       return (
                         <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-2 mb-2">
-                          {/* Unified scrollable period chips — no toggle, no share */}
+                          {/* Chip strip + share button */}
+                          <div className="flex items-center gap-2 mb-2">
                           <div
                             ref={el => {
                               if (!el) return;
@@ -1166,7 +1167,7 @@ export default function HabitTracker() {
                                 el.scrollLeft = active.offsetLeft + active.offsetWidth / 2 - el.offsetWidth / 2;
                               }
                             }}
-                            className="flex gap-1 overflow-x-auto mb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                            className="flex gap-1 overflow-x-auto flex-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                             {/* Year chips (all years including current) */}
                             {allYearChips.map(year => {
                               const isActive = chipActiveYear === year;
@@ -1211,6 +1212,12 @@ export default function HabitTracker() {
                               );
                             })}
                           </div>
+                            {/* Share button */}
+                            <button onClick={(e) => { e.stopPropagation(); setShareHabit(habit); }}
+                              className="shrink-0 p-1.5 rounded-lg text-gray-400 dark:text-gray-500 hover:text-indigo-500 dark:hover:text-indigo-400 hover:bg-gray-200 dark:hover:bg-gray-700 active:scale-95 transition-all">
+                              <Share2 className="w-4 h-4" />
+                            </button>
+                          </div>
 
                           {/* Grid */}
                           {hs.view === 'year' ? (
@@ -1225,16 +1232,38 @@ export default function HabitTracker() {
                               ))}
                             </div>
                           ) : (
-                            <div className="flex gap-px">
-                              {monthGrid.map((week, wi) => (
-                                <div key={wi} className="flex flex-col gap-px shrink-0">
-                                  {week.map((day, di) => (
-                                    <div key={di} style={{ width: `${DOT_MONTH_W}px`, height: `${DOT_MONTH_H}px`, borderRadius: '1px', boxSizing: 'border-box', ...( !day.outOfMonth && day.isToday ? { border: day.logged ? '1.5px solid #22c55e' : '1.5px solid #6366f1' } : {}) }}
-                                      className={dotClass(day, 'outOfMonth')} />
-                                  ))}
-                                </div>
-                              ))}
-                            </div>
+                            <>
+                              {/* Day-of-week header */}
+                              <div className="grid grid-cols-7 gap-1 mb-1">
+                                {(weekStart === 1 ? ['M','T','W','T','F','S','S'] : ['S','M','T','W','T','F','S']).map((d, i) => (
+                                  <div key={i} className="text-center text-[10px] font-medium text-gray-400 dark:text-gray-500">{d}</div>
+                                ))}
+                              </div>
+                              {/* Interactive calendar grid */}
+                              <div className="grid grid-cols-7 gap-1">
+                                {Array.from({ length: mLeading }, (_, i) => <div key={`b-${i}`} />)}
+                                {Array.from({ length: daysInMonth }, (_, i) => {
+                                  const day = i + 1;
+                                  const dateStr = `${mYear}-${String(mMonth + 1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+                                  const isLogged = dates.includes(dateStr);
+                                  const isFuture = dateStr > todayStr;
+                                  const isToday = dateStr === todayStr;
+                                  return (
+                                    <button key={dateStr} disabled={isFuture}
+                                      onClick={(e) => { e.stopPropagation(); toggleDate(habit.id, dateStr, isLogged); }}
+                                      className={`aspect-square rounded-sm flex items-center justify-center transition-colors ${
+                                        isFuture
+                                          ? 'bg-gray-100 dark:bg-gray-800 text-gray-300 dark:text-gray-600 cursor-default'
+                                          : isLogged
+                                          ? 'bg-indigo-500 dark:bg-indigo-400 text-white hover:bg-indigo-600 dark:hover:bg-indigo-500'
+                                          : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600'
+                                      } ${isToday ? 'ring-2 ring-indigo-400 ring-offset-1 dark:ring-offset-gray-800' : ''}`}>
+                                      <span className="text-[11px] font-medium leading-none select-none">{day}</span>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </>
                           )}
 
                           {/* Footer — two-tier: numbers bold+dark, labels readable */}
