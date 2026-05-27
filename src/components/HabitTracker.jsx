@@ -42,6 +42,7 @@ export default function HabitTracker() {
     localStorage.setItem('beacon-session-count', String(n));
     return n;
   });
+  const [showIntelligenceDetail, setShowIntelligenceDetail] = useState(false);
 
   const BACKUP_REMINDER_DAYS = 5;
 
@@ -596,7 +597,7 @@ export default function HabitTracker() {
         >
           <div className="max-w-md mx-auto">
             <div className="w-12 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full mx-auto mt-3 mb-2" />
-            <div className="px-1 pb-2" style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}>
+            <div className="px-1 overflow-y-auto" style={{ maxHeight: 'min(85vh, 600px)', paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
               <button
                 onClick={() => { setIsReorderMode(true); setShowSettingsSheet(false); }}
                 className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 dark:hover:bg-gray-800 active:bg-gray-100 dark:active:bg-gray-700 rounded-xl transition-colors"
@@ -664,13 +665,34 @@ export default function HabitTracker() {
                 <>
                   <div className="h-px bg-gray-100 dark:bg-gray-800 mx-4" />
                   <div className="px-4 pt-3 pb-3">
-                    <div className="flex items-center justify-between mb-3">
+                    {/* Header row — tappable to expand/collapse detail */}
+                    <button
+                      onClick={() => setShowIntelligenceDetail(v => !v)}
+                      className="w-full flex items-center justify-between mb-2"
+                    >
                       <p className="text-[10px] font-bold text-indigo-500 dark:text-indigo-400 uppercase tracking-wider">🧠 Beacon Intelligence</p>
-                      <span className="text-[10px] text-gray-400 dark:text-gray-600 font-mono">session {sessionCount}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] text-gray-400 dark:text-gray-600 font-mono">session {sessionCount}</span>
+                        <span className={`text-[10px] text-gray-400 dark:text-gray-600 transition-transform ${showIntelligenceDetail ? 'rotate-180' : ''}`}>▾</span>
+                      </div>
+                    </button>
+
+                    {/* Session progress bar — always visible */}
+                    <div className="mb-2">
+                      <div className="h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                        <div className="h-full bg-gradient-to-r from-indigo-400 to-blue-500 rounded-full transition-all" style={{ width: `${Math.min(100, (sessionCount / 22) * 100)}%` }} />
+                      </div>
+                      <div className="flex items-center justify-between mt-0.5">
+                        <span className="text-[9px] text-gray-400 dark:text-gray-600">
+                          {sessionCount <= 7 ? 'Observing silently…' : sessionCount <= 14 ? 'Soft float active' : sessionCount <= 21 ? 'Banner mode active' : '✨ Full intelligence active'}
+                        </span>
+                        <span className="text-[9px] text-gray-400 dark:text-gray-600 font-mono">{Math.min(sessionCount, 22)}/22</span>
+                      </div>
                     </div>
 
-                    {/* Per-habit data collection rows */}
-                    <div className="space-y-2">
+                    {/* Per-habit detail — collapsible */}
+                    {showIntelligenceDetail && (
+                    <div className="space-y-2 mt-3">
                       {habits.map(h => {
                         const logTimesCount = Object.keys(h.logTimes || {}).length;
                         const pattern = detectHabitWindow(h);
@@ -728,24 +750,7 @@ export default function HabitTracker() {
                         );
                       })}
                     </div>
-
-                    {/* Session progress bar toward activation */}
-                    <div className="mt-3">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-[10px] text-gray-400 dark:text-gray-600">
-                          {sessionCount <= 7 ? 'Observing silently…' : sessionCount <= 14 ? 'Soft float active' : sessionCount <= 21 ? 'Banner mode active' : '✨ Full intelligence active'}
-                        </span>
-                        <span className="text-[10px] text-gray-400 dark:text-gray-600 font-mono">{Math.min(sessionCount, 22)}/22</span>
-                      </div>
-                      <div className="h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                        <div className="h-full bg-gradient-to-r from-indigo-400 to-blue-500 rounded-full transition-all" style={{ width: `${Math.min(100, (sessionCount / 22) * 100)}%` }} />
-                      </div>
-                      <div className="flex justify-between mt-0.5">
-                        {['8','15','22'].map(n => (
-                          <span key={n} className={`text-[8px] font-mono ${sessionCount >= parseInt(n) ? 'text-indigo-400 dark:text-indigo-500' : 'text-gray-300 dark:text-gray-700'}`}>{n}</span>
-                        ))}
-                      </div>
-                    </div>
+                    )}
 
                     <button
                       onClick={() => {
