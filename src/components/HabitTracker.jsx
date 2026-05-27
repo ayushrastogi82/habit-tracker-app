@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
 import { Plus, Check, TrendingUp, Calendar, ChevronDown, ChevronLeft, ChevronRight, Rocket, Undo2, Download, Upload, MoreHorizontal, Share2, Moon, Sun } from 'lucide-react';
 import ShareModal from './ShareModal';
+import { buildDisplayList, getFocusHabit, getContextualHeader, isComebackState, detectHabitWindow } from '../utils/habitIntelligence';
 
 export default function HabitTracker() {
   const [habits, setHabits] = useState([]);
@@ -33,6 +34,14 @@ export default function HabitTracker() {
   const [shareHabit, setShareHabit] = useState(null);
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('dark-mode') === 'true');
   const fileInputRef = React.useRef(null);
+
+  // Beacon Intelligence state
+  const [focusCardDismissed, setFocusCardDismissed] = useState(false); // session only — resets on reload
+  const [sessionCount] = useState(() => {
+    const n = (parseInt(localStorage.getItem('beacon-session-count') || '0')) + 1;
+    localStorage.setItem('beacon-session-count', String(n));
+    return n;
+  });
 
   const BACKUP_REMINDER_DAYS = 5;
 
@@ -227,7 +236,11 @@ export default function HabitTracker() {
     const today = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
     const updated = habitsRef.current.map(h =>
       h.id === habitId && !h.dates.includes(today)
-        ? { ...h, dates: [...h.dates, today].sort().reverse() }
+        ? {
+            ...h,
+            dates: [...h.dates, today].sort().reverse(),
+            logTimes: { ...(h.logTimes || {}), [today]: Date.now() },
+          }
         : h
     );
     const saved = await saveHabits(updated);
@@ -645,6 +658,47 @@ export default function HabitTracker() {
                   ))}
                 </div>
               </div>
+
+              {/* Beacon Intelligence section */}
+              {habits.some(h => detectHabitWindow(h)) && (
+                <>
+                  <div className="h-px bg-gray-100 dark:bg-gray-800 mx-4" />
+                  <div className="px-4 pt-3 pb-1">
+                    <p className="text-[10px] font-bold text-indigo-500 dark:text-indigo-400 uppercase tracking-wider mb-2">🧠 Beacon Intelligence</p>
+                    <div className="space-y-1.5">
+                      {habits.map(h => {
+                        const pattern = detectHabitWindow(h);
+                        if (!pattern) return null;
+                        return (
+                          <div key={h.id} className="flex items-center gap-2">
+                            <span className="text-base">{pattern.windowEmoji}</span>
+                            <span className="flex-1 text-xs text-gray-700 dark:text-gray-300 truncate">{h.name}</span>
+                            <span className="text-[10px] text-gray-400 dark:text-gray-500 shrink-0">{pattern.windowLabel.replace(' habit','')}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <button
+                      onClick={() => {
+                        setConfirmDialog({
+                          message: 'Clear all learned patterns? Beacon Intelligence will start fresh — this only removes timing data, not your habit logs.',
+                          confirmLabel: 'Clear',
+                          confirmColor: 'bg-indigo-600 hover:bg-indigo-700',
+                          onConfirm: async () => {
+                            const cleared = habits.map(h => { const { logTimes, ...rest } = h; return rest; });
+                            await saveHabits(cleared);
+                            localStorage.setItem('beacon-session-count', '0');
+                            setConfirmDialog(null);
+                          }
+                        });
+                      }}
+                      className="mt-2 text-[10px] text-red-400 dark:text-red-500 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                    >
+                      Clear learned patterns
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -681,7 +735,21 @@ export default function HabitTracker() {
               : <div className="w-8 shrink-0" />}
             <div className="flex-1 text-center">
               <h1 className="text-lg font-bold text-gray-800 dark:text-gray-100 leading-tight">Habit Tracker</h1>
-              <p className="text-xs text-gray-500 dark:text-gray-400 leading-tight">Log your progress, stay motivated</p>
+              {!isReorderMode && (() => {
+                const now = new Date();
+                const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+                const comeback = isComebackState(habits);
+                const header = getContextualHeader(habits, todayStr, comeback);
+                if (comeback) return (
+                  <p className="text-xs text-indigo-500 dark:text-indigo-400 leading-tight font-medium">Welcome back 👋 · {header.badge} to log</p>
+                );
+                if (header.allDone) return (
+                  <p className="text-xs text-emerald-500 dark:text-emerald-400 leading-tight font-semibold">All done today ✓</p>
+                );
+                return (
+                  <p className="text-xs text-gray-500 dark:text-gray-400 leading-tight">{header.emoji} {header.greeting} · {header.badge} to log</p>
+                );
+              })()}
             </div>
             {isReorderMode
               ? <button onClick={() => setIsReorderMode(false)}
@@ -790,9 +858,75 @@ export default function HabitTracker() {
         <input ref={fileInputRef} type="file" accept=".json" className="hidden" onChange={handleImportFile} />
 
 
+        {/* Beacon Intelligence — Focus / Suggestion Card */}
+        {habits.length > 0 && !isReorderMode && !focusCardDismissed && (() => {
+          const now = new Date();
+          const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+          const focus = getFocusHabit(habits, todayStr, sessionCount);
+          if (!focus) return null;
+          const { habit: fHabit, pattern, confidenceLevel } = focus;
+
+          if (confidenceLevel === 'high') {
+            // High confidence: suggestion banner above the list
+            return (
+              <div className="mb-4 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 rounded-2xl px-4 py-3 flex items-center gap-3">
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] font-semibold text-indigo-400 dark:text-indigo-500 uppercase tracking-wider mb-0.5">{pattern.emoji} {pattern.windowLabel}</p>
+                  <p className="text-sm font-bold text-indigo-900 dark:text-indigo-100 truncate">{fHabit.name}</p>
+                </div>
+                <button
+                  onClick={(e) => { e.stopPropagation(); logToday(fHabit.id); setFocusCardDismissed(true); }}
+                  className="shrink-0 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl active:scale-95 transition-all"
+                >
+                  Log it →
+                </button>
+                <button
+                  onClick={() => setFocusCardDismissed(true)}
+                  className="shrink-0 text-indigo-300 dark:text-indigo-600 hover:text-indigo-500 text-lg leading-none transition-colors"
+                >
+                  ×
+                </button>
+              </div>
+            );
+          }
+
+          if (confidenceLevel === 'very_high') {
+            // Very high confidence: full focus card
+            return (
+              <div className="mb-4 bg-gradient-to-br from-indigo-600 to-blue-700 rounded-2xl px-4 pt-5 pb-6 shadow-xl">
+                <p className="text-xs font-semibold text-indigo-200 mb-3">{pattern.emoji} {pattern.windowLabel}</p>
+                <p className="text-2xl font-bold text-white mb-5">{fHabit.name}</p>
+                <button
+                  onClick={(e) => { e.stopPropagation(); logToday(fHabit.id); setFocusCardDismissed(true); }}
+                  className="w-full bg-white/20 hover:bg-white/30 text-white rounded-xl py-3.5 font-semibold text-sm active:scale-95 transition-all mb-3"
+                >
+                  ✓  Log {fHabit.name}
+                </button>
+                <button
+                  onClick={() => setFocusCardDismissed(true)}
+                  className="w-full text-center text-indigo-200 text-xs py-1 hover:text-white transition-colors"
+                >
+                  ↓ See all habits
+                </button>
+              </div>
+            );
+          }
+
+          return null; // 'low' confidence = soft float only (handled by buildDisplayList ordering)
+        })()}
+
         {/* Habits grid */}
+        {(() => {
+          const now = new Date();
+          const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+          const displayList = isReorderMode ? habits.map((h, i) => ({ habit: h, originalIndex: i, isLogged: false, isPatternMatch: false, pattern: null })) : buildDisplayList(habits, todayStr);
+          const firstLoggedIdx = isReorderMode ? -1 : displayList.findIndex(item => item.isLogged);
+          return (
         <div className={viewMode === '2col' ? 'grid grid-cols-2 gap-x-3 gap-y-6' : 'space-y-1.5'}>
-          {habits.map((habit, index) => {
+          {displayList.map((item, displayIndex) => {
+            const { habit, isLogged: isLoggedItem } = item;
+            const index = item.originalIndex;
+            const showDivider = !isReorderMode && firstLoggedIdx !== -1 && displayIndex === firstLoggedIdx;
             const streak = getStreakInfo(habit.dates);
             const daysSince = getDaysSinceLastLog(habit.dates);
             const loggedToday = isLoggedToday(habit.dates);
@@ -802,7 +936,11 @@ export default function HabitTracker() {
             const loggedDays = habit.dates.length;
 
             return (
-              <div key={habit.id} className={`relative overflow-visible transition-all ${viewMode === '2col' ? 'bg-white dark:bg-gray-900 rounded-xl shadow-lg hover:shadow-xl' : isReorderMode ? 'bg-indigo-50/50 dark:bg-indigo-950/30 rounded-xl border border-indigo-100 dark:border-indigo-900' : isExpanded ? 'bg-indigo-50/40 dark:bg-indigo-950/30 rounded-xl shadow-md border border-indigo-200 dark:border-indigo-800' : 'bg-white dark:bg-gray-900 rounded-xl shadow-md hover:shadow-md border border-gray-200 dark:border-gray-800'}`}>
+              <React.Fragment key={habit.id}>
+              {showDivider && (
+                <div className="text-[10px] text-gray-400 dark:text-gray-600 font-semibold uppercase tracking-wider px-1 pt-2 pb-0.5">Logged today</div>
+              )}
+              <div className={`relative overflow-visible transition-all ${isLoggedItem && !isReorderMode ? 'opacity-60' : ''} ${viewMode === '2col' ? 'bg-white dark:bg-gray-900 rounded-xl shadow-lg hover:shadow-xl' : isReorderMode ? 'bg-indigo-50/50 dark:bg-indigo-950/30 rounded-xl border border-indigo-100 dark:border-indigo-900' : isExpanded ? 'bg-indigo-50/40 dark:bg-indigo-950/30 rounded-xl shadow-md border border-indigo-200 dark:border-indigo-800' : 'bg-white dark:bg-gray-900 rounded-xl shadow-md hover:shadow-md border border-gray-200 dark:border-gray-800'}`}>
 
                 {/* 2-col: floating streak/gap badge */}
                 {viewMode === '2col' && streak.current > 1 && (
@@ -1263,9 +1401,12 @@ export default function HabitTracker() {
 
 
               </div>
+              </React.Fragment>
             );
           })}
         </div>
+          );
+        })()}
       </div>
     </div>
   );
