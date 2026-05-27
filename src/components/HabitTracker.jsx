@@ -316,10 +316,10 @@ export default function HabitTracker() {
       });
       await saveHabits(updated);
     } else {
-      // Logging via calendar — write a logTimes entry at 9am on that date
-      // (fixed time per date so pattern detection works for testing)
+      // Logging via calendar — write a logTimes entry at the current time of day on that date
+      const now = new Date();
       const [y, m, d] = dateStr.split('-').map(Number);
-      const ts = new Date(y, m - 1, d, 9, 0, 0).getTime();
+      const ts = new Date(y, m - 1, d, now.getHours(), now.getMinutes(), 0).getTime();
       const updated = habitsRef.current.map(h =>
         h.id === habitId
           ? { ...h, dates: [...h.dates, dateStr].sort().reverse(), logTimes: { ...(h.logTimes || {}), [dateStr]: ts } }
