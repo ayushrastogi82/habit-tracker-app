@@ -659,25 +659,94 @@ export default function HabitTracker() {
                 </div>
               </div>
 
-              {/* Beacon Intelligence section */}
-              {habits.some(h => detectHabitWindow(h)) && (
+              {/* Beacon Intelligence section — always shown, shows data collection status */}
+              {habits.length > 0 && (
                 <>
                   <div className="h-px bg-gray-100 dark:bg-gray-800 mx-4" />
-                  <div className="px-4 pt-3 pb-1">
-                    <p className="text-[10px] font-bold text-indigo-500 dark:text-indigo-400 uppercase tracking-wider mb-2">🧠 Beacon Intelligence</p>
-                    <div className="space-y-1.5">
+                  <div className="px-4 pt-3 pb-3">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-[10px] font-bold text-indigo-500 dark:text-indigo-400 uppercase tracking-wider">🧠 Beacon Intelligence</p>
+                      <span className="text-[10px] text-gray-400 dark:text-gray-600 font-mono">session {sessionCount}</span>
+                    </div>
+
+                    {/* Per-habit data collection rows */}
+                    <div className="space-y-2">
                       {habits.map(h => {
+                        const logTimesCount = Object.keys(h.logTimes || {}).length;
                         const pattern = detectHabitWindow(h);
-                        if (!pattern) return null;
+                        const confidenceLevel = (() => {
+                          if (!pattern) return null;
+                          const { confidence } = pattern;
+                          if (sessionCount <= 7) return 'none';
+                          if (sessionCount <= 14) return confidence >= 0.60 ? 'low' : 'none';
+                          if (sessionCount <= 21) { if (confidence >= 0.75) return 'high'; if (confidence >= 0.60) return 'low'; return 'none'; }
+                          if (confidence >= 0.88) return 'very_high'; if (confidence >= 0.75) return 'high'; if (confidence >= 0.60) return 'low'; return 'none';
+                        })();
+                        const confidenceBadge = {
+                          none: { label: 'learning', color: 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600' },
+                          low:  { label: 'soft float', color: 'bg-blue-50 dark:bg-blue-950/40 text-blue-500 dark:text-blue-400' },
+                          high: { label: 'banner', color: 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400' },
+                          very_high: { label: 'focus card', color: 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 font-semibold' },
+                        };
+
                         return (
-                          <div key={h.id} className="flex items-center gap-2">
-                            <span className="text-base">{pattern.windowEmoji}</span>
-                            <span className="flex-1 text-xs text-gray-700 dark:text-gray-300 truncate">{h.name}</span>
-                            <span className="text-[10px] text-gray-400 dark:text-gray-500 shrink-0">{pattern.windowLabel.replace(' habit','')}</span>
+                          <div key={h.id} className="bg-gray-50 dark:bg-gray-800/60 rounded-xl p-2.5">
+                            {/* Habit name + badge */}
+                            <div className="flex items-center gap-2 mb-1.5">
+                              <span className="flex-1 text-xs font-semibold text-gray-800 dark:text-gray-100 truncate">{h.name}</span>
+                              {pattern && confidenceLevel && (
+                                <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${confidenceBadge[confidenceLevel].color}`}>
+                                  {confidenceBadge[confidenceLevel].label}
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Data points bar */}
+                            <div className="flex items-center gap-2 mb-1">
+                              <div className="flex-1 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                                <div
+                                  className="h-full bg-indigo-400 dark:bg-indigo-500 rounded-full transition-all"
+                                  style={{ width: `${Math.min(100, (logTimesCount / 30) * 100)}%` }}
+                                />
+                              </div>
+                              <span className="text-[10px] text-gray-400 dark:text-gray-500 font-mono shrink-0">{logTimesCount}/30 pts</span>
+                            </div>
+
+                            {/* Pattern info */}
+                            {pattern ? (
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-sm">{pattern.windowEmoji}</span>
+                                <span className="text-[10px] text-gray-600 dark:text-gray-400">{pattern.windowLabel}</span>
+                                <span className="ml-auto text-[10px] font-mono text-indigo-500 dark:text-indigo-400">{Math.round(pattern.confidence * 100)}% confidence</span>
+                              </div>
+                            ) : (
+                              <p className="text-[10px] text-gray-400 dark:text-gray-600">
+                                {logTimesCount === 0 ? 'Tap "Done?" to start collecting' : logTimesCount < 3 ? `${3 - logTimesCount} more taps needed` : 'No consistent pattern yet'}
+                              </p>
+                            )}
                           </div>
                         );
                       })}
                     </div>
+
+                    {/* Session progress bar toward activation */}
+                    <div className="mt-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[10px] text-gray-400 dark:text-gray-600">
+                          {sessionCount <= 7 ? 'Observing silently…' : sessionCount <= 14 ? 'Soft float active' : sessionCount <= 21 ? 'Banner mode active' : '✨ Full intelligence active'}
+                        </span>
+                        <span className="text-[10px] text-gray-400 dark:text-gray-600 font-mono">{Math.min(sessionCount, 22)}/22</span>
+                      </div>
+                      <div className="h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                        <div className="h-full bg-gradient-to-r from-indigo-400 to-blue-500 rounded-full transition-all" style={{ width: `${Math.min(100, (sessionCount / 22) * 100)}%` }} />
+                      </div>
+                      <div className="flex justify-between mt-0.5">
+                        {['8','15','22'].map(n => (
+                          <span key={n} className={`text-[8px] font-mono ${sessionCount >= parseInt(n) ? 'text-indigo-400 dark:text-indigo-500' : 'text-gray-300 dark:text-gray-700'}`}>{n}</span>
+                        ))}
+                      </div>
+                    </div>
+
                     <button
                       onClick={() => {
                         setConfirmDialog({
@@ -692,7 +761,7 @@ export default function HabitTracker() {
                           }
                         });
                       }}
-                      className="mt-2 text-[10px] text-red-400 dark:text-red-500 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                      className="mt-3 text-[10px] text-red-400 dark:text-red-500 hover:text-red-600 dark:hover:text-red-400 transition-colors"
                     >
                       Clear learned patterns
                     </button>
