@@ -268,11 +268,15 @@ export default function HabitTracker() {
           }
         : h
     );
+    // Set sinkingHabitId BEFORE saveHabits so both state updates (habits + sinkingHabitId)
+    // batch into the same React render — keeping the card in the unlogged section
+    // so the DOM element persists and CSS transition has a valid from-state.
+    if (!skipSink) setSinkingHabitId(habitId);
     const saved = await saveHabits(updated);
     if (saved && !skipSink) {
-      // Trigger sinking animation: 600ms pause → card lifts+fades → space collapses → re-sorts
-      setSinkingHabitId(habitId);
       setTimeout(() => setSinkingHabitId(null), 1450);
+    } else if (!skipSink) {
+      setSinkingHabitId(null); // save failed — reset
     }
   };
 
