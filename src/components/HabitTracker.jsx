@@ -51,6 +51,14 @@ export default function HabitTracker() {
   const [swipeDelta, setSwipeDelta] = useState(0);
   const swipeStartX = React.useRef(null);
 
+  // New-day detection — true if this is the first open of a fresh day
+  const [isNewDay] = useState(() => {
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const last = localStorage.getItem('last-open-date');
+    localStorage.setItem('last-open-date', todayStr);
+    return last !== null && last !== todayStr; // not new user, but a new day
+  });
+
   const BACKUP_REMINDER_DAYS = 5;
 
   const TOUR_STEPS = [
@@ -681,10 +689,10 @@ export default function HabitTracker() {
           ? { transform: `translateX(${swipeDelta}px) rotate(${swipeDelta * 0.04}deg)`, transition: 'none' }
           : { transform: 'translateX(0) rotate(0deg)', transition: 'transform 0.3s ease' };
 
-        // Background gradient: blue-violet normally, green on success
+        // Background: deep cosmic gradient (idle) or deep emerald (success)
         const bg = isSuccess
-          ? 'linear-gradient(160deg, #16a34a 0%, #15803d 100%)'
-          : 'linear-gradient(160deg, #4f46e5 0%, #7c3aed 60%, #1d4ed8 100%)';
+          ? 'linear-gradient(160deg, #022c22 0%, #064e3b 50%, #065f46 100%)'
+          : 'linear-gradient(160deg, #0f0c29 0%, #1e1152 35%, #2d1b69 65%, #0d1b4b 100%)';
 
         // Hint colors based on swipe direction
         const logHintOpacity = Math.max(0, swipeDelta / 120);
@@ -692,41 +700,55 @@ export default function HabitTracker() {
 
         return (
           <div
-            className="fixed inset-0 z-40 flex flex-col"
-            style={{ background: bg, transition: 'background 0.4s ease', paddingTop: 'max(env(safe-area-inset-top), 0px)', paddingBottom: 'max(env(safe-area-inset-bottom), 0px)' }}
+            className="fixed inset-0 z-40 flex flex-col overflow-hidden"
+            style={{ background: bg, transition: 'background 0.5s ease', paddingTop: 'max(env(safe-area-inset-top), 0px)', paddingBottom: 'max(env(safe-area-inset-bottom), 0px)' }}
           >
+            {/* Ambient glow orb — decorative */}
+            <div style={{
+              position: 'absolute', pointerEvents: 'none',
+              width: '500px', height: '500px', borderRadius: '50%',
+              background: isSuccess
+                ? 'radial-gradient(circle, rgba(16,185,129,0.18) 0%, transparent 70%)'
+                : 'radial-gradient(circle, rgba(139,92,246,0.22) 0%, transparent 70%)',
+              top: '30%', left: '50%', transform: 'translate(-50%, -50%)',
+              transition: 'background 0.5s ease',
+            }} />
+
             {/* Top bar: progress dots + dashboard escape */}
-            <div className="flex items-center justify-between px-6 pt-4 pb-2">
-              <div className="flex gap-2">
+            <div className="flex items-center justify-between px-6 pt-5 pb-2 relative z-10">
+              <div className="flex gap-2 items-center">
                 {tinderStack.map((_, i) => (
-                  <div key={i} className="w-2 h-2 rounded-full transition-all" style={{
-                    background: i < tinderIdx ? 'rgba(255,255,255,0.3)' : i === tinderIdx ? 'white' : 'rgba(255,255,255,0.2)'
+                  <div key={i} className="rounded-full transition-all duration-300" style={{
+                    width: i === tinderIdx ? '20px' : '6px',
+                    height: '6px',
+                    background: i < tinderIdx ? 'rgba(255,255,255,0.25)' : i === tinderIdx ? 'white' : 'rgba(255,255,255,0.18)'
                   }} />
                 ))}
               </div>
               <button
                 onClick={() => setTinderStack([])}
-                className="text-white/50 text-sm font-medium active:text-white/80 transition-colors"
+                className="text-white/40 text-sm font-medium active:text-white/70 transition-colors"
+                style={{ letterSpacing: '0.02em' }}
               >
-                ↓ Dashboard
+                Dashboard ↓
               </button>
             </div>
 
             {/* Swipe hint overlays */}
-            <div className="absolute inset-y-0 left-0 w-24 flex items-center justify-center pointer-events-none" style={{ opacity: skipHintOpacity }}>
-              <div className="border-2 border-red-400 rounded-xl px-3 py-1 rotate-[-20deg]">
-                <span className="text-red-400 font-bold text-lg">SKIP</span>
+            <div className="absolute inset-y-0 left-4 flex items-center justify-center pointer-events-none z-20" style={{ opacity: skipHintOpacity }}>
+              <div style={{ border: '1.5px solid rgba(248,113,113,0.8)', borderRadius: '12px', padding: '4px 12px', transform: 'rotate(-18deg)', backdropFilter: 'blur(8px)', background: 'rgba(248,113,113,0.08)' }}>
+                <span style={{ color: 'rgba(248,113,113,0.9)', fontWeight: 600, fontSize: '15px', letterSpacing: '0.08em' }}>SKIP</span>
               </div>
             </div>
-            <div className="absolute inset-y-0 right-0 w-24 flex items-center justify-center pointer-events-none" style={{ opacity: logHintOpacity }}>
-              <div className="border-2 border-green-400 rounded-xl px-3 py-1 rotate-[20deg]">
-                <span className="text-green-400 font-bold text-lg">DONE</span>
+            <div className="absolute inset-y-0 right-4 flex items-center justify-center pointer-events-none z-20" style={{ opacity: logHintOpacity }}>
+              <div style={{ border: '1.5px solid rgba(52,211,153,0.8)', borderRadius: '12px', padding: '4px 12px', transform: 'rotate(18deg)', backdropFilter: 'blur(8px)', background: 'rgba(52,211,153,0.08)' }}>
+                <span style={{ color: 'rgba(52,211,153,0.9)', fontWeight: 600, fontSize: '15px', letterSpacing: '0.08em' }}>DONE</span>
               </div>
             </div>
 
             {/* Card (draggable) */}
             <div
-              className="flex-1 flex flex-col items-center justify-center px-8 select-none"
+              className="flex-1 flex flex-col items-center justify-center px-6 select-none relative z-10"
               style={cardTransformStyle}
               onTouchStart={handleTinderTouchStart}
               onTouchMove={handleTinderTouchMove}
@@ -736,36 +758,88 @@ export default function HabitTracker() {
               onMouseUp={handleTinderMouseUp}
             >
               {isSuccess ? (
-                /* Success state: green check */
-                <div className="text-center" style={{ animation: 'tinderCheckPop 0.3s ease' }}>
-                  <div className="text-9xl mb-6 leading-none">✓</div>
-                  <p className="text-white text-3xl font-bold">{tHabit.name}</p>
-                  <p className="text-white/60 text-base mt-3">Logged for today</p>
+                /* Success state — refined checkmark */
+                <div className="text-center" style={{ animation: 'tinderCheckPop 0.35s cubic-bezier(0.34,1.56,0.64,1)' }}>
+                  {/* Circle checkmark */}
+                  <div style={{
+                    width: '88px', height: '88px', borderRadius: '50%',
+                    background: 'rgba(52,211,153,0.15)', border: '1.5px solid rgba(52,211,153,0.4)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    margin: '0 auto 28px',
+                  }}>
+                    <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                      <path d="M10 20L17 27L30 13" stroke="rgba(52,211,153,0.9)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                  <p style={{ color: 'white', fontSize: '28px', fontWeight: 300, letterSpacing: '-0.02em' }}>{tHabit.name}</p>
+                  <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '14px', marginTop: '10px', letterSpacing: '0.04em' }}>Logged for today</p>
                 </div>
               ) : (
-                /* Normal state */
-                <>
-                  <p className="text-white text-5xl font-bold text-center leading-tight mb-12" style={{ textShadow: '0 2px 12px rgba(0,0,0,0.3)' }}>
-                    {tHabit.name}
-                  </p>
+                /* Normal state — frosted glass card */
+                <div style={{ width: '100%', maxWidth: '340px' }}>
+                  {/* Frosted glass habit card */}
+                  <div style={{
+                    background: 'rgba(255,255,255,0.07)',
+                    backdropFilter: 'blur(32px)',
+                    WebkitBackdropFilter: 'blur(32px)',
+                    border: '1px solid rgba(255,255,255,0.10)',
+                    borderRadius: '28px',
+                    padding: '44px 32px 40px',
+                    textAlign: 'center',
+                    marginBottom: '20px',
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08)',
+                  }}>
+                    <p style={{
+                      color: 'white',
+                      fontSize: '38px',
+                      fontWeight: 300,
+                      letterSpacing: '-0.02em',
+                      lineHeight: 1.15,
+                    }}>
+                      {tHabit.name}
+                    </p>
+                  </div>
+
+                  {/* Done button */}
                   <button
                     onClick={handleTinderLog}
-                    className="w-full bg-white/20 hover:bg-white/30 backdrop-blur text-white rounded-2xl py-5 font-semibold text-lg active:scale-95 transition-all border border-white/20 shadow-lg"
-                    style={{ letterSpacing: '0.01em' }}
+                    style={{
+                      width: '100%',
+                      background: 'rgba(255,255,255,0.10)',
+                      backdropFilter: 'blur(20px)',
+                      WebkitBackdropFilter: 'blur(20px)',
+                      border: '1px solid rgba(255,255,255,0.16)',
+                      borderRadius: '18px',
+                      padding: '18px',
+                      color: 'rgba(255,255,255,0.92)',
+                      fontSize: '17px',
+                      fontWeight: 500,
+                      letterSpacing: '0.02em',
+                      cursor: 'pointer',
+                      transition: 'background 0.15s ease, transform 0.1s ease',
+                      boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.16)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.10)'}
+                    onMouseDown={e => e.currentTarget.style.transform = 'scale(0.97)'}
+                    onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
                   >
                     Done?
                   </button>
+
                   {total > 1 && (
-                    <p className="text-white/35 text-sm mt-5 text-center">
+                    <p style={{ color: 'rgba(255,255,255,0.28)', fontSize: '13px', marginTop: '18px', textAlign: 'center', letterSpacing: '0.02em' }}>
                       Swipe right to log · left to skip
                     </p>
                   )}
-                </>
+                </div>
               )}
             </div>
 
-            {/* Bottom safe area spacer */}
-            <div className="h-8" />
+            {/* BEACON brand mark — bottom */}
+            <div className="text-center pb-6 relative z-10">
+              <p style={{ color: 'rgba(255,255,255,0.18)', fontSize: '11px', fontWeight: 600, letterSpacing: '0.18em' }}>BEACON</p>
+            </div>
           </div>
         );
       })()}
@@ -981,7 +1055,7 @@ export default function HabitTracker() {
         {/* Header — large centered when empty, compact with controls when habits exist */}
         {habits.length === 0 && !isAddingHabit ? (
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-800 dark:text-gray-100 mb-2">Habit Tracker</h1>
+            <h1 className="text-4xl font-bold tracking-widest uppercase text-gray-800 dark:text-gray-100 mb-2">Beacon</h1>
             <p className="text-gray-600 dark:text-gray-400">Log your progress, stay motivated</p>
           </div>
         ) : (
@@ -993,7 +1067,7 @@ export default function HabitTracker() {
                 </button>
               : <div className="w-8 shrink-0" />}
             <div className="flex-1 text-center">
-              <h1 className="text-lg font-bold text-gray-800 dark:text-gray-100 leading-tight">Habit Tracker</h1>
+              <h1 className="text-lg font-bold tracking-widest uppercase text-gray-800 dark:text-gray-100 leading-tight">Beacon</h1>
               {!isReorderMode && (() => {
                 const now = new Date();
                 const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
@@ -1004,6 +1078,9 @@ export default function HabitTracker() {
                 );
                 if (header.allDone) return (
                   <p className="text-xs text-emerald-500 dark:text-emerald-400 leading-tight font-semibold">All done today ✓</p>
+                );
+                if (isNewDay) return (
+                  <p className="text-xs text-violet-500 dark:text-violet-400 leading-tight font-medium">Fresh start ✨ · {header.badge} to log</p>
                 );
                 return (
                   <p className="text-xs text-gray-500 dark:text-gray-400 leading-tight">{header.emoji} {header.greeting} · {header.badge} to log</p>

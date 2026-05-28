@@ -22,7 +22,11 @@ const hourToWindow = (hour) => {
   return null; // 0-4am = deep night, no pattern
 };
 
-const currentHour = () => new Date().getHours();
+const currentHour = () => {
+  // Dev-only test override: set localStorage key '__beacon_test_hour' to any 0-23 value
+  const override = parseInt(localStorage.getItem('__beacon_test_hour') ?? '-1');
+  return (override >= 0 && override <= 23) ? override : new Date().getHours();
+};
 
 // ─── Pattern Detection ────────────────────────────────────────────────────────
 
