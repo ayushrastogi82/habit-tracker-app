@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Check, TrendingUp, Calendar, ChevronDown, ChevronLeft, ChevronRight, Rocket, Undo2, Download, Upload, MoreHorizontal, Share2, Moon, Sun } from 'lucide-react';
 import ShareModal from './ShareModal';
-import { buildDisplayList, getFocusHabit, getPredictedHabits, getContextualHeader, isComebackState, detectHabitWindow } from '../utils/habitIntelligence';
+import { buildDisplayList, getFocusHabit, getPredictedHabits, getContextualHeader, isComebackState, detectHabitWindow, isCurrentlyInWindow, getConfidenceLevel } from '../utils/habitIntelligence';
 
 export default function HabitTracker() {
   const [habits, setHabits] = useState([]);
@@ -1007,15 +1007,35 @@ export default function HabitTracker() {
                             </div>
 
                             {/* Pattern info */}
-                            {pattern ? (
-                              <div className="flex items-center gap-1.5">
-                                <span className="text-sm">{pattern.windowEmoji}</span>
-                                <span className="text-[10px] text-gray-600 dark:text-gray-400">{pattern.windowLabel}</span>
-                                <span className="ml-auto text-[10px] font-mono text-indigo-500 dark:text-indigo-400">{Math.round(pattern.confidence * 100)}% confidence</span>
-                              </div>
-                            ) : (
+                            {pattern ? (() => {
+                              const inWindow = isCurrentlyInWindow(pattern.windowKey);
+                              const confLevel = getConfidenceLevel(habit, sessionCount);
+                              return (
+                                <div className="flex flex-col gap-1">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="text-sm">{pattern.windowEmoji}</span>
+                                    <span className="text-[10px] text-gray-600 dark:text-gray-400">{pattern.windowLabel}</span>
+                                    <span className="ml-auto text-[10px] font-mono text-indigo-500 dark:text-indigo-400">{Math.round(pattern.confidence * 100)}% confidence</span>
+                                  </div>
+                                  {/* Why Tinder isn't firing */}
+                                  {confLevel === 'none' || confLevel === 'low' ? (
+                                    <p className="text-[10px] text-amber-500 dark:text-amber-400">
+                                      {confLevel === 'low' ? `Confidence ${Math.round(pattern.confidence * 100)}% — needs 75%+ for Tinder` : `Session ${sessionCount} — needs more data`}
+                                    </p>
+                                  ) : !inWindow ? (
+                                    <p className="text-[10px] text-amber-500 dark:text-amber-400">
+                                      Pattern is {pattern.windowLabel} — Tinder fires then
+                                    </p>
+                                  ) : (
+                                    <p className="text-[10px] text-emerald-500 dark:text-emerald-400">
+                                      ✓ Active now — Tinder will fire on next open
+                                    </p>
+                                  )}
+                                </div>
+                              );
+                            })() : (
                               <p className="text-[10px] text-gray-400 dark:text-gray-600">
-                                {logTimesCount === 0 ? 'Tap "Done?" to start collecting' : logTimesCount < 3 ? `${3 - logTimesCount} more taps needed` : 'No consistent pattern yet'}
+                                {logTimesCount === 0 ? 'Tap "Done?" to start collecting' : logTimesCount < 3 ? `${3 - logTimesCount} more taps needed` : 'No consistent pattern yet — logs spread across times'}
                               </p>
                             )}
                           </div>
