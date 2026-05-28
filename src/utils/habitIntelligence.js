@@ -254,18 +254,18 @@ export function getContextualHeader(habits, todayStr, isComeback) {
   const unloggedCount = habits.filter(h => !h.dates.includes(todayStr)).length;
   const allDone = habits.length > 0 && unloggedCount === 0;
 
-  let greeting, emoji;
+  let greeting, emoji, timeKey;
   if (hour >= 0 && hour < 5) {
-    greeting = 'Still up?'; emoji = '🌙';
+    greeting = 'Still up?'; emoji = '🌕'; timeKey = 'lateNight';
   } else if (hour >= 5 && hour < 12) {
-    greeting = 'Good morning'; emoji = '☀️';
+    greeting = 'Good morning'; emoji = '☀️'; timeKey = 'morning';
   } else if (hour >= 12 && hour < 17) {
-    greeting = 'Good afternoon'; emoji = '🌤';
+    greeting = 'Good afternoon'; emoji = '☀️'; timeKey = 'afternoon';
   } else if (hour >= 17 && hour < 21) {
-    greeting = 'Good evening'; emoji = '🌆';
+    greeting = 'Good evening'; emoji = '🌆'; timeKey = 'evening';
   } else {
-    greeting = 'Evening catch-up'; emoji = '🌙';
+    greeting = 'Evening catch-up'; emoji = '🌕'; timeKey = 'night';
   }
 
-  return { greeting, emoji, badge: unloggedCount, allDone, isComeback };
+  return { greeting, emoji, timeKey, badge: unloggedCount, allDone, isComeback };
 }
