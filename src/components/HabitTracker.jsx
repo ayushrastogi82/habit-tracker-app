@@ -48,7 +48,7 @@ export default function HabitTracker() {
   // Tinder focus stack — computed once per session after habits load
   const [tinderStack, setTinderStack] = useState(null); // null=not yet computed, []=no predictions, [...]= predictions
   const [tinderIdx, setTinderIdx] = useState(0);
-  const [tinderCardState, setTinderCardState] = useState('idle'); // 'idle' | 'success' | 'logged' | 'exit-left'
+  const [tinderCardState, setTinderCardState] = useState('idle'); // 'idle' | 'success' | 'logged' | 'entering' | 'exit-left'
   const [swipeDelta, setSwipeDelta] = useState(0);
   const swipeStartX = React.useRef(null);
 
@@ -285,15 +285,17 @@ export default function HabitTracker() {
     if (!tinderStack || tinderIdx >= tinderStack.length) return;
     const { habit } = tinderStack[tinderIdx];
     setTinderCardState('success');
-    await logToday(habit.id, { skipSink: true }); // no sinking animation in tinder mode
+    await logToday(habit.id, { skipSink: true });
     setTimeout(() => {
-      setTinderCardState('logged'); // lift + fade upward — feels accomplished
+      setTinderCardState('logged'); // lift + fade upward
       setTimeout(() => {
+        // Advance to next card while still invisible, then fade it in — no flash of old card
         setTinderIdx(i => i + 1);
-        setTinderCardState('idle');
         setSwipeDelta(0);
+        setTinderCardState('entering'); // new card fades in from below
+        setTimeout(() => setTinderCardState('idle'), 350);
       }, 420);
-    }, 550);
+    }, 1000); // green success card stays visible for 1 full second
   };
 
   const handleTinderSkip = () => {
@@ -714,8 +716,11 @@ export default function HabitTracker() {
 
         // Card visual transform
         const cardTransformStyle = tinderCardState === 'logged'
-          // Done ✓ pressed: lift upward + scale up + dissolve — feels accomplished
+          // Done button: lift upward + dissolve
           ? { transform: 'translateY(-56px) scale(1.04)', opacity: 0, transition: 'transform 0.42s cubic-bezier(0.2,0,0.2,1), opacity 0.36s ease' }
+          : tinderCardState === 'entering'
+          // New card fades in from slightly below — no flash of previous card
+          ? { animation: 'tinderCardIn 0.35s cubic-bezier(0.2,0,0.2,1) forwards' }
           : tinderCardState === 'exit-left'
           // Swipe left: slide off to the left
           ? { transform: 'translateX(-130%) rotate(-20deg)', opacity: 0, transition: 'transform 0.38s cubic-bezier(0.4,0,0.2,1), opacity 0.38s ease' }
@@ -851,35 +856,38 @@ export default function HabitTracker() {
                     onMouseDown={e => e.currentTarget.style.transform = 'scale(0.97)'}
                     onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
                   >
-                    Done ✓
+                    Done?
+                  </button>
+
+                  {/* Escape hatch — right below the button */}
+                  <button
+                    onClick={() => setTinderStack([])}
+                    style={{
+                      width: '100%',
+                      marginTop: '14px',
+                      color: 'rgba(255,255,255,0.35)',
+                      fontSize: '12px',
+                      fontWeight: 400,
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: '4px 0',
+                      transition: 'color 0.15s ease',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}
+                    onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.35)'}
+                  >
+                    Not the right habit? Go to Dashboard
                   </button>
                 </div>
               )}
             </div>
 
-            {/* Bottom: intelligence attribution + dashboard escape */}
-            <div className="text-center pb-8 px-6 relative z-10" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
-              <p style={{ color: 'rgba(255,255,255,0.22)', fontSize: '10px', fontWeight: 600, letterSpacing: '0.16em', textTransform: 'uppercase' }}>
+            {/* Bottom: Beacon attribution only */}
+            <div className="text-center pb-8 px-6 relative z-10">
+              <p style={{ color: 'rgba(255,255,255,0.18)', fontSize: '10px', fontWeight: 600, letterSpacing: '0.16em', textTransform: 'uppercase' }}>
                 Powered by Beacon Intelligence
               </p>
-              <button
-                onClick={() => setTinderStack([])}
-                style={{
-                  color: 'rgba(255,255,255,0.38)',
-                  fontSize: '12px',
-                  fontWeight: 400,
-                  letterSpacing: '0.01em',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: '4px 0',
-                  transition: 'color 0.15s ease',
-                }}
-                onMouseEnter={e => e.currentTarget.style.color = 'rgba(255,255,255,0.65)'}
-                onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.38)'}
-              >
-                Not the right habit? Go to Dashboard — it helps us learn
-              </button>
             </div>
           </div>
         );
