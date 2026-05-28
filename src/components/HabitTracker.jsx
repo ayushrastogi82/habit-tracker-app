@@ -793,56 +793,32 @@ export default function HabitTracker() {
                     </p>
                   </div>
 
-                  {/* X / ✓ action buttons */}
-                  <div style={{ display: 'flex', gap: '16px', marginTop: '4px' }}>
-                    {/* Skip — X */}
-                    <button
-                      onClick={handleTinderSkip}
-                      style={{
-                        flex: 1,
-                        background: 'rgba(239,68,68,0.10)',
-                        border: '1px solid rgba(239,68,68,0.22)',
-                        borderRadius: '18px',
-                        padding: '18px',
-                        color: 'rgba(239,68,68,0.80)',
-                        fontSize: '22px',
-                        cursor: 'pointer',
-                        transition: 'background 0.15s ease, transform 0.1s ease',
-                      }}
-                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.18)'}
-                      onMouseLeave={e => e.currentTarget.style.background = 'rgba(239,68,68,0.10)'}
-                      onMouseDown={e => e.currentTarget.style.transform = 'scale(0.95)'}
-                      onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
-                    >
-                      ✕
-                    </button>
-                    {/* Log — ✓ */}
-                    <button
-                      onClick={handleTinderLog}
-                      style={{
-                        flex: 2,
-                        background: 'rgba(99,102,241,0.22)',
-                        backdropFilter: 'blur(20px)',
-                        WebkitBackdropFilter: 'blur(20px)',
-                        border: '1px solid rgba(99,102,241,0.30)',
-                        borderRadius: '18px',
-                        padding: '18px',
-                        color: 'rgba(255,255,255,0.92)',
-                        fontSize: '17px',
-                        fontWeight: 500,
-                        letterSpacing: '0.02em',
-                        cursor: 'pointer',
-                        transition: 'background 0.15s ease, transform 0.1s ease',
-                        boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
-                      }}
-                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(99,102,241,0.32)'}
-                      onMouseLeave={e => e.currentTarget.style.background = 'rgba(99,102,241,0.22)'}
-                      onMouseDown={e => e.currentTarget.style.transform = 'scale(0.97)'}
-                      onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
-                    >
-                      Done ✓
-                    </button>
-                  </div>
+                  {/* Log button — confident single action */}
+                  <button
+                    onClick={handleTinderLog}
+                    style={{
+                      width: '100%',
+                      background: 'rgba(99,102,241,0.22)',
+                      backdropFilter: 'blur(20px)',
+                      WebkitBackdropFilter: 'blur(20px)',
+                      border: '1px solid rgba(99,102,241,0.30)',
+                      borderRadius: '18px',
+                      padding: '18px',
+                      color: 'rgba(255,255,255,0.92)',
+                      fontSize: '17px',
+                      fontWeight: 500,
+                      letterSpacing: '0.02em',
+                      cursor: 'pointer',
+                      transition: 'background 0.15s ease, transform 0.1s ease',
+                      boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(99,102,241,0.32)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'rgba(99,102,241,0.22)'}
+                    onMouseDown={e => e.currentTarget.style.transform = 'scale(0.97)'}
+                    onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
+                  >
+                    Done ✓
+                  </button>
                 </div>
               )}
             </div>
