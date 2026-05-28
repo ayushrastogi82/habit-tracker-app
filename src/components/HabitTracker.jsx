@@ -714,8 +714,8 @@ export default function HabitTracker() {
               transition: 'background 0.5s ease',
             }} />
 
-            {/* Top bar: progress dots + dashboard escape */}
-            <div className="flex items-center justify-between px-6 pt-5 pb-2 relative z-10">
+            {/* Top bar: progress dots only — escape moved to bottom */}
+            <div className="flex items-center justify-center px-6 pt-5 pb-2 relative z-10">
               <div className="flex gap-2 items-center">
                 {tinderStack.map((_, i) => (
                   <div key={i} className="rounded-full transition-all duration-300" style={{
@@ -725,13 +725,6 @@ export default function HabitTracker() {
                   }} />
                 ))}
               </div>
-              <button
-                onClick={() => setTinderStack([])}
-                className="text-white/40 text-sm font-medium active:text-white/70 transition-colors"
-                style={{ letterSpacing: '0.02em' }}
-              >
-                Dashboard ↓
-              </button>
             </div>
 
             {/* Swipe hint overlays */}
@@ -836,9 +829,29 @@ export default function HabitTracker() {
               )}
             </div>
 
-            {/* BEACON brand mark — bottom */}
-            <div className="text-center pb-6 relative z-10">
-              <p style={{ color: 'rgba(255,255,255,0.18)', fontSize: '11px', fontWeight: 600, letterSpacing: '0.18em' }}>BEACON</p>
+            {/* Bottom: intelligence attribution + dashboard escape */}
+            <div className="text-center pb-8 px-6 relative z-10" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+              <p style={{ color: 'rgba(255,255,255,0.22)', fontSize: '10px', fontWeight: 600, letterSpacing: '0.16em', textTransform: 'uppercase' }}>
+                Powered by Beacon Intelligence
+              </p>
+              <button
+                onClick={() => setTinderStack([])}
+                style={{
+                  color: 'rgba(255,255,255,0.38)',
+                  fontSize: '12px',
+                  fontWeight: 400,
+                  letterSpacing: '0.01em',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '4px 0',
+                  transition: 'color 0.15s ease',
+                }}
+                onMouseEnter={e => e.currentTarget.style.color = 'rgba(255,255,255,0.65)'}
+                onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.38)'}
+              >
+                Not the right habit? Go to Dashboard — it helps us learn
+              </button>
             </div>
           </div>
         );
