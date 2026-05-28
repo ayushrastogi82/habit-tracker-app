@@ -942,67 +942,111 @@ export default function HabitTracker() {
         <input ref={fileInputRef} type="file" accept=".json" className="hidden" onChange={handleImportFile} />
 
 
-        {/* Beacon Intelligence — Focus / Suggestion Card */}
-        {habits.length > 0 && !isReorderMode && !focusCardDismissed && (() => {
-          const now = new Date();
-          const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-          const focus = getFocusHabit(habits, todayStr, sessionCount);
-          if (!focus) return null;
-          const { habit: fHabit, pattern, confidenceLevel } = focus;
-
-          if (confidenceLevel === 'high') {
-            // High confidence: suggestion banner above the list
-            return (
-              <div className="mb-4 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 rounded-2xl px-4 py-3 flex items-center gap-3">
-                <div className="flex-1 min-w-0">
-                  <p className="text-[10px] font-semibold text-indigo-400 dark:text-indigo-500 uppercase tracking-wider mb-0.5">{pattern.emoji} {pattern.windowLabel}</p>
-                  <p className="text-sm font-bold text-indigo-900 dark:text-indigo-100 truncate">{fHabit.name}</p>
-                </div>
-                <button
-                  onClick={(e) => { e.stopPropagation(); logToday(fHabit.id); setFocusCardDismissed(true); }}
-                  className="shrink-0 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl active:scale-95 transition-all"
-                >
-                  Log it →
-                </button>
-                <button
-                  onClick={() => setFocusCardDismissed(true)}
-                  className="shrink-0 text-indigo-300 dark:text-indigo-600 hover:text-indigo-500 text-lg leading-none transition-colors"
-                >
-                  ×
-                </button>
-              </div>
-            );
-          }
-
-          if (confidenceLevel === 'very_high') {
-            // Very high confidence: full focus card
-            return (
-              <div className="mb-4 bg-gradient-to-br from-indigo-600 to-blue-700 rounded-2xl px-4 pt-5 pb-6 shadow-xl">
-                <p className="text-xs font-semibold text-indigo-200 mb-3">{pattern.emoji} {pattern.windowLabel}</p>
-                <p className="text-2xl font-bold text-white mb-5">{fHabit.name}</p>
-                <button
-                  onClick={(e) => { e.stopPropagation(); logToday(fHabit.id); setFocusCardDismissed(true); }}
-                  className="w-full bg-white/20 hover:bg-white/30 text-white rounded-xl py-3.5 font-semibold text-sm active:scale-95 transition-all mb-3"
-                >
-                  ✓  Log {fHabit.name}
-                </button>
-                <button
-                  onClick={() => setFocusCardDismissed(true)}
-                  className="w-full text-center text-indigo-200 text-xs py-1 hover:text-white transition-colors"
-                >
-                  ↓ See all habits
-                </button>
-              </div>
-            );
-          }
-
-          return null; // 'low' confidence = soft float only (handled by buildDisplayList ordering)
-        })()}
-
-        {/* Habits grid */}
+        {/* Habits grid — or focus experience for high/very_high confidence */}
         {(() => {
           const now = new Date();
           const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+
+          // Determine if focus mode should replace the list
+          const focus = (!isReorderMode && !focusCardDismissed && habits.length > 0)
+            ? getFocusHabit(habits, todayStr, sessionCount)
+            : null;
+          const showFocus = focus && (focus.confidenceLevel === 'high' || focus.confidenceLevel === 'very_high');
+
+          // ── STATE 3: High confidence — prominent card, dashboard hidden, clear escape ──
+          if (showFocus && focus.confidenceLevel === 'high') {
+            const { habit: fHabit, pattern } = focus;
+            const otherCount = habits.filter(h => !h.dates.includes(todayStr) && h.id !== fHabit.id).length;
+            return (
+              <div>
+                <div className="bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800/60 rounded-3xl px-5 py-6">
+                  <p className="text-xs font-semibold text-indigo-400 dark:text-indigo-500 mb-4">{pattern.emoji} {pattern.windowLabel}</p>
+                  <p className="text-3xl font-bold text-indigo-900 dark:text-indigo-100 mb-6 leading-tight">{fHabit.name}</p>
+                  <button
+                    onClick={() => { logToday(fHabit.id); setFocusCardDismissed(true); }}
+                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl py-4 font-semibold text-base active:scale-95 transition-all shadow-lg shadow-indigo-500/20 mb-5"
+                  >
+                    ✓  Log {fHabit.name}
+                  </button>
+                  <button
+                    onClick={() => setFocusCardDismissed(true)}
+                    className="w-full text-center text-indigo-500 dark:text-indigo-400 text-sm font-medium py-1 hover:text-indigo-700 dark:hover:text-indigo-200 transition-colors"
+                  >
+                    ↓ See all {habits.length} habits
+                  </button>
+                </div>
+              </div>
+            );
+          }
+
+          // ── STATE 4: Very high confidence — full gradient card, other habits as pills ──
+          if (showFocus && focus.confidenceLevel === 'very_high') {
+            const { habit: fHabit, pattern } = focus;
+            const otherUnlogged = habits.filter(h => !h.dates.includes(todayStr) && h.id !== fHabit.id);
+            const loggedToday = habits.filter(h => h.dates.includes(todayStr));
+            const PILL_LIMIT = 4;
+            const visiblePills = otherUnlogged.slice(0, PILL_LIMIT);
+            const overflowCount = otherUnlogged.length - PILL_LIMIT;
+            return (
+              <div>
+                {/* Full focus card */}
+                <div className="bg-gradient-to-br from-indigo-600 to-blue-700 rounded-3xl px-5 pt-6 pb-7 shadow-2xl shadow-indigo-500/30 mb-5">
+                  <p className="text-sm font-semibold text-indigo-200 mb-4">{pattern.emoji} {pattern.windowLabel}</p>
+                  <p className="text-4xl font-bold text-white mb-8 leading-tight">{fHabit.name}</p>
+                  <button
+                    onClick={() => { logToday(fHabit.id); setFocusCardDismissed(true); }}
+                    className="w-full bg-white/20 hover:bg-white/30 backdrop-blur text-white rounded-2xl py-4 font-semibold text-base active:scale-95 transition-all border border-white/20"
+                  >
+                    ✓  Log {fHabit.name}
+                  </button>
+                </div>
+
+                {/* Other habits — de-emphasised pills, never truly hidden */}
+                {(otherUnlogged.length > 0 || loggedToday.length > 0) && (
+                  <div>
+                    {otherUnlogged.length > 0 && (
+                      <div className="mb-3">
+                        <p className="text-[10px] text-gray-400 dark:text-gray-600 font-semibold uppercase tracking-wider mb-2 px-1">Also today</p>
+                        <div className="flex flex-wrap gap-2">
+                          {visiblePills.map(h => (
+                            <button
+                              key={h.id}
+                              onClick={() => setFocusCardDismissed(true)}
+                              className="px-3 py-1.5 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-xs text-gray-600 dark:text-gray-300 font-medium active:scale-95 transition-all shadow-sm"
+                            >
+                              {h.name}
+                            </button>
+                          ))}
+                          {overflowCount > 0 && (
+                            <button
+                              onClick={() => setFocusCardDismissed(true)}
+                              className="px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-xs text-indigo-500 dark:text-indigo-400 font-semibold active:scale-95 transition-all"
+                            >
+                              +{overflowCount} more ↓
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    {loggedToday.length > 0 && (
+                      <div>
+                        <p className="text-[10px] text-gray-400 dark:text-gray-600 font-semibold uppercase tracking-wider mb-2 px-1">Done today ✓</p>
+                        <div className="flex flex-wrap gap-2">
+                          {loggedToday.map(h => (
+                            <span key={h.id} className="px-3 py-1.5 rounded-full bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900/50 text-xs text-green-600 dark:text-green-400 font-medium">
+                              {h.name}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          }
+
+          // ── STATES 1 & 2: No/low confidence — full list (smart ordered) ──
           const displayList = isReorderMode ? habits.map((h, i) => ({ habit: h, originalIndex: i, isLogged: false, isPatternMatch: false, pattern: null })) : buildDisplayList(habits, todayStr);
           const firstLoggedIdx = isReorderMode ? -1 : displayList.findIndex(item => item.isLogged);
           return (
