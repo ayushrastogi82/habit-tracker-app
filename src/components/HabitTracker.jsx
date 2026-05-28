@@ -1050,14 +1050,18 @@ export default function HabitTracker() {
                       <button
                         onClick={async () => {
                           const now = new Date();
-                          const currentHour = now.getHours();
-                          // Build 15 logTimes entries for each habit at current hour, across past 15 days
+                          const rawHour = now.getHours();
+                          // Windows: 5-7, 8-11, 12-16, 17-20, 21-23. Hours 0-4 = no window.
+                          // If current hour is outside all windows, pick the closest named window hour.
+                          const VALID_HOURS = [5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23];
+                          const simulateHour = VALID_HOURS.includes(rawHour) ? rawHour : 20; // default evening
+                          // Build 15 logTimes entries for each habit at simulate hour, across past 15 days
                           const simulated = habits.map(h => {
                             const newLogTimes = { ...(h.logTimes || {}) };
                             for (let i = 1; i <= 15; i++) {
                               const d = new Date(now);
                               d.setDate(d.getDate() - i);
-                              d.setHours(currentHour, Math.floor(Math.random() * 30), 0, 0);
+                              d.setHours(simulateHour, Math.floor(Math.random() * 30), 0, 0);
                               const dateStr = d.toISOString().slice(0, 10);
                               newLogTimes[dateStr] = d.getTime();
                             }
@@ -1065,10 +1069,12 @@ export default function HabitTracker() {
                           });
                           await saveHabits(simulated);
                           localStorage.setItem('beacon-session-count', '25');
+                          // Also set hour override so isCurrentlyInWindow() matches the simulated pattern
+                          localStorage.setItem('__beacon_test_hour', String(simulateHour));
                           setSessionCount(25);
                           setTinderStack(null); // will recompute on next render
                           setShowSettingsSheet(false);
-                          showFeedback('🧪 Simulated! Tinder will fire now if habits are unlogged.');
+                          showFeedback('🧪 Simulated! Tinder firing now…');
                         }}
                         className="flex-1 text-[10px] bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 px-2 py-1.5 rounded-lg transition-colors font-medium"
                       >
@@ -1085,7 +1091,9 @@ export default function HabitTracker() {
                               const cleared = habits.map(h => { const { logTimes, ...rest } = h; return rest; });
                               await saveHabits(cleared);
                               localStorage.setItem('beacon-session-count', '0');
+                              localStorage.removeItem('__beacon_test_hour');
                               setSessionCount(0);
+                              setTinderStack(null);
                               setConfirmDialog(null);
                             }
                           });
