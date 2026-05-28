@@ -689,10 +689,10 @@ export default function HabitTracker() {
           ? { transform: `translateX(${swipeDelta}px) rotate(${swipeDelta * 0.04}deg)`, transition: 'none' }
           : { transform: 'translateX(0) rotate(0deg)', transition: 'transform 0.3s ease' };
 
-        // Background: deep cosmic gradient (idle) or deep emerald (success)
+        // Background: matches app dark mode (gray-900 → gray-950) with subtle indigo tint, or deep green on success
         const bg = isSuccess
-          ? 'linear-gradient(160deg, #022c22 0%, #064e3b 50%, #065f46 100%)'
-          : 'linear-gradient(160deg, #0f0c29 0%, #1e1152 35%, #2d1b69 65%, #0d1b4b 100%)';
+          ? 'linear-gradient(160deg, #052e16 0%, #064e3b 60%, #111827 100%)'
+          : 'linear-gradient(160deg, #111827 0%, #0f172a 50%, #111827 100%)';
 
         // Hint colors based on swipe direction
         const logHintOpacity = Math.max(0, swipeDelta / 120);
@@ -708,8 +708,8 @@ export default function HabitTracker() {
               position: 'absolute', pointerEvents: 'none',
               width: '500px', height: '500px', borderRadius: '50%',
               background: isSuccess
-                ? 'radial-gradient(circle, rgba(16,185,129,0.18) 0%, transparent 70%)'
-                : 'radial-gradient(circle, rgba(139,92,246,0.22) 0%, transparent 70%)',
+                ? 'radial-gradient(circle, rgba(16,185,129,0.14) 0%, transparent 70%)'
+                : 'radial-gradient(circle, rgba(99,102,241,0.18) 0%, transparent 70%)',
               top: '30%', left: '50%', transform: 'translate(-50%, -50%)',
               transition: 'background 0.5s ease',
             }} />
@@ -772,15 +772,15 @@ export default function HabitTracker() {
                 <div style={{ width: '100%', maxWidth: '340px' }}>
                   {/* Frosted glass habit card */}
                   <div style={{
-                    background: 'rgba(255,255,255,0.07)',
+                    background: 'rgba(99,102,241,0.10)',
                     backdropFilter: 'blur(32px)',
                     WebkitBackdropFilter: 'blur(32px)',
-                    border: '1px solid rgba(255,255,255,0.10)',
+                    border: '1px solid rgba(99,102,241,0.20)',
                     borderRadius: '28px',
                     padding: '44px 32px 40px',
                     textAlign: 'center',
                     marginBottom: '20px',
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08)',
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)',
                   }}>
                     <p style={{
                       color: 'white',
@@ -798,10 +798,10 @@ export default function HabitTracker() {
                     onClick={handleTinderLog}
                     style={{
                       width: '100%',
-                      background: 'rgba(255,255,255,0.10)',
+                      background: 'rgba(99,102,241,0.22)',
                       backdropFilter: 'blur(20px)',
                       WebkitBackdropFilter: 'blur(20px)',
-                      border: '1px solid rgba(255,255,255,0.16)',
+                      border: '1px solid rgba(99,102,241,0.30)',
                       borderRadius: '18px',
                       padding: '18px',
                       color: 'rgba(255,255,255,0.92)',
@@ -810,10 +810,10 @@ export default function HabitTracker() {
                       letterSpacing: '0.02em',
                       cursor: 'pointer',
                       transition: 'background 0.15s ease, transform 0.1s ease',
-                      boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+                      boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
                     }}
-                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.16)'}
-                    onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.10)'}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(99,102,241,0.32)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'rgba(99,102,241,0.22)'}
                     onMouseDown={e => e.currentTarget.style.transform = 'scale(0.97)'}
                     onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
                   >
