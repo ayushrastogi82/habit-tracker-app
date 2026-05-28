@@ -47,7 +47,7 @@ export default function HabitTracker() {
   // Tinder focus stack — computed once per session after habits load
   const [tinderStack, setTinderStack] = useState(null); // null=not yet computed, []=no predictions, [...]= predictions
   const [tinderIdx, setTinderIdx] = useState(0);
-  const [tinderCardState, setTinderCardState] = useState('idle'); // 'idle' | 'success' | 'exit-right' | 'exit-left'
+  const [tinderCardState, setTinderCardState] = useState('idle'); // 'idle' | 'success' | 'logged' | 'exit-left'
   const [swipeDelta, setSwipeDelta] = useState(0);
   const swipeStartX = React.useRef(null);
 
@@ -282,13 +282,13 @@ export default function HabitTracker() {
     setTinderCardState('success');
     await logToday(habit.id, { skipSink: true }); // no sinking animation in tinder mode
     setTimeout(() => {
-      setTinderCardState('exit-right');
+      setTinderCardState('logged'); // lift + fade upward — feels accomplished
       setTimeout(() => {
         setTinderIdx(i => i + 1);
         setTinderCardState('idle');
         setSwipeDelta(0);
-      }, 380);
-    }, 650);
+      }, 420);
+    }, 550);
   };
 
   const handleTinderSkip = () => {
@@ -442,7 +442,19 @@ export default function HabitTracker() {
   const toggleHabitExpansion = (habitId) => {
     setExpandedHabits(prev => {
       const next = new Set(prev);
-      next.has(habitId) ? next.delete(habitId) : next.add(habitId);
+      if (next.has(habitId)) {
+        next.delete(habitId); // collapsing
+        // If logged today, trigger sink animation now (not on calendar tap)
+        const habit = habitsRef.current.find(h => h.id === habitId);
+        const now = new Date();
+        const ts = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+        if (habit && habit.dates.includes(ts) && sinkingHabitId !== habitId) {
+          setSinkingHabitId(habitId);
+          setTimeout(() => setSinkingHabitId(null), 1050);
+        }
+      } else {
+        next.add(habitId);
+      }
       return next;
     });
   };
@@ -680,11 +692,15 @@ export default function HabitTracker() {
         const { habit: tHabit } = tinderStack[tinderIdx];
         const total = tinderStack.length;
         const isSuccess = tinderCardState === 'success';
-        const isExiting = tinderCardState === 'exit-right' || tinderCardState === 'exit-left';
+        const isExiting = tinderCardState === 'exit-left' || tinderCardState === 'logged';
 
         // Card visual transform
-        const cardTransformStyle = isExiting
-          ? { transform: `translateX(${tinderCardState === 'exit-right' ? '130%' : '-130%'}) rotate(${tinderCardState === 'exit-right' ? '20deg' : '-20deg'})`, opacity: 0, transition: 'transform 0.38s cubic-bezier(0.4,0,0.2,1), opacity 0.38s ease' }
+        const cardTransformStyle = tinderCardState === 'logged'
+          // Done ✓ pressed: lift upward + scale up + dissolve — feels accomplished
+          ? { transform: 'translateY(-56px) scale(1.04)', opacity: 0, transition: 'transform 0.42s cubic-bezier(0.2,0,0.2,1), opacity 0.36s ease' }
+          : tinderCardState === 'exit-left'
+          // Swipe left: slide off to the left
+          ? { transform: 'translateX(-130%) rotate(-20deg)', opacity: 0, transition: 'transform 0.38s cubic-bezier(0.4,0,0.2,1), opacity 0.38s ease' }
           : swipeDelta !== 0
           ? { transform: `translateX(${swipeDelta}px) rotate(${swipeDelta * 0.04}deg)`, transition: 'none' }
           : { transform: 'translateX(0) rotate(0deg)', transition: 'transform 0.3s ease' };
@@ -1277,7 +1293,7 @@ export default function HabitTracker() {
           const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
 
           // ── STATE 1: No confidence / Tinder not triggered — full list in user's order ──
-          const displayList = isReorderMode ? habits.map((h, i) => ({ habit: h, originalIndex: i, isLogged: false })) : buildDisplayList(habits, todayStr, sinkingHabitId);
+          const displayList = isReorderMode ? habits.map((h, i) => ({ habit: h, originalIndex: i, isLogged: false })) : buildDisplayList(habits, todayStr, sinkingHabitId, expandedHabits);
           const firstLoggedIdx = isReorderMode ? -1 : displayList.findIndex(item => item.isLogged);
           return (
         <div className={viewMode === '2col' ? 'grid grid-cols-2 gap-x-3 gap-y-6' : 'space-y-1.5'}>

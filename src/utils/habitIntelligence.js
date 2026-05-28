@@ -224,11 +224,14 @@ export function getPredictedHabits(habits, todayStr, sessionCount) {
  *   (keeps it in place during the sinking animation even though it's already saved as logged)
  * @returns {{ habit, originalIndex, isLogged, isPatternMatch, pattern }[]}
  */
-export function buildDisplayList(habits, todayStr, sinkingHabitId = null) {
+export function buildDisplayList(habits, todayStr, sinkingHabitId = null, pinnedIds = null) {
+  const pinned = pinnedIds instanceof Set ? pinnedIds : new Set();
   const items = habits.map((habit, originalIndex) => {
-    // If this habit is mid-animation, treat as unlogged for sort purposes only.
-    // The card itself will render with the logged visual state.
-    const isLogged = habit.dates.includes(todayStr) && habit.id !== sinkingHabitId;
+    // Treat as unlogged if: mid-sink animation, OR currently expanded (pinned in place).
+    // This prevents the card from jumping to the logged section while the user is viewing it.
+    const isLogged = habit.dates.includes(todayStr)
+      && habit.id !== sinkingHabitId
+      && !pinned.has(habit.id);
     return { habit, originalIndex, isLogged };
   });
 
