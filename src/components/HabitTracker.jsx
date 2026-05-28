@@ -43,6 +43,7 @@ export default function HabitTracker() {
     return n;
   });
   const [showIntelligenceDetail, setShowIntelligenceDetail] = useState(false);
+  const [sinkingHabitId, setSinkingHabitId] = useState(null); // id of habit currently in sinking animation
 
   const BACKUP_REMINDER_DAYS = 5;
 
@@ -245,7 +246,12 @@ export default function HabitTracker() {
         : h
     );
     const saved = await saveHabits(updated);
-    if (saved) confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+    if (saved) {
+      confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+      // Trigger sinking animation: pause → fade+slide → list re-sorts
+      setSinkingHabitId(habitId);
+      setTimeout(() => setSinkingHabitId(null), 1100); // 800ms pause + 300ms animation
+    }
   };
 
   const resetHabit = (habitId) => {
@@ -1047,7 +1053,7 @@ export default function HabitTracker() {
           }
 
           // ── STATES 1 & 2: No/low confidence — full list (smart ordered) ──
-          const displayList = isReorderMode ? habits.map((h, i) => ({ habit: h, originalIndex: i, isLogged: false, isPatternMatch: false, pattern: null })) : buildDisplayList(habits, todayStr);
+          const displayList = isReorderMode ? habits.map((h, i) => ({ habit: h, originalIndex: i, isLogged: false, isPatternMatch: false, pattern: null })) : buildDisplayList(habits, todayStr, sinkingHabitId);
           const firstLoggedIdx = isReorderMode ? -1 : displayList.findIndex(item => item.isLogged);
           return (
         <div className={viewMode === '2col' ? 'grid grid-cols-2 gap-x-3 gap-y-6' : 'space-y-1.5'}>
@@ -1063,12 +1069,23 @@ export default function HabitTracker() {
             const totalDays = getTotalDays(habit.id, habit.dates, habit.startDate);
             const loggedDays = habit.dates.length;
 
+            const isSinking = sinkingHabitId === habit.id;
+
             return (
               <React.Fragment key={habit.id}>
               {showDivider && (
                 <div className="text-[10px] text-gray-400 dark:text-gray-600 font-semibold uppercase tracking-wider px-1 pt-2 pb-0.5">Logged today</div>
               )}
-              <div className={`relative overflow-visible transition-all ${isLoggedItem && !isReorderMode ? 'opacity-60' : ''} ${viewMode === '2col' ? 'bg-white dark:bg-gray-900 rounded-xl shadow-lg hover:shadow-xl' : isReorderMode ? 'bg-indigo-50/50 dark:bg-indigo-950/30 rounded-xl border border-indigo-100 dark:border-indigo-900' : isExpanded ? 'bg-indigo-50/40 dark:bg-indigo-950/30 rounded-xl shadow-md border border-indigo-200 dark:border-indigo-800' : 'bg-white dark:bg-gray-900 rounded-xl shadow-md hover:shadow-md border border-gray-200 dark:border-gray-800'}`}>
+              <div
+                className={`relative overflow-visible transition-all ${isLoggedItem && !isReorderMode && !isSinking ? 'opacity-60' : ''} ${viewMode === '2col' ? 'bg-white dark:bg-gray-900 rounded-xl shadow-lg hover:shadow-xl' : isReorderMode ? 'bg-indigo-50/50 dark:bg-indigo-950/30 rounded-xl border border-indigo-100 dark:border-indigo-900' : isExpanded ? 'bg-indigo-50/40 dark:bg-indigo-950/30 rounded-xl shadow-md border border-indigo-200 dark:border-indigo-800' : 'bg-white dark:bg-gray-900 rounded-xl shadow-md hover:shadow-md border border-gray-200 dark:border-gray-800'}`}
+                style={isSinking ? {
+                  opacity: 0,
+                  transform: 'translateY(12px)',
+                  transition: 'opacity 300ms ease, transform 300ms ease',
+                  transitionDelay: '750ms',
+                  pointerEvents: 'none',
+                } : undefined}
+              >
 
                 {/* 2-col: floating streak/gap badge */}
                 {viewMode === '2col' && streak.current > 1 && (

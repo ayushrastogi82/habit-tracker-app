@@ -188,11 +188,15 @@ export function getFocusHabit(habits, todayStr, sessionCount) {
  *
  * @param {object[]} habits
  * @param {string} todayStr
+ * @param {string|null} sinkingHabitId — if set, treat that habit as unlogged for sort purposes
+ *   (keeps it in place during the sinking animation even though it's already saved as logged)
  * @returns {{ habit, originalIndex, isLogged, isPatternMatch, pattern }[]}
  */
-export function buildDisplayList(habits, todayStr) {
+export function buildDisplayList(habits, todayStr, sinkingHabitId = null) {
   const items = habits.map((habit, originalIndex) => {
-    const isLogged = habit.dates.includes(todayStr);
+    // If this habit is mid-animation, treat as unlogged for sort purposes only.
+    // The card itself will render with the logged visual state.
+    const isLogged = habit.dates.includes(todayStr) && habit.id !== sinkingHabitId;
     const pattern = detectHabitWindow(habit);
     const isPatternMatch = pattern ? isCurrentlyInWindow(pattern.windowKey) : false;
     return { habit, originalIndex, isLogged, isPatternMatch, pattern };
