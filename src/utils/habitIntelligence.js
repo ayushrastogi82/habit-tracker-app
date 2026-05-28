@@ -255,7 +255,9 @@ export function getContextualHeader(habits, todayStr, isComeback) {
   const allDone = habits.length > 0 && unloggedCount === 0;
 
   let greeting, emoji;
-  if (hour >= 5 && hour < 12) {
+  if (hour >= 0 && hour < 5) {
+    greeting = 'Still up?'; emoji = '🌙';
+  } else if (hour >= 5 && hour < 12) {
     greeting = 'Good morning'; emoji = '☀️';
   } else if (hour >= 12 && hour < 17) {
     greeting = 'Good afternoon'; emoji = '🌤';
