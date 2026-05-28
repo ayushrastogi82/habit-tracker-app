@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Check, TrendingUp, Calendar, ChevronDown, ChevronLeft, ChevronRight, Rocket, Undo2, Download, Upload, MoreHorizontal, Share2, Moon, Sun, Sunrise, Sunset } from 'lucide-react';
+import { Plus, Check, TrendingUp, Calendar, ChevronDown, ChevronLeft, ChevronRight, Rocket, Undo2, Download, Upload, MoreHorizontal, Share2, Moon, Sun, Sunrise, Sunset, BedDouble } from 'lucide-react';
 import ShareModal from './ShareModal';
 import { buildDisplayList, getFocusHabit, getPredictedHabits, getContextualHeader, isComebackState, detectHabitWindow, isCurrentlyInWindow, getConfidenceLevel } from '../utils/habitIntelligence';
 
@@ -1157,13 +1157,11 @@ export default function HabitTracker() {
                   <p className="text-xs text-violet-500 dark:text-violet-400 leading-tight font-medium">Fresh start ✨ · {header.badge} to log</p>
                 );
                 const TimeIcon = {
-                  lateNight: () => (
-                    <svg width="11" height="11" viewBox="0 0 12 12" fill="currentColor" className="inline-block mr-1 mb-0.5"><circle cx="6" cy="6" r="6"/></svg>
-                  ),
-                  morning: () => <Sunrise className="inline-block mr-1 mb-0.5 w-3 h-3" strokeWidth={2} />,
-                  afternoon: () => <Sun className="inline-block mr-1 mb-0.5 w-3 h-3" strokeWidth={2} />,
-                  evening: () => <Sunset className="inline-block mr-1 mb-0.5 w-3 h-3" strokeWidth={2} />,
-                  night: () => (
+                  lateNight: () => <BedDouble className="inline-block mr-1 mb-0.5 w-3 h-3" strokeWidth={2} />,
+                  morning:   () => <Sunrise   className="inline-block mr-1 mb-0.5 w-3 h-3" strokeWidth={2} />,
+                  afternoon: () => <Sun        className="inline-block mr-1 mb-0.5 w-3 h-3" strokeWidth={2} />,
+                  evening:   () => <Sunset     className="inline-block mr-1 mb-0.5 w-3 h-3" strokeWidth={2} />,
+                  night:     () => (
                     <svg width="11" height="11" viewBox="0 0 12 12" fill="currentColor" className="inline-block mr-1 mb-0.5"><circle cx="6" cy="6" r="6"/></svg>
                   ),
                 }[header.timeKey] || (() => null);
