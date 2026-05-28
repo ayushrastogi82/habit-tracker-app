@@ -881,8 +881,8 @@ export default function HabitTracker() {
                     onMouseEnter={e => e.currentTarget.style.color = 'rgba(255,255,255,0.85)'}
                     onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.55)'}
                   >
-                    Not the habit you want to log right now?
-                    <span style={{ textDecoration: 'underline', textUnderlineOffset: '3px' }}>See all habits →</span>
+                    <span style={{ display: 'block' }}>Not the habit you want to log right now?</span>
+                    <span style={{ display: 'block', textDecoration: 'underline', textUnderlineOffset: '3px', marginTop: '4px' }}>See all habits →</span>
                   </button>
                 </div>
               )}
