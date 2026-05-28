@@ -43,6 +43,7 @@ export default function HabitTracker() {
   });
   const [showIntelligenceDetail, setShowIntelligenceDetail] = useState(true);
   const [sinkingHabitId, setSinkingHabitId] = useState(null); // id of habit currently in sinking animation
+  const [expansionSnapshot, setExpansionSnapshot] = useState({}); // { [habitId]: wasLoggedToday } — frozen at expand time
 
   // Tinder focus stack — computed once per session after habits load
   const [tinderStack, setTinderStack] = useState(null); // null=not yet computed, []=no predictions, [...]= predictions
@@ -269,9 +270,9 @@ export default function HabitTracker() {
     );
     const saved = await saveHabits(updated);
     if (saved && !skipSink) {
-      // Trigger sinking animation in list view: pause → fade+slide → re-sorts
+      // Trigger sinking animation: 600ms pause → card lifts+fades → space collapses → re-sorts
       setSinkingHabitId(habitId);
-      setTimeout(() => setSinkingHabitId(null), 1100);
+      setTimeout(() => setSinkingHabitId(null), 1450);
     }
   };
 
@@ -440,19 +441,32 @@ export default function HabitTracker() {
   };
 
   const toggleHabitExpansion = (habitId) => {
+    const now = new Date();
+    const ts = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+
     setExpandedHabits(prev => {
       const next = new Set(prev);
       if (next.has(habitId)) {
-        next.delete(habitId); // collapsing
-        // If logged today, trigger sink animation now (not on calendar tap)
+        // COLLAPSING — check if today's logged status changed since opening
+        next.delete(habitId);
         const habit = habitsRef.current.find(h => h.id === habitId);
-        const now = new Date();
-        const ts = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-        if (habit && habit.dates.includes(ts) && sinkingHabitId !== habitId) {
+        const wasLoggedWhenOpened = expansionSnapshot[habitId] ?? false;
+        const isNowLogged = !!(habit && habit.dates.includes(ts));
+
+        if (!wasLoggedWhenOpened && isNowLogged) {
+          // Went unlogged → logged: sink to logged section with animation
           setSinkingHabitId(habitId);
-          setTimeout(() => setSinkingHabitId(null), 1050);
+          setTimeout(() => setSinkingHabitId(null), 1500);
         }
+        // If logged → unlogged: card just moves up naturally (no animation needed)
+        // If no change: card stays in place
+
+        setExpansionSnapshot(prev => { const n = { ...prev }; delete n[habitId]; return n; });
       } else {
+        // EXPANDING — snapshot current logged state so position stays frozen
+        const habit = habitsRef.current.find(h => h.id === habitId);
+        const isLoggedNow = !!(habit && habit.dates.includes(ts));
+        setExpansionSnapshot(prev => ({ ...prev, [habitId]: isLoggedNow }));
         next.add(habitId);
       }
       return next;
@@ -1293,7 +1307,7 @@ export default function HabitTracker() {
           const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
 
           // ── STATE 1: No confidence / Tinder not triggered — full list in user's order ──
-          const displayList = isReorderMode ? habits.map((h, i) => ({ habit: h, originalIndex: i, isLogged: false })) : buildDisplayList(habits, todayStr, sinkingHabitId, expandedHabits);
+          const displayList = isReorderMode ? habits.map((h, i) => ({ habit: h, originalIndex: i, isLogged: false })) : buildDisplayList(habits, todayStr, sinkingHabitId, expansionSnapshot);
           const firstLoggedIdx = isReorderMode ? -1 : displayList.findIndex(item => item.isLogged);
           return (
         <div className={viewMode === '2col' ? 'grid grid-cols-2 gap-x-3 gap-y-6' : 'space-y-1.5'}>
@@ -1319,12 +1333,24 @@ export default function HabitTracker() {
               <div
                 className={`relative overflow-visible transition-all ${isLoggedItem && !isReorderMode && !isSinking ? 'opacity-60' : ''} ${viewMode === '2col' ? 'bg-white dark:bg-gray-900 rounded-xl shadow-lg hover:shadow-xl' : isReorderMode ? 'bg-indigo-50/50 dark:bg-indigo-950/30 rounded-xl border border-indigo-100 dark:border-indigo-900' : isExpanded ? 'bg-indigo-50/40 dark:bg-indigo-950/30 rounded-xl shadow-md border border-indigo-200 dark:border-indigo-800' : 'bg-white dark:bg-gray-900 rounded-xl shadow-md hover:shadow-md border border-gray-200 dark:border-gray-800'}`}
                 style={isSinking ? {
+                  // Phase 1 (600ms delay): card lifts up slightly + fades — feels like it completed and floated away
                   opacity: 0,
-                  transform: 'translateY(12px)',
-                  transition: 'opacity 300ms ease, transform 300ms ease',
-                  transitionDelay: '750ms',
+                  transform: 'translateY(-8px) scale(0.97)',
+                  // Phase 2 (1000ms delay): space collapses so remaining cards glide up smoothly
+                  maxHeight: 0,
+                  marginBottom: 0,
+                  overflow: 'hidden',
+                  transition: [
+                    'opacity 320ms ease 600ms',
+                    'transform 320ms ease 600ms',
+                    'max-height 380ms cubic-bezier(0.4,0,0.2,1) 980ms',
+                    'margin-bottom 380ms ease 980ms',
+                  ].join(', '),
                   pointerEvents: 'none',
-                } : undefined}
+                } : {
+                  maxHeight: '400px', // explicit FROM value so max-height can animate
+                  overflow: 'visible',
+                }}
               >
 
                 {/* 2-col: floating streak/gap badge */}

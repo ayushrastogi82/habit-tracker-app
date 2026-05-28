@@ -224,14 +224,19 @@ export function getPredictedHabits(habits, todayStr, sessionCount) {
  *   (keeps it in place during the sinking animation even though it's already saved as logged)
  * @returns {{ habit, originalIndex, isLogged, isPatternMatch, pattern }[]}
  */
-export function buildDisplayList(habits, todayStr, sinkingHabitId = null, pinnedIds = null) {
-  const pinned = pinnedIds instanceof Set ? pinnedIds : new Set();
+export function buildDisplayList(habits, todayStr, sinkingHabitId = null, expansionSnapshot = {}) {
   const items = habits.map((habit, originalIndex) => {
-    // Treat as unlogged if: mid-sink animation, OR currently expanded (pinned in place).
-    // This prevents the card from jumping to the logged section while the user is viewing it.
-    const isLogged = habit.dates.includes(todayStr)
-      && habit.id !== sinkingHabitId
-      && !pinned.has(habit.id);
+    let isLogged;
+    if (habit.id === sinkingHabitId) {
+      // Mid-sink animation — hold it in the unlogged section visually
+      isLogged = false;
+    } else if (habit.id in expansionSnapshot) {
+      // Card is expanded — freeze position at the state it was in when opened.
+      // This stops the card jumping sections when calendar dates are toggled.
+      isLogged = expansionSnapshot[habit.id];
+    } else {
+      isLogged = habit.dates.includes(todayStr);
+    }
     return { habit, originalIndex, isLogged };
   });
 
