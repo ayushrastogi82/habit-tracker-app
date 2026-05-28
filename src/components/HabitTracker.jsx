@@ -821,18 +821,6 @@ export default function HabitTracker() {
                     marginBottom: '20px',
                     boxShadow: '0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)',
                   }}>
-                    {tPattern && (
-                      <p style={{
-                        color: 'rgba(255,255,255,0.28)',
-                        fontSize: '11px',
-                        fontWeight: 600,
-                        letterSpacing: '0.16em',
-                        textTransform: 'uppercase',
-                        marginBottom: '20px',
-                      }}>
-                        {tPattern.windowEmoji}&nbsp; {tPattern.windowLabel}
-                      </p>
-                    )}
                     <p style={{
                       color: 'white',
                       fontSize: '38px',
@@ -893,7 +881,7 @@ export default function HabitTracker() {
                     onMouseEnter={e => e.currentTarget.style.color = 'rgba(255,255,255,0.85)'}
                     onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.55)'}
                   >
-                    {tPattern ? `Not your ${tPattern.windowLabel.toLowerCase()}?` : 'Not the right habit?'}
+                    Not the right habit?
                     <span style={{ textDecoration: 'underline', textUnderlineOffset: '3px' }}>See all habits →</span>
                   </button>
                 </div>
