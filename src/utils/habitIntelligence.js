@@ -225,19 +225,15 @@ export function buildDisplayList(habits, todayStr, sinkingHabitId = null) {
     // If this habit is mid-animation, treat as unlogged for sort purposes only.
     // The card itself will render with the logged visual state.
     const isLogged = habit.dates.includes(todayStr) && habit.id !== sinkingHabitId;
-    const pattern = detectHabitWindow(habit);
-    const isPatternMatch = pattern ? isCurrentlyInWindow(pattern.windowKey) : false;
-    return { habit, originalIndex, isLogged, isPatternMatch, pattern };
+    return { habit, originalIndex, isLogged };
   });
 
-  // Group 1: unlogged + pattern match (current window)
-  const group1 = items.filter(i => !i.isLogged && i.isPatternMatch);
-  // Group 2: unlogged, no current-window match
-  const group2 = items.filter(i => !i.isLogged && !i.isPatternMatch);
-  // Group 3: logged today
-  const group3 = items.filter(i => i.isLogged);
+  // Preserve the user's exact storage order — only split unlogged vs logged today.
+  // No pattern-based reordering: the system either knows enough to show Tinder, or stays out of the way.
+  const unlogged = items.filter(i => !i.isLogged);
+  const logged   = items.filter(i =>  i.isLogged);
 
-  return [...group1, ...group2, ...group3];
+  return [...unlogged, ...logged];
 }
 
 // ─── Contextual Header ────────────────────────────────────────────────────────

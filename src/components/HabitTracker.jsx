@@ -1122,8 +1122,8 @@ export default function HabitTracker() {
           const now = new Date();
           const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
 
-          // ── STATES 1 & 2: No/low confidence — full list (smart ordered) ──
-          const displayList = isReorderMode ? habits.map((h, i) => ({ habit: h, originalIndex: i, isLogged: false, isPatternMatch: false, pattern: null })) : buildDisplayList(habits, todayStr, sinkingHabitId);
+          // ── STATE 1: No confidence / Tinder not triggered — full list in user's order ──
+          const displayList = isReorderMode ? habits.map((h, i) => ({ habit: h, originalIndex: i, isLogged: false })) : buildDisplayList(habits, todayStr, sinkingHabitId);
           const firstLoggedIdx = isReorderMode ? -1 : displayList.findIndex(item => item.isLogged);
           return (
         <div className={viewMode === '2col' ? 'grid grid-cols-2 gap-x-3 gap-y-6' : 'space-y-1.5'}>
