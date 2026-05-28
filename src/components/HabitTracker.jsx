@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import confetti from 'canvas-confetti';
 import { Plus, Check, TrendingUp, Calendar, ChevronDown, ChevronLeft, ChevronRight, Rocket, Undo2, Download, Upload, MoreHorizontal, Share2, Moon, Sun } from 'lucide-react';
 import ShareModal from './ShareModal';
-import { buildDisplayList, getFocusHabit, getContextualHeader, isComebackState, detectHabitWindow } from '../utils/habitIntelligence';
+import { buildDisplayList, getFocusHabit, getPredictedHabits, getContextualHeader, isComebackState, detectHabitWindow } from '../utils/habitIntelligence';
 
 export default function HabitTracker() {
   const [habits, setHabits] = useState([]);
@@ -45,6 +44,13 @@ export default function HabitTracker() {
   const [showIntelligenceDetail, setShowIntelligenceDetail] = useState(false);
   const [sinkingHabitId, setSinkingHabitId] = useState(null); // id of habit currently in sinking animation
 
+  // Tinder focus stack — computed once per session after habits load
+  const [tinderStack, setTinderStack] = useState(null); // null=not yet computed, []=no predictions, [...]= predictions
+  const [tinderIdx, setTinderIdx] = useState(0);
+  const [tinderCardState, setTinderCardState] = useState('idle'); // 'idle' | 'success' | 'exit-right' | 'exit-left'
+  const [swipeDelta, setSwipeDelta] = useState(0);
+  const swipeStartX = React.useRef(null);
+
   const BACKUP_REMINDER_DAYS = 5;
 
   const TOUR_STEPS = [
@@ -69,6 +75,14 @@ export default function HabitTracker() {
     localStorage.setItem('dark-mode', darkMode);
   }, [darkMode]);
   useEffect(() => { if (habits.length === 0) setIsReorderMode(false); }, [habits.length]);
+  // Initialize Tinder stack once after habits first load — never recompute mid-session
+  useEffect(() => {
+    if (!loading && habits.length > 0 && tinderStack === null) {
+      const now = new Date();
+      const ts = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+      setTinderStack(getPredictedHabits(habits, ts, sessionCount));
+    }
+  }, [loading, habits.length]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!localStorage.getItem('habit-tour-seen')) setTourStep(0);
   }, []);
@@ -233,7 +247,7 @@ export default function HabitTracker() {
     }
   };
 
-  const logToday = async (habitId) => {
+  const logToday = async (habitId, { skipSink = false } = {}) => {
     const now = new Date();
     const today = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
     const updated = habitsRef.current.map(h =>
@@ -246,12 +260,63 @@ export default function HabitTracker() {
         : h
     );
     const saved = await saveHabits(updated);
-    if (saved) {
-      confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
-      // Trigger sinking animation: pause → fade+slide → list re-sorts
+    if (saved && !skipSink) {
+      // Trigger sinking animation in list view: pause → fade+slide → re-sorts
       setSinkingHabitId(habitId);
-      setTimeout(() => setSinkingHabitId(null), 1100); // 800ms pause + 300ms animation
+      setTimeout(() => setSinkingHabitId(null), 1100);
     }
+  };
+
+  // ── Tinder handlers ──────────────────────────────────────────────────────────
+  const handleTinderLog = async () => {
+    if (!tinderStack || tinderIdx >= tinderStack.length) return;
+    const { habit } = tinderStack[tinderIdx];
+    setTinderCardState('success');
+    await logToday(habit.id, { skipSink: true }); // no sinking animation in tinder mode
+    setTimeout(() => {
+      setTinderCardState('exit-right');
+      setTimeout(() => {
+        setTinderIdx(i => i + 1);
+        setTinderCardState('idle');
+        setSwipeDelta(0);
+      }, 380);
+    }, 650);
+  };
+
+  const handleTinderSkip = () => {
+    setTinderCardState('exit-left');
+    setTimeout(() => {
+      setTinderIdx(i => i + 1);
+      setTinderCardState('idle');
+      setSwipeDelta(0);
+    }, 380);
+  };
+
+  const handleTinderTouchStart = (e) => {
+    swipeStartX.current = e.touches[0].clientX;
+  };
+  const handleTinderTouchMove = (e) => {
+    if (swipeStartX.current === null || tinderCardState !== 'idle') return;
+    setSwipeDelta(e.touches[0].clientX - swipeStartX.current);
+  };
+  const handleTinderTouchEnd = () => {
+    if (swipeDelta > 80) handleTinderLog();
+    else if (swipeDelta < -80) handleTinderSkip();
+    else setSwipeDelta(0);
+    swipeStartX.current = null;
+  };
+
+  const handleTinderMouseDown = (e) => { swipeStartX.current = e.clientX; };
+  const handleTinderMouseMove = (e) => {
+    if (swipeStartX.current === null || tinderCardState !== 'idle') return;
+    if (e.buttons === 0) { swipeStartX.current = null; setSwipeDelta(0); return; }
+    setSwipeDelta(e.clientX - swipeStartX.current);
+  };
+  const handleTinderMouseUp = () => {
+    if (swipeDelta > 80) handleTinderLog();
+    else if (swipeDelta < -80) handleTinderSkip();
+    else setSwipeDelta(0);
+    swipeStartX.current = null;
   };
 
   const resetHabit = (habitId) => {
@@ -601,6 +666,110 @@ export default function HabitTracker() {
       {/* Share modal */}
       {shareHabit && <ShareModal habit={shareHabit} onClose={() => setShareHabit(null)} />}
 
+      {/* ── TINDER FOCUS OVERLAY (high/very_high confidence) ─────────────────── */}
+      {(() => {
+        if (!tinderStack || tinderStack.length === 0 || tinderIdx >= tinderStack.length || isReorderMode) return null;
+        const { habit: tHabit } = tinderStack[tinderIdx];
+        const total = tinderStack.length;
+        const isSuccess = tinderCardState === 'success';
+        const isExiting = tinderCardState === 'exit-right' || tinderCardState === 'exit-left';
+
+        // Card visual transform
+        const cardTransformStyle = isExiting
+          ? { transform: `translateX(${tinderCardState === 'exit-right' ? '130%' : '-130%'}) rotate(${tinderCardState === 'exit-right' ? '20deg' : '-20deg'})`, opacity: 0, transition: 'transform 0.38s cubic-bezier(0.4,0,0.2,1), opacity 0.38s ease' }
+          : swipeDelta !== 0
+          ? { transform: `translateX(${swipeDelta}px) rotate(${swipeDelta * 0.04}deg)`, transition: 'none' }
+          : { transform: 'translateX(0) rotate(0deg)', transition: 'transform 0.3s ease' };
+
+        // Background gradient: blue-violet normally, green on success
+        const bg = isSuccess
+          ? 'linear-gradient(160deg, #16a34a 0%, #15803d 100%)'
+          : 'linear-gradient(160deg, #4f46e5 0%, #7c3aed 60%, #1d4ed8 100%)';
+
+        // Hint colors based on swipe direction
+        const logHintOpacity = Math.max(0, swipeDelta / 120);
+        const skipHintOpacity = Math.max(0, -swipeDelta / 120);
+
+        return (
+          <div
+            className="fixed inset-0 z-40 flex flex-col"
+            style={{ background: bg, transition: 'background 0.4s ease', paddingTop: 'max(env(safe-area-inset-top), 0px)', paddingBottom: 'max(env(safe-area-inset-bottom), 0px)' }}
+          >
+            {/* Top bar: progress dots + dashboard escape */}
+            <div className="flex items-center justify-between px-6 pt-4 pb-2">
+              <div className="flex gap-2">
+                {tinderStack.map((_, i) => (
+                  <div key={i} className="w-2 h-2 rounded-full transition-all" style={{
+                    background: i < tinderIdx ? 'rgba(255,255,255,0.3)' : i === tinderIdx ? 'white' : 'rgba(255,255,255,0.2)'
+                  }} />
+                ))}
+              </div>
+              <button
+                onClick={() => setTinderStack([])}
+                className="text-white/50 text-sm font-medium active:text-white/80 transition-colors"
+              >
+                ↓ Dashboard
+              </button>
+            </div>
+
+            {/* Swipe hint overlays */}
+            <div className="absolute inset-y-0 left-0 w-24 flex items-center justify-center pointer-events-none" style={{ opacity: skipHintOpacity }}>
+              <div className="border-2 border-red-400 rounded-xl px-3 py-1 rotate-[-20deg]">
+                <span className="text-red-400 font-bold text-lg">SKIP</span>
+              </div>
+            </div>
+            <div className="absolute inset-y-0 right-0 w-24 flex items-center justify-center pointer-events-none" style={{ opacity: logHintOpacity }}>
+              <div className="border-2 border-green-400 rounded-xl px-3 py-1 rotate-[20deg]">
+                <span className="text-green-400 font-bold text-lg">DONE</span>
+              </div>
+            </div>
+
+            {/* Card (draggable) */}
+            <div
+              className="flex-1 flex flex-col items-center justify-center px-8 select-none"
+              style={cardTransformStyle}
+              onTouchStart={handleTinderTouchStart}
+              onTouchMove={handleTinderTouchMove}
+              onTouchEnd={handleTinderTouchEnd}
+              onMouseDown={handleTinderMouseDown}
+              onMouseMove={handleTinderMouseMove}
+              onMouseUp={handleTinderMouseUp}
+            >
+              {isSuccess ? (
+                /* Success state: green check */
+                <div className="text-center" style={{ animation: 'tinderCheckPop 0.3s ease' }}>
+                  <div className="text-9xl mb-6 leading-none">✓</div>
+                  <p className="text-white text-3xl font-bold">{tHabit.name}</p>
+                  <p className="text-white/60 text-base mt-3">Logged for today</p>
+                </div>
+              ) : (
+                /* Normal state */
+                <>
+                  <p className="text-white text-5xl font-bold text-center leading-tight mb-12" style={{ textShadow: '0 2px 12px rgba(0,0,0,0.3)' }}>
+                    {tHabit.name}
+                  </p>
+                  <button
+                    onClick={handleTinderLog}
+                    className="w-full bg-white/20 hover:bg-white/30 backdrop-blur text-white rounded-2xl py-5 font-semibold text-lg active:scale-95 transition-all border border-white/20 shadow-lg"
+                    style={{ letterSpacing: '0.01em' }}
+                  >
+                    Done?
+                  </button>
+                  {total > 1 && (
+                    <p className="text-white/35 text-sm mt-5 text-center">
+                      Swipe right to log · left to skip
+                    </p>
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* Bottom safe area spacer */}
+            <div className="h-8" />
+          </div>
+        );
+      })()}
+
       {/* Settings tray */}
       <div
         className={`fixed z-50 transition-opacity duration-200 ${showSettingsSheet ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
@@ -948,109 +1117,10 @@ export default function HabitTracker() {
         <input ref={fileInputRef} type="file" accept=".json" className="hidden" onChange={handleImportFile} />
 
 
-        {/* Habits grid — or focus experience for high/very_high confidence */}
+        {/* Habits grid — smart ordered list (Tinder overlay handles high-confidence focus) */}
         {(() => {
           const now = new Date();
           const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-
-          // Determine if focus mode should replace the list
-          const focus = (!isReorderMode && !focusCardDismissed && habits.length > 0)
-            ? getFocusHabit(habits, todayStr, sessionCount)
-            : null;
-          const showFocus = focus && (focus.confidenceLevel === 'high' || focus.confidenceLevel === 'very_high');
-
-          // ── STATE 3: High confidence — prominent card, dashboard hidden, clear escape ──
-          if (showFocus && focus.confidenceLevel === 'high') {
-            const { habit: fHabit, pattern } = focus;
-            const otherCount = habits.filter(h => !h.dates.includes(todayStr) && h.id !== fHabit.id).length;
-            return (
-              <div>
-                <div className="bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800/60 rounded-3xl px-5 py-6">
-                  <p className="text-xs font-semibold text-indigo-400 dark:text-indigo-500 mb-4">{pattern.emoji} {pattern.windowLabel}</p>
-                  <p className="text-3xl font-bold text-indigo-900 dark:text-indigo-100 mb-6 leading-tight">{fHabit.name}</p>
-                  <button
-                    onClick={() => { logToday(fHabit.id); setFocusCardDismissed(true); }}
-                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl py-4 font-semibold text-base active:scale-95 transition-all shadow-lg shadow-indigo-500/20 mb-5"
-                  >
-                    ✓  Log {fHabit.name}
-                  </button>
-                  <button
-                    onClick={() => setFocusCardDismissed(true)}
-                    className="w-full text-center text-indigo-500 dark:text-indigo-400 text-sm font-medium py-1 hover:text-indigo-700 dark:hover:text-indigo-200 transition-colors"
-                  >
-                    ↓ See all {habits.length} habits
-                  </button>
-                </div>
-              </div>
-            );
-          }
-
-          // ── STATE 4: Very high confidence — full gradient card, other habits as pills ──
-          if (showFocus && focus.confidenceLevel === 'very_high') {
-            const { habit: fHabit, pattern } = focus;
-            const otherUnlogged = habits.filter(h => !h.dates.includes(todayStr) && h.id !== fHabit.id);
-            const loggedToday = habits.filter(h => h.dates.includes(todayStr));
-            const PILL_LIMIT = 4;
-            const visiblePills = otherUnlogged.slice(0, PILL_LIMIT);
-            const overflowCount = otherUnlogged.length - PILL_LIMIT;
-            return (
-              <div>
-                {/* Full focus card */}
-                <div className="bg-gradient-to-br from-indigo-600 to-blue-700 rounded-3xl px-5 pt-6 pb-7 shadow-2xl shadow-indigo-500/30 mb-5">
-                  <p className="text-sm font-semibold text-indigo-200 mb-4">{pattern.emoji} {pattern.windowLabel}</p>
-                  <p className="text-4xl font-bold text-white mb-8 leading-tight">{fHabit.name}</p>
-                  <button
-                    onClick={() => { logToday(fHabit.id); setFocusCardDismissed(true); }}
-                    className="w-full bg-white/20 hover:bg-white/30 backdrop-blur text-white rounded-2xl py-4 font-semibold text-base active:scale-95 transition-all border border-white/20"
-                  >
-                    ✓  Log {fHabit.name}
-                  </button>
-                </div>
-
-                {/* Other habits — de-emphasised pills, never truly hidden */}
-                {(otherUnlogged.length > 0 || loggedToday.length > 0) && (
-                  <div>
-                    {otherUnlogged.length > 0 && (
-                      <div className="mb-3">
-                        <p className="text-[10px] text-gray-400 dark:text-gray-600 font-semibold uppercase tracking-wider mb-2 px-1">Also today</p>
-                        <div className="flex flex-wrap gap-2">
-                          {visiblePills.map(h => (
-                            <button
-                              key={h.id}
-                              onClick={() => setFocusCardDismissed(true)}
-                              className="px-3 py-1.5 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-xs text-gray-600 dark:text-gray-300 font-medium active:scale-95 transition-all shadow-sm"
-                            >
-                              {h.name}
-                            </button>
-                          ))}
-                          {overflowCount > 0 && (
-                            <button
-                              onClick={() => setFocusCardDismissed(true)}
-                              className="px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-xs text-indigo-500 dark:text-indigo-400 font-semibold active:scale-95 transition-all"
-                            >
-                              +{overflowCount} more ↓
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                    {loggedToday.length > 0 && (
-                      <div>
-                        <p className="text-[10px] text-gray-400 dark:text-gray-600 font-semibold uppercase tracking-wider mb-2 px-1">Done today ✓</p>
-                        <div className="flex flex-wrap gap-2">
-                          {loggedToday.map(h => (
-                            <span key={h.id} className="px-3 py-1.5 rounded-full bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900/50 text-xs text-green-600 dark:text-green-400 font-medium">
-                              {h.name}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            );
-          }
 
           // ── STATES 1 & 2: No/low confidence — full list (smart ordered) ──
           const displayList = isReorderMode ? habits.map((h, i) => ({ habit: h, originalIndex: i, isLogged: false, isPatternMatch: false, pattern: null })) : buildDisplayList(habits, todayStr, sinkingHabitId);

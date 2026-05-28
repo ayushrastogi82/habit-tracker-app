@@ -175,6 +175,34 @@ export function getFocusHabit(habits, todayStr, sessionCount) {
   return best;
 }
 
+// ─── Predicted Habits (Tinder Stack) ─────────────────────────────────────────
+
+/**
+ * Returns ALL unlogged habits with high/very_high confidence for the current window.
+ * Sorted by confidence % descending — most certain first.
+ * Returns [] if comeback state, no matches, or session count too low.
+ *
+ * @param {object[]} habits
+ * @param {string} todayStr
+ * @param {number} sessionCount
+ * @returns {{ habit, pattern, confidenceLevel }[]}
+ */
+export function getPredictedHabits(habits, todayStr, sessionCount) {
+  if (isComebackState(habits)) return [];
+
+  return habits
+    .filter(h => !h.dates.includes(todayStr))
+    .map(h => {
+      const level = getConfidenceLevel(h, sessionCount);
+      if (level === 'none' || level === 'low') return null; // low = soft float only, no tinder
+      const pattern = detectHabitWindow(h);
+      if (!pattern || !isCurrentlyInWindow(pattern.windowKey)) return null;
+      return { habit: h, pattern, confidenceLevel: level };
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.pattern.confidence - a.pattern.confidence);
+}
+
 // ─── Display List Builder ────────────────────────────────────────────────────
 
 /**
