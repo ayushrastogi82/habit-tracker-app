@@ -874,15 +874,15 @@ export default function HabitTracker() {
                       padding: '6px 0',
                       transition: 'color 0.15s ease',
                       display: 'flex',
+                      flexDirection: 'column',
                       alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '5px',
+                      gap: '4px',
                     }}
                     onMouseEnter={e => e.currentTarget.style.color = 'rgba(255,255,255,0.85)'}
                     onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.55)'}
                   >
-                    <span style={{ display: 'block' }}>Not the habit you want to log right now?</span>
-                    <span style={{ display: 'block', textDecoration: 'underline', textUnderlineOffset: '3px', marginTop: '4px' }}>See all habits →</span>
+                    <span>Not the habit you want to log right now?</span>
+                    <span style={{ textDecoration: 'underline', textUnderlineOffset: '3px' }}>See all habits →</span>
                   </button>
                 </div>
               )}
