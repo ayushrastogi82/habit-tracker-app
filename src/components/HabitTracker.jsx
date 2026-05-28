@@ -36,12 +36,12 @@ export default function HabitTracker() {
 
   // Beacon Intelligence state
   const [focusCardDismissed, setFocusCardDismissed] = useState(false); // session only — resets on reload
-  const [sessionCount] = useState(() => {
+  const [sessionCount, setSessionCount] = useState(() => {
     const n = (parseInt(localStorage.getItem('beacon-session-count') || '0')) + 1;
     localStorage.setItem('beacon-session-count', String(n));
     return n;
   });
-  const [showIntelligenceDetail, setShowIntelligenceDetail] = useState(false);
+  const [showIntelligenceDetail, setShowIntelligenceDetail] = useState(true);
   const [sinkingHabitId, setSinkingHabitId] = useState(null); // id of habit currently in sinking animation
 
   // Tinder focus stack — computed once per session after habits load
@@ -83,14 +83,14 @@ export default function HabitTracker() {
     localStorage.setItem('dark-mode', darkMode);
   }, [darkMode]);
   useEffect(() => { if (habits.length === 0) setIsReorderMode(false); }, [habits.length]);
-  // Initialize Tinder stack once after habits first load — never recompute mid-session
+  // Initialize Tinder stack once after habits first load — recomputes when tinderStack is reset to null (e.g. after simulate)
   useEffect(() => {
     if (!loading && habits.length > 0 && tinderStack === null) {
       const now = new Date();
       const ts = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
       setTinderStack(getPredictedHabits(habits, ts, sessionCount));
     }
-  }, [loading, habits.length]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [loading, habits.length, tinderStack]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!localStorage.getItem('habit-tour-seen')) setTourStep(0);
   }, []);
@@ -1009,7 +1009,7 @@ export default function HabitTracker() {
                             {/* Pattern info */}
                             {pattern ? (() => {
                               const inWindow = isCurrentlyInWindow(pattern.windowKey);
-                              const confLevel = getConfidenceLevel(habit, sessionCount);
+                              const confLevel = getConfidenceLevel(h, sessionCount);
                               return (
                                 <div className="flex flex-col gap-1">
                                   <div className="flex items-center gap-1.5">
@@ -1044,24 +1044,57 @@ export default function HabitTracker() {
                     </div>
                     )}
 
-                    <button
-                      onClick={() => {
-                        setConfirmDialog({
-                          message: 'Clear all learned patterns? Beacon Intelligence will start fresh — this only removes timing data, not your habit logs.',
-                          confirmLabel: 'Clear',
-                          confirmColor: 'bg-indigo-600 hover:bg-indigo-700',
-                          onConfirm: async () => {
-                            const cleared = habits.map(h => { const { logTimes, ...rest } = h; return rest; });
-                            await saveHabits(cleared);
-                            localStorage.setItem('beacon-session-count', '0');
-                            setConfirmDialog(null);
-                          }
-                        });
-                      }}
-                      className="mt-3 text-[10px] text-red-400 dark:text-red-500 hover:text-red-600 dark:hover:text-red-400 transition-colors"
-                    >
-                      Clear learned patterns
-                    </button>
+                    {/* Test buttons row */}
+                    <div className="mt-3 flex items-center gap-3">
+                      {/* Simulate Intelligence — injects pattern data for testing */}
+                      <button
+                        onClick={async () => {
+                          const now = new Date();
+                          const currentHour = now.getHours();
+                          // Build 15 logTimes entries for each habit at current hour, across past 15 days
+                          const simulated = habits.map(h => {
+                            const newLogTimes = { ...(h.logTimes || {}) };
+                            for (let i = 1; i <= 15; i++) {
+                              const d = new Date(now);
+                              d.setDate(d.getDate() - i);
+                              d.setHours(currentHour, Math.floor(Math.random() * 30), 0, 0);
+                              const dateStr = d.toISOString().slice(0, 10);
+                              newLogTimes[dateStr] = d.getTime();
+                            }
+                            return { ...h, logTimes: newLogTimes };
+                          });
+                          await saveHabits(simulated);
+                          localStorage.setItem('beacon-session-count', '25');
+                          setSessionCount(25);
+                          setTinderStack(null); // will recompute on next render
+                          setShowSettingsSheet(false);
+                          showFeedback('🧪 Simulated! Tinder will fire now if habits are unlogged.');
+                        }}
+                        className="flex-1 text-[10px] bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 px-2 py-1.5 rounded-lg transition-colors font-medium"
+                      >
+                        🧪 Simulate (test)
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setConfirmDialog({
+                            message: 'Clear all learned patterns? Beacon Intelligence will start fresh — this only removes timing data, not your habit logs.',
+                            confirmLabel: 'Clear',
+                            confirmColor: 'bg-indigo-600 hover:bg-indigo-700',
+                            onConfirm: async () => {
+                              const cleared = habits.map(h => { const { logTimes, ...rest } = h; return rest; });
+                              await saveHabits(cleared);
+                              localStorage.setItem('beacon-session-count', '0');
+                              setSessionCount(0);
+                              setConfirmDialog(null);
+                            }
+                          });
+                        }}
+                        className="text-[10px] text-red-400 dark:text-red-500 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                      >
+                        Clear patterns
+                      </button>
+                    </div>
                   </div>
                 </>
               )}
