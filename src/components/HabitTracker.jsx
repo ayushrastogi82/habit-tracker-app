@@ -709,7 +709,7 @@ export default function HabitTracker() {
       {/* ── TINDER FOCUS OVERLAY (high/very_high confidence) ─────────────────── */}
       {(() => {
         if (!tinderStack || tinderStack.length === 0 || tinderIdx >= tinderStack.length || isReorderMode) return null;
-        const { habit: tHabit } = tinderStack[tinderIdx];
+        const { habit: tHabit, pattern: tPattern } = tinderStack[tinderIdx];
         const total = tinderStack.length;
         const isSuccess = tinderCardState === 'success';
         const isExiting = tinderCardState === 'exit-left' || tinderCardState === 'logged';
@@ -821,6 +821,18 @@ export default function HabitTracker() {
                     marginBottom: '20px',
                     boxShadow: '0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)',
                   }}>
+                    {tPattern && (
+                      <p style={{
+                        color: 'rgba(255,255,255,0.28)',
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        letterSpacing: '0.16em',
+                        textTransform: 'uppercase',
+                        marginBottom: '20px',
+                      }}>
+                        {tPattern.windowEmoji}&nbsp; {tPattern.windowLabel}
+                      </p>
+                    )}
                     <p style={{
                       color: 'white',
                       fontSize: '38px',
@@ -864,20 +876,25 @@ export default function HabitTracker() {
                     onClick={() => setTinderStack([])}
                     style={{
                       width: '100%',
-                      marginTop: '14px',
-                      color: 'rgba(255,255,255,0.35)',
-                      fontSize: '12px',
-                      fontWeight: 400,
+                      marginTop: '16px',
+                      color: 'rgba(255,255,255,0.55)',
+                      fontSize: '13px',
+                      fontWeight: 500,
                       background: 'none',
                       border: 'none',
                       cursor: 'pointer',
-                      padding: '4px 0',
+                      padding: '6px 0',
                       transition: 'color 0.15s ease',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '5px',
                     }}
-                    onMouseEnter={e => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}
-                    onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.35)'}
+                    onMouseEnter={e => e.currentTarget.style.color = 'rgba(255,255,255,0.85)'}
+                    onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.55)'}
                   >
-                    Not the right habit? Go to Dashboard
+                    {tPattern ? `Not your ${tPattern.windowLabel.toLowerCase()}?` : 'Not the right habit?'}
+                    <span style={{ textDecoration: 'underline', textUnderlineOffset: '3px' }}>See all habits →</span>
                   </button>
                 </div>
               )}
