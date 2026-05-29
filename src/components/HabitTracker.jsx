@@ -32,6 +32,7 @@ export default function HabitTracker() {
   const [showBackupReminder, setShowBackupReminder] = useState(false);
   const [shareHabit, setShareHabit] = useState(null);
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('dark-mode') === 'true');
+  const [sinkingHabitId, setSinkingHabitId] = useState(null);
   const fileInputRef = React.useRef(null);
 
   const BACKUP_REMINDER_DAYS = 5;
@@ -230,8 +231,15 @@ export default function HabitTracker() {
         ? { ...h, dates: [...h.dates, today].sort().reverse() }
         : h
     );
+    // Set sinking BEFORE save so React batches it with setHabits — card stays in DOM for animation
+    setSinkingHabitId(habitId);
     const saved = await saveHabits(updated);
-    if (saved) confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+    if (saved) {
+      confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+      setTimeout(() => setSinkingHabitId(null), 1450);
+    } else {
+      setSinkingHabitId(null);
+    }
   };
 
   const resetHabit = (habitId) => {
@@ -792,7 +800,14 @@ export default function HabitTracker() {
 
         {/* Habits grid */}
         <div className={viewMode === '2col' ? 'grid grid-cols-2 gap-x-3 gap-y-6' : 'space-y-1.5'}>
-          {habits.map((habit, index) => {
+          {[...habits]
+            .sort((a, b) => {
+              // Sinking card stays in unlogged section during animation
+              const aLogged = a.id === sinkingHabitId ? false : isLoggedToday(a.dates);
+              const bLogged = b.id === sinkingHabitId ? false : isLoggedToday(b.dates);
+              return aLogged === bLogged ? 0 : aLogged ? 1 : -1;
+            })
+            .map((habit, index) => {
             const streak = getStreakInfo(habit.dates);
             const daysSince = getDaysSinceLastLog(habit.dates);
             const loggedToday = isLoggedToday(habit.dates);
@@ -800,9 +815,19 @@ export default function HabitTracker() {
             const isRenaming = renamingHabit === habit.id;
             const totalDays = getTotalDays(habit.id, habit.dates, habit.startDate);
             const loggedDays = habit.dates.length;
+            const isSinking = habit.id === sinkingHabitId;
 
             return (
-              <div key={habit.id} className={`relative overflow-visible transition-all ${viewMode === '2col' ? 'bg-white dark:bg-gray-900 rounded-xl shadow-lg hover:shadow-xl' : isReorderMode ? 'bg-indigo-50/50 dark:bg-indigo-950/30 rounded-xl border border-indigo-100 dark:border-indigo-900' : isExpanded ? 'bg-indigo-50/40 dark:bg-indigo-950/30 rounded-xl shadow-md border border-indigo-200 dark:border-indigo-800' : 'bg-white dark:bg-gray-900 rounded-xl shadow-md hover:shadow-md border border-gray-200 dark:border-gray-800'}`}>
+              <div
+                key={habit.id}
+                className={`relative overflow-visible transition-all ${viewMode === '2col' ? 'bg-white dark:bg-gray-900 rounded-xl shadow-lg hover:shadow-xl' : isReorderMode ? 'bg-indigo-50/50 dark:bg-indigo-950/30 rounded-xl border border-indigo-100 dark:border-indigo-900' : isExpanded ? 'bg-indigo-50/40 dark:bg-indigo-950/30 rounded-xl shadow-md border border-indigo-200 dark:border-indigo-800' : 'bg-white dark:bg-gray-900 rounded-xl shadow-md hover:shadow-md border border-gray-200 dark:border-gray-800'}`}
+                style={isSinking ? {
+                  opacity: 0,
+                  transform: 'translateY(-8px) scale(0.97)',
+                  transition: 'opacity 320ms ease 600ms, transform 320ms ease 600ms',
+                  pointerEvents: 'none',
+                } : undefined}
+              >
 
                 {/* 2-col: floating streak/gap badge */}
                 {viewMode === '2col' && streak.current > 1 && (
