@@ -1044,7 +1044,7 @@ export default function HabitTracker() {
                     className="transition-[grid-template-rows] duration-300 ease-in-out"
                   >
                   <div className={`overflow-hidden transition-opacity duration-300 ${isExpanded ? 'opacity-100' : 'opacity-0'}`}>
-                  <div className="px-2 pb-2">
+                  <div className="px-2 pb-2 bg-white/50 dark:bg-white/5 rounded-b-xl">
                     <div className="h-px bg-indigo-100 dark:bg-indigo-900 mb-2" />
                     {/* Share button */}
                     <div className="flex justify-end mb-2">
