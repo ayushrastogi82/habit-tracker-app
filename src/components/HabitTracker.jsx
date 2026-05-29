@@ -33,6 +33,7 @@ export default function HabitTracker() {
   const [shareHabit, setShareHabit] = useState(null);
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('dark-mode') === 'true');
   const [sinkingHabitId, setSinkingHabitId] = useState(null);
+  const [expansionSnapshot, setExpansionSnapshot] = useState({}); // { [habitId]: wasLoggedWhenOpened }
   const fileInputRef = React.useRef(null);
 
   const BACKUP_REMINDER_DAYS = 5;
@@ -345,9 +346,29 @@ export default function HabitTracker() {
   };
 
   const toggleHabitExpansion = (habitId) => {
+    const now = new Date();
+    const ts = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
     setExpandedHabits(prev => {
       const next = new Set(prev);
-      next.has(habitId) ? next.delete(habitId) : next.add(habitId);
+      if (next.has(habitId)) {
+        // Collapsing — check if logged status changed since opening
+        next.delete(habitId);
+        const habit = habitsRef.current.find(h => h.id === habitId);
+        const wasLoggedWhenOpened = expansionSnapshot[habitId] ?? false;
+        const isNowLogged = !!(habit && habit.dates.includes(ts));
+        if (!wasLoggedWhenOpened && isNowLogged) {
+          // Became logged while expanded → trigger sink on collapse
+          setSinkingHabitId(habitId);
+          setTimeout(() => setSinkingHabitId(null), 1450);
+        }
+        setExpansionSnapshot(prev => { const n = { ...prev }; delete n[habitId]; return n; });
+      } else {
+        // Opening — snapshot current logged status to freeze position
+        const habit = habitsRef.current.find(h => h.id === habitId);
+        const isLoggedNow = !!(habit && habit.dates.includes(ts));
+        setExpansionSnapshot(prev => ({ ...prev, [habitId]: isLoggedNow }));
+        next.add(habitId);
+      }
       return next;
     });
   };
@@ -800,17 +821,22 @@ export default function HabitTracker() {
 
         {/* Habits grid */}
         {(() => {
+          const getEffectiveLogged = (h) => {
+            if (h.id === sinkingHabitId) return false;          // mid-sink: keep in unlogged section
+            if (h.id in expansionSnapshot) return expansionSnapshot[h.id]; // expanded: freeze at open-time status
+            return isLoggedToday(h.dates);
+          };
           const displayList = isReorderMode
             ? habits.map(h => ({ habit: h, isLoggedItem: false }))
             : [...habits]
                 .sort((a, b) => {
-                  const aLogged = a.id === sinkingHabitId ? false : isLoggedToday(a.dates);
-                  const bLogged = b.id === sinkingHabitId ? false : isLoggedToday(b.dates);
+                  const aLogged = getEffectiveLogged(a);
+                  const bLogged = getEffectiveLogged(b);
                   return aLogged === bLogged ? 0 : aLogged ? 1 : -1;
                 })
                 .map(h => ({
                   habit: h,
-                  isLoggedItem: h.id !== sinkingHabitId && isLoggedToday(h.dates),
+                  isLoggedItem: getEffectiveLogged(h),
                 }));
           const firstLoggedIdx = displayList.findIndex(item => item.isLoggedItem);
 
