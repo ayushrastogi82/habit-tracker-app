@@ -232,14 +232,15 @@ export default function HabitTracker() {
         ? { ...h, dates: [...h.dates, today].sort().reverse() }
         : h
     );
-    // Set sinking BEFORE save so React batches it with setHabits — card stays in DOM for animation
-    setSinkingHabitId(habitId);
+    // Only sink if the card is NOT expanded — expanded cards sink on collapse instead
+    const isExpanded = expandedHabits.has(habitId);
+    if (!isExpanded) setSinkingHabitId(habitId);
     const saved = await saveHabits(updated);
     if (saved) {
       confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
-      setTimeout(() => setSinkingHabitId(null), 1450);
+      if (!isExpanded) setTimeout(() => setSinkingHabitId(null), 1450);
     } else {
-      setSinkingHabitId(null);
+      if (!isExpanded) setSinkingHabitId(null);
     }
   };
 
