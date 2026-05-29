@@ -799,15 +799,24 @@ export default function HabitTracker() {
 
 
         {/* Habits grid */}
+        {(() => {
+          const displayList = isReorderMode
+            ? habits.map(h => ({ habit: h, isLoggedItem: false }))
+            : [...habits]
+                .sort((a, b) => {
+                  const aLogged = a.id === sinkingHabitId ? false : isLoggedToday(a.dates);
+                  const bLogged = b.id === sinkingHabitId ? false : isLoggedToday(b.dates);
+                  return aLogged === bLogged ? 0 : aLogged ? 1 : -1;
+                })
+                .map(h => ({
+                  habit: h,
+                  isLoggedItem: h.id !== sinkingHabitId && isLoggedToday(h.dates),
+                }));
+          const firstLoggedIdx = displayList.findIndex(item => item.isLoggedItem);
+
+          return (
         <div className={viewMode === '2col' ? 'grid grid-cols-2 gap-x-3 gap-y-6' : 'space-y-1.5'}>
-          {[...habits]
-            .sort((a, b) => {
-              // Sinking card stays in unlogged section during animation
-              const aLogged = a.id === sinkingHabitId ? false : isLoggedToday(a.dates);
-              const bLogged = b.id === sinkingHabitId ? false : isLoggedToday(b.dates);
-              return aLogged === bLogged ? 0 : aLogged ? 1 : -1;
-            })
-            .map((habit, index) => {
+          {displayList.map(({ habit, isLoggedItem }, displayIndex) => {
             const streak = getStreakInfo(habit.dates);
             const daysSince = getDaysSinceLastLog(habit.dates);
             const loggedToday = isLoggedToday(habit.dates);
@@ -816,11 +825,16 @@ export default function HabitTracker() {
             const totalDays = getTotalDays(habit.id, habit.dates, habit.startDate);
             const loggedDays = habit.dates.length;
             const isSinking = habit.id === sinkingHabitId;
+            const showDivider = firstLoggedIdx !== -1 && displayIndex === firstLoggedIdx;
 
             return (
+              <React.Fragment key={habit.id}>
+                {showDivider && (
+                  <div className="text-[10px] text-gray-400 dark:text-gray-600 font-semibold uppercase tracking-wider px-1 pt-2 pb-0.5">Logged today</div>
+                )}
               <div
                 key={habit.id}
-                className={`relative overflow-visible transition-all ${viewMode === '2col' ? 'bg-white dark:bg-gray-900 rounded-xl shadow-lg hover:shadow-xl' : isReorderMode ? 'bg-indigo-50/50 dark:bg-indigo-950/30 rounded-xl border border-indigo-100 dark:border-indigo-900' : isExpanded ? 'bg-indigo-50/40 dark:bg-indigo-950/30 rounded-xl shadow-md border border-indigo-200 dark:border-indigo-800' : 'bg-white dark:bg-gray-900 rounded-xl shadow-md hover:shadow-md border border-gray-200 dark:border-gray-800'}`}
+                className={`relative overflow-visible transition-all ${isLoggedItem && !isSinking ? 'opacity-60' : ''} ${viewMode === '2col' ? 'bg-white dark:bg-gray-900 rounded-xl shadow-lg hover:shadow-xl' : isReorderMode ? 'bg-indigo-50/50 dark:bg-indigo-950/30 rounded-xl border border-indigo-100 dark:border-indigo-900' : isExpanded ? 'bg-indigo-50/40 dark:bg-indigo-950/30 rounded-xl shadow-md border border-indigo-200 dark:border-indigo-800' : 'bg-white dark:bg-gray-900 rounded-xl shadow-md hover:shadow-md border border-gray-200 dark:border-gray-800'}`}
                 style={isSinking ? {
                   opacity: 0,
                   transform: 'translateY(-8px) scale(0.97)',
@@ -1288,9 +1302,12 @@ export default function HabitTracker() {
 
 
               </div>
+              </React.Fragment>
             );
           })}
         </div>
+          );
+        })()}
       </div>
     </div>
   );
