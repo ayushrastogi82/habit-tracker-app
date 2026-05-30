@@ -897,10 +897,10 @@ export default function HabitTracker() {
                     <div className="flex items-center gap-2 pl-2 pr-2 py-2">
                       {/* ↑↓ arrows — always visible, grayed when disabled */}
                       <div className="flex items-center gap-1.5 shrink-0">
-                        <button onClick={() => moveHabitUp(index)} disabled={index === 0}
-                          className={`w-7 h-7 shrink-0 rounded-lg flex items-center justify-center text-sm font-bold transition-colors ${index === 0 ? 'bg-gray-50 dark:bg-gray-800 text-gray-300 dark:text-gray-600 cursor-default' : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 active:scale-95'}`}>↑</button>
-                        <button onClick={() => moveHabitDown(index)} disabled={index === habits.length - 1}
-                          className={`w-7 h-7 shrink-0 rounded-lg flex items-center justify-center text-sm font-bold transition-colors ${index === habits.length - 1 ? 'bg-gray-50 dark:bg-gray-800 text-gray-300 dark:text-gray-600 cursor-default' : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 active:scale-95'}`}>↓</button>
+                        <button onClick={() => moveHabitUp(displayIndex)} disabled={displayIndex === 0}
+                          className={`w-7 h-7 shrink-0 rounded-lg flex items-center justify-center text-sm font-bold transition-colors ${displayIndex === 0 ? 'bg-gray-50 dark:bg-gray-800 text-gray-300 dark:text-gray-600 cursor-default' : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 active:scale-95'}`}>↑</button>
+                        <button onClick={() => moveHabitDown(displayIndex)} disabled={displayIndex === habits.length - 1}
+                          className={`w-7 h-7 shrink-0 rounded-lg flex items-center justify-center text-sm font-bold transition-colors ${displayIndex === habits.length - 1 ? 'bg-gray-50 dark:bg-gray-800 text-gray-300 dark:text-gray-600 cursor-default' : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 active:scale-95'}`}>↓</button>
                       </div>
                       {/* Habit name */}
                       {isRenaming
