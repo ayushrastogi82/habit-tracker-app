@@ -1078,9 +1078,14 @@ export default function HabitTracker() {
                       {/* Left: name + type label */}
                       <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5">
                         <div className="font-bold text-gray-800 dark:text-gray-100 truncate text-sm">{habit.name}</div>
-                        <span className="text-xs text-gray-400 dark:text-gray-500">
-                          {isWeekly ? `Weekly · ${wTarget}/wk` : isMonthly ? `Monthly · ${mTarget}/mo` : 'Daily'}
-                        </span>
+                        <div className="flex items-center gap-1">
+                          <span className="text-xs text-gray-400 dark:text-gray-500">
+                            {isWeekly ? `Weekly · ${wTarget}/wk` : isMonthly ? `Monthly · ${mTarget}/mo` : 'Daily'}
+                          </span>
+                          {showWhatsNew && habit.category && (
+                            <span className="text-xs text-indigo-400 dark:text-indigo-500 font-medium">· {habit.category}</span>
+                          )}
+                        </div>
                       </div>
 
                       {/* Middle: streak/gap pill (top) + tracker (bottom) — same column, right-aligned, extra gap before Done */}
