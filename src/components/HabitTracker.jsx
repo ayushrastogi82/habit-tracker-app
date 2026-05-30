@@ -4,6 +4,7 @@ import { Plus, Check, TrendingUp, Calendar, ChevronDown, ChevronLeft, ChevronRig
 import ShareModal from './ShareModal';
 import { CategoryFilterBar } from './CategoryFilterBar';
 import { detectCategory } from '../utils/categorization';
+import { KEYWORDS_VERSION } from '../data/categories';
 
 export default function HabitTracker() {
   const [habits, setHabits] = useState([]);
@@ -89,15 +90,18 @@ export default function HabitTracker() {
       return;
     }
 
-    // Check if any habit is missing a category field
+    const storedVersion = parseInt(localStorage.getItem('keywords-version') || '0');
     const needsMigration = habits.some(h => !h.category);
+    const keywordsUpdated = storedVersion < KEYWORDS_VERSION;
 
-    if (needsMigration) {
+    if (needsMigration || keywordsUpdated) {
+      // Re-categorize all habits if keywords changed; only missing ones otherwise
       const migratedHabits = habits.map(h => ({
         ...h,
-        category: h.category || detectCategory(h.name)
+        category: keywordsUpdated ? detectCategory(h.name) : (h.category || detectCategory(h.name))
       }));
       saveHabits(migratedHabits);
+      localStorage.setItem('keywords-version', KEYWORDS_VERSION);
     }
 
     // Update categories list from habits

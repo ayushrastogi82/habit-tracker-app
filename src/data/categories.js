@@ -1,3 +1,6 @@
+// Bump this whenever CATEGORY_KEYWORDS changes — triggers re-categorization of all habits
+export const KEYWORDS_VERSION = 2;
+
 export const DEFAULT_CATEGORIES = [
   { id: "health", name: "Health", icon: "🏃" },
   { id: "mind", name: "Mind", icon: "🧘" },
