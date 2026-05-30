@@ -29,10 +29,15 @@ export const CATEGORY_KEYWORDS = {
   creativity: ["draw", "paint", "music", "guitar", "piano", "sing", "dance",
                "write", "sketch", "craft", "art", "design", "photo", "video",
                "instrument", "compose", "create", "blog"],
-  nutrition: ["pear", "apple", "broccoli", "oats", "hemp", "seeds", "seed", "figs",
+  nutrition: ["fruit", "fruits", "vegetable", "vegetables", "veggie", "veggies",
+              "salad", "smoothie", "juice", "greens", "supplement",
+              "pear", "apple", "broccoli", "oats", "hemp", "seeds", "seed", "figs",
               "carrots", "banana", "cheese", "paneer", "avocado", "kale", "spinach",
               "blueberry", "strawberry", "orange", "lemon", "lime", "grapes", "watermelon",
+              "mango", "pineapple", "peach", "plum", "cherry", "berries", "tomato",
+              "cucumber", "celery", "beet", "zucchini", "mushroom",
               "almonds", "walnuts", "cashews", "peanuts", "chicken", "fish", "salmon",
               "tuna", "egg", "eggs", "milk", "yogurt", "quinoa", "brown rice", "nutrition",
-              "eat", "breakfast", "lunch", "dinner", "snack", "healthy", "organic"]
+              "eat", "breakfast", "lunch", "dinner", "snack", "healthy", "organic",
+              "protein shake", "whey", "creatine", "fiber", "calorie", "macro"]
 };

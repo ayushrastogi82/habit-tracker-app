@@ -832,11 +832,13 @@ export default function HabitTracker() {
 
         {/* Category filter bar */}
         {habits.length > 0 && !isReorderMode && (
-          <CategoryFilterBar
-            categories={categories}
-            activeCategory={activeCategory}
-            onCategoryChange={setActiveCategory}
-          />
+          <div className="mb-2">
+            <CategoryFilterBar
+              categories={categories}
+              activeCategory={activeCategory}
+              onCategoryChange={setActiveCategory}
+            />
+          </div>
         )}
 
         {/* Empty state */}
