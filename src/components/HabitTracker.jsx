@@ -263,8 +263,10 @@ export default function HabitTracker() {
   };
 
   const deleteHabit = (habitId) => {
+    const habit = habits.find(h => h.id === habitId);
     setConfirmDialog({
-      message: 'Delete this habit? All logged dates will be lost.',
+      habitName: habit?.name,
+      message: 'All logged dates will be lost.',
       onConfirm: async () => {
         const prev = habits.find(h => h.id === habitId);
         const saved = await saveHabits(habits.filter(h => h.id !== habitId));
@@ -684,7 +686,10 @@ export default function HabitTracker() {
       {confirmDialog && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl max-w-sm w-full p-4">
-            <p className="text-gray-700 dark:text-gray-300 text-sm mb-4 leading-relaxed">{confirmDialog.message}</p>
+            {confirmDialog.habitName && (
+              <p className="text-base font-bold text-gray-900 dark:text-gray-100 mb-1">Delete "{confirmDialog.habitName}"?</p>
+            )}
+            <p className="text-gray-500 dark:text-gray-400 text-sm mb-4 leading-relaxed">{confirmDialog.message}</p>
             <div className="flex gap-2">
               <button onClick={confirmDialog.onConfirm} className={`flex-1 px-4 py-2 text-white rounded-xl text-sm font-semibold ${confirmDialog.confirmColor || 'bg-red-600 hover:bg-red-700'}`}>{confirmDialog.confirmLabel || 'Delete'}</button>
               <button onClick={() => setConfirmDialog(null)} className="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 text-sm font-semibold">Cancel</button>
