@@ -852,7 +852,7 @@ export default function HabitTracker() {
           <div className="flex items-center gap-2 bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/60 rounded-xl px-3 py-2 mb-2">
             <span className="text-base leading-none">✨</span>
             <p className="flex-1 text-xs font-semibold text-indigo-700 dark:text-indigo-300">
-              Your habits are organized by category. Tap one to focus.
+              Habits organized for you. Tap a category to get started.
             </p>
             <button
               onClick={dismissWhatsNew}
