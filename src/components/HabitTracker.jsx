@@ -39,6 +39,7 @@ export default function HabitTracker() {
   const [expansionSnapshot, setExpansionSnapshot] = useState({}); // { [habitId]: wasLoggedWhenOpened }
   const [activeCategory, setActiveCategory] = useState('All'); // Track active filter tab
   const [categories, setCategories] = useState([]); // Store list of category names
+  const [showWhatsNew, setShowWhatsNew] = useState(false);
   const fileInputRef = React.useRef(null);
 
   const BACKUP_REMINDER_DAYS = 5;
@@ -113,6 +114,18 @@ export default function HabitTracker() {
   useEffect(() => {
     setActiveCategory('All');
   }, []);
+
+  // Show What's New banner once after categories feature ships
+  useEffect(() => {
+    if (!localStorage.getItem('category-feature-seen')) {
+      setShowWhatsNew(true);
+    }
+  }, []);
+
+  const dismissWhatsNew = () => {
+    setShowWhatsNew(false);
+    localStorage.setItem('category-feature-seen', 'true');
+  };
 
   const endTour = () => {
     localStorage.setItem('habit-tour-seen', '1');
@@ -834,13 +847,32 @@ export default function HabitTracker() {
           </div>
         )}
 
+        {/* What's New banner — shown once after categories feature ships */}
+        {showWhatsNew && habits.length > 0 && !isReorderMode && (
+          <div className="flex items-center gap-2 bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/60 rounded-xl px-3 py-2 mb-2">
+            <span className="text-base leading-none">✨</span>
+            <p className="flex-1 text-xs font-semibold text-indigo-700 dark:text-indigo-300">
+              New: Filter your habits by category
+            </p>
+            <button
+              onClick={dismissWhatsNew}
+              className="text-indigo-400 dark:text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-300 text-lg leading-none transition-colors"
+            >
+              ×
+            </button>
+          </div>
+        )}
+
         {/* Category filter bar */}
         {habits.length > 0 && !isReorderMode && (
           <div className="mb-2">
             <CategoryFilterBar
               categories={categories}
               activeCategory={activeCategory}
-              onCategoryChange={setActiveCategory}
+              onCategoryChange={(cat) => {
+                setActiveCategory(cat);
+                if (showWhatsNew) dismissWhatsNew();
+              }}
             />
           </div>
         )}
