@@ -1,0 +1,38 @@
+export const DEFAULT_CATEGORIES = [
+  { id: "health", name: "Health", icon: "🏃" },
+  { id: "mind", name: "Mind", icon: "🧘" },
+  { id: "learning", name: "Learning", icon: "📚" },
+  { id: "personal", name: "Personal", icon: "👤" },
+  { id: "finance", name: "Finance", icon: "💰" },
+  { id: "creativity", name: "Creativity", icon: "🎨" },
+  { id: "nutrition", name: "Nutrition", icon: "🥗" }
+];
+
+export const CATEGORY_KEYWORDS = {
+  health: ["gym", "workout", "exercise", "run", "walk", "swim", "yoga", "stretch",
+           "weights", "cycling", "steps", "water", "vitamins", "medicine", "sleep",
+           "diet", "calories", "protein", "cold shower", "tennis", "sport", "soccer",
+           "basketball", "football", "hockey", "volleyball", "badminton", "cricket",
+           "skipping", "rope", "jumping", "jacks", "dance", "hiit", "cardio", "pushup",
+           "pullup", "squat", "plank", "crossfit", "pilates", "hike", "jogging"],
+  mind: ["meditation", "mindfulness", "journal", "gratitude", "prayer", "breathing",
+         "therapy", "reflect", "affirmation", "anxiety", "stress", "mental",
+         "calm", "peace", "breathe"],
+  learning: ["read", "study", "course", "practice", "learn", "language", "coding",
+             "writing", "research", "book", "podcast", "skill", "spanish", "french",
+             "math", "science", "history"],
+  personal: ["call", "family", "friends", "date", "social", "text", "connect",
+             "parents", "kids", "relationship", "love", "partner", "clean", "tidy",
+             "organize", "cook", "meal", "prep", "laundry", "shower"],
+  finance: ["save", "invest", "budget", "spend", "money", "expense", "track",
+            "donation", "crypto", "stocks", "financial"],
+  creativity: ["draw", "paint", "music", "guitar", "piano", "sing", "dance",
+               "write", "sketch", "craft", "art", "design", "photo", "video",
+               "instrument", "compose", "create", "blog"],
+  nutrition: ["pear", "apple", "broccoli", "oats", "hemp", "seeds", "seed", "figs",
+              "carrots", "banana", "cheese", "paneer", "avocado", "kale", "spinach",
+              "blueberry", "strawberry", "orange", "lemon", "lime", "grapes", "watermelon",
+              "almonds", "walnuts", "cashews", "peanuts", "chicken", "fish", "salmon",
+              "tuna", "egg", "eggs", "milk", "yogurt", "quinoa", "brown rice", "nutrition",
+              "eat", "breakfast", "lunch", "dinner", "snack", "healthy", "organic"]
+};

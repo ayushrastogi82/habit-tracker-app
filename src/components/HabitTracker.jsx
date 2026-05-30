@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
 import { Plus, Check, TrendingUp, Calendar, ChevronDown, ChevronLeft, ChevronRight, Rocket, Undo2, Download, Upload, MoreHorizontal, Share2, Moon, Sun } from 'lucide-react';
 import ShareModal from './ShareModal';
+import { CategoryFilterBar } from './CategoryFilterBar';
+import { detectCategory } from '../utils/categorization';
 
 export default function HabitTracker() {
   const [habits, setHabits] = useState([]);
@@ -34,6 +36,8 @@ export default function HabitTracker() {
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('dark-mode') === 'true');
   const [sinkingHabitId, setSinkingHabitId] = useState(null);
   const [expansionSnapshot, setExpansionSnapshot] = useState({}); // { [habitId]: wasLoggedWhenOpened }
+  const [activeCategory, setActiveCategory] = useState('All'); // Track active filter tab
+  const [categories, setCategories] = useState([]); // Store list of category names
   const fileInputRef = React.useRef(null);
 
   const BACKUP_REMINDER_DAYS = 5;
@@ -77,6 +81,34 @@ export default function HabitTracker() {
     }, 1000);
     return () => clearInterval(interval);
   }, [undoToast]);
+
+  // Migrate habits to have category field and update categories list
+  useEffect(() => {
+    if (habits.length === 0) {
+      setCategories([]);
+      return;
+    }
+
+    // Check if any habit is missing a category field
+    const needsMigration = habits.some(h => !h.category);
+
+    if (needsMigration) {
+      const migratedHabits = habits.map(h => ({
+        ...h,
+        category: h.category || detectCategory(h.name)
+      }));
+      saveHabits(migratedHabits);
+    }
+
+    // Update categories list from habits
+    const uniqueCategories = new Set(habits.map(h => h.category || detectCategory(h.name)));
+    setCategories(Array.from(uniqueCategories).sort());
+  }, [habits.length]); // Only run when habits are added/removed, not on every render
+
+  // Reset active category to 'All' when app opens (per spec)
+  useEffect(() => {
+    setActiveCategory('All');
+  }, []);
 
   const endTour = () => {
     localStorage.setItem('habit-tour-seen', '1');
@@ -210,9 +242,11 @@ export default function HabitTracker() {
     if (!habitName) { setNameError(true); return; }
     setNameError(false);
     showFeedback('⏳ Adding...');
+    const detectedCategory = detectCategory(habitName);
     const habit = {
       id: Date.now().toString(), name: habitName, dates: [],
       type: newHabitType,
+      category: detectedCategory,
       ...(newHabitType === 'weekly' ? { weeklyTarget: newHabitWeeklyTarget } : {}),
       ...(newHabitType === 'monthly' ? { monthlyTarget: newHabitMonthlyTarget } : {})
     };
@@ -796,12 +830,25 @@ export default function HabitTracker() {
           </div>
         )}
 
+        {/* Category filter bar */}
+        {habits.length > 0 && !isReorderMode && (
+          <CategoryFilterBar
+            categories={categories}
+            activeCategory={activeCategory}
+            onCategoryChange={setActiveCategory}
+          />
+        )}
+
         {/* Empty state */}
         {habits.length === 0 && !isAddingHabit && (
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg text-center p-12">
             <Calendar className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
             <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-200 mb-2">Start Your Journey</h2>
-            <p className="text-gray-500 dark:text-gray-400 mb-6">Add your first habit to get started</p>
+            <p className="text-gray-500 dark:text-gray-400 mb-6">
+              {activeCategory === 'All'
+                ? 'Add your first habit to get started'
+                : `No habits in ${activeCategory} yet`}
+            </p>
             <button
               onClick={() => setIsAddingHabit(true)}
               className="px-6 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-semibold shadow-md active:scale-95 mb-4 inline-flex items-center gap-2"
@@ -835,6 +882,12 @@ export default function HabitTracker() {
           const displayList = isReorderMode
             ? habits.map(h => ({ habit: h, isLoggedItem: false }))
             : [...habits]
+                .filter(h => {
+                  // If 'All' is selected, show everything
+                  // Otherwise, filter by active category
+                  if (activeCategory === 'All') return true;
+                  return (h.category || 'Personal') === activeCategory;
+                })
                 .sort((a, b) => {
                   const aLogged = getEffectiveLogged(a);
                   const bLogged = getEffectiveLogged(b);
@@ -1337,6 +1390,15 @@ export default function HabitTracker() {
               </React.Fragment>
             );
           })}
+          {displayList.length === 0 && habits.length > 0 && (
+            <div className="text-center py-12">
+              <p className="text-gray-500 dark:text-gray-400 mb-4">
+                {activeCategory === 'All'
+                  ? 'No habits yet. Click + to create one.'
+                  : `No habits in ${activeCategory} yet.`}
+              </p>
+            </div>
+          )}
         </div>
           );
         })()}
