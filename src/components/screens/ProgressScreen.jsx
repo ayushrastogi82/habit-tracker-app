@@ -765,11 +765,10 @@ function HabitDetailCard({ habit, logs }) {
     } else if (runState.totalEver === 0) {
       statusText = 'Not started yet'
     } else {
-      // Run is broken — show factual away count in muted text (no sentiment, today excluded).
-      // missedCompletedDays is 0 when the rest-day cushion absorbed the miss (run intact).
-      statusText = runState.missedCompletedDays > 0
-        ? `Away — ${runState.missedCompletedDays} ${runState.missedCompletedDays === 1 ? 'day' : 'days'}`
-        : ''
+      // Run is broken — show bare "Away", never a day count (voice rule 4).
+      // Beacon never quantifies absence — a gap count is streak-shame inverted.
+      // The grid shows the gap honestly; expanded stats give specifics on demand.
+      statusText = runState.missedCompletedDays > 0 ? 'Away' : ''
     }
   } else if (freq === 'weekly') {
     const weekRun   = getWeeklyRun()
