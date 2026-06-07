@@ -98,29 +98,56 @@ function MonthHeatmap({ habits, logs, viewMonth }) {
   )
 }
 
-// ── 26-week contribution grid for a single habit ──────────────────────────────
-// Always exactly 26 columns (1fr each → fills full card width).
-// Anchored to the Sunday on-or-before Jan 1, shifted by windowOffset * 26 weeks.
-// Each week is labelled by its Thursday (mid-week) to avoid split-month edge
-// cases (e.g. the week May 31-Jun 6 is rightly shown under "Jun").
-// Cell states (B7): logged | rest-day (cushion-absorbed) | missed-past | upcoming
+// ── Month arithmetic helper ────────────────────────────────────────────────────
+// Uses the 15th to avoid month-overflow edge cases (e.g. Jan 31 + 1 month).
+// Returns a YYYY-MM string.
+const addMonths = (ym, delta) => {
+  const d = new Date(ym + '-15T12:00:00')
+  d.setMonth(d.getMonth() + delta)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+}
+
+// ── 6-month rolling contribution grid (B9) ────────────────────────────────────
+// The window always spans exactly 6 calendar months.
+// Default: current month pinned at the right edge (like GitHub's contribution
+// graph — "now" is always on the right).
+// Navigation shifts by ONE month at a time so five of six months overlap and
+// older data is revealed gradually. Right arrow disabled when right edge is the
+// current month. Left arrow disabled when sliding further would leave the
+// habit's entire life off-screen (don't show all-empty pre-start grids).
+// Months before the habit's first log render as upcoming-style (not missed).
+// Cell states (B7): logged | rest-day | missed-past | upcoming/pre-habit
 function SixMonthGrid({ habitId, logs, restDayDates = new Set(), onRestDayTap }) {
-  const [windowOffset, setWindowOffset] = useState(0) // 0 = current, -1 = prev window, etc.
+  const todayStr       = today()
+  const currentMonthYM = todayStr.substring(0, 7)
 
-  const todayStr  = today()
-  const todayDate = new Date(todayStr + 'T00:00:00')
+  // windowEndMonth is the YYYY-MM of the rightmost month in the 6-month window.
+  const [windowEndMonth, setWindowEndMonth] = useState(currentMonthYM)
 
-  // Sunday on-or-before Jan 1 of the current year, then shift by offset
-  const jan1 = new Date(todayDate.getFullYear(), 0, 1)
-  const baseStart = new Date(jan1)
-  baseStart.setDate(jan1.getDate() - jan1.getDay()) // e.g. Dec 28 for 2026
-  const startDate = new Date(baseStart)
-  startDate.setDate(baseStart.getDate() + windowOffset * 26 * 7)
+  // First log date — determines pre-habit cell styling and left-bound check.
+  const firstLogDate = Object.keys(logs)
+    .filter(d => (logs[d] || []).includes(habitId))
+    .sort()[0] || null
+  const firstLogMonth = firstLogDate ? firstLogDate.substring(0, 7) : null
 
-  const WEEKS = 26
-  const weeks = []
-  const cursor = new Date(startDate)
-  for (let w = 0; w < WEEKS; w++) {
+  // 6-month window: leftmost month is 5 months before windowEndMonth.
+  const windowStartMonth = addMonths(windowEndMonth, -5)
+
+  // Grid starts on the Sunday on-or-before the 1st of windowStartMonth.
+  const firstOfStart = new Date(windowStartMonth + '-01T12:00:00')
+  const gridStart    = new Date(firstOfStart)
+  gridStart.setDate(firstOfStart.getDate() - firstOfStart.getDay())
+
+  // Grid ends on the Saturday on-or-after the last day of windowEndMonth.
+  const [endYr, endMo] = windowEndMonth.split('-').map(Number)
+  const lastOfEnd  = new Date(endYr, endMo, 0) // day 0 of next month = last day
+  const gridEnd    = new Date(lastOfEnd)
+  gridEnd.setDate(lastOfEnd.getDate() + ((6 - lastOfEnd.getDay() + 7) % 7))
+
+  // Build week arrays (variable column count, typically 25–27).
+  const weeks  = []
+  const cursor = new Date(gridStart)
+  while (cursor <= gridEnd) {
     const week = []
     for (let d = 0; d < 7; d++) {
       week.push(formatDate(new Date(cursor)))
@@ -128,12 +155,12 @@ function SixMonthGrid({ habitId, logs, restDayDates = new Set(), onRestDayTap })
     }
     weeks.push(week)
   }
+  const WEEKS = weeks.length
 
-  // Label each week by its Thursday (index 3) — avoids "May" label on a week
-  // that is mostly in June (e.g. week May31-Jun6 → Thu Jun 4 → "Jun")
+  // Label each week by its Thursday — avoids "May" on a week that is mostly June.
   const monthSpans = []
   weeks.forEach((week) => {
-    const thu   = week[3] // Thursday = index 3
+    const thu   = week[3]
     const mo    = thu.substring(0, 7)
     const label = new Date(thu + 'T00:00:00').toLocaleDateString('en-US', { month: 'short' })
     if (!monthSpans.length || monthSpans[monthSpans.length - 1].mo !== mo) {
@@ -143,41 +170,42 @@ function SixMonthGrid({ habitId, logs, restDayDates = new Set(), onRestDayTap })
     }
   })
 
-  // Range label — derived from monthSpans so it matches what the grid labels show.
-  // The first span is often a 1-week stub (e.g. "Dec" when the window opens Dec 28)
-  // which is hidden in the grid labels, so skip it for the range label too.
-  const fmtSpanMon   = (mo) => new Date(mo + '-15T00:00:00').toLocaleDateString('en-US', { month: 'short' })
-  const fmtSpanMonYr = (mo) => new Date(mo + '-15T00:00:00').toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
-  const firstVisibleSpan = monthSpans.find(s => s.count >= 2) || monthSpans[0]
-  const lastSpan         = monthSpans[monthSpans.length - 1]
-  const rangeLabel = firstVisibleSpan.mo.substring(0, 4) === lastSpan.mo.substring(0, 4)
-    ? `${fmtSpanMon(firstVisibleSpan.mo)} – ${fmtSpanMonYr(lastSpan.mo)}`
-    : `${fmtSpanMonYr(firstVisibleSpan.mo)} – ${fmtSpanMonYr(lastSpan.mo)}`
+  // Range label — "Jan – Jun 2026" or "Nov 2025 – Apr 2026" across year boundary.
+  const startYr = parseInt(windowStartMonth.substring(0, 4))
+  const endYr2  = parseInt(windowEndMonth.substring(0, 4))
+  const fmtMo   = (ym, withYear) =>
+    new Date(ym + '-15T00:00:00').toLocaleDateString('en-US',
+      { month: 'short', ...(withYear ? { year: 'numeric' } : {}) })
+  const rangeLabel = startYr === endYr2
+    ? `${fmtMo(windowStartMonth, false)} – ${fmtMo(windowEndMonth, true)}`
+    : `${fmtMo(windowStartMonth, true)} – ${fmtMo(windowEndMonth, true)}`
 
-  // Show nav only if habit has logs before the current window start (or we've already navigated back)
-  const windowStartStr = formatDate(startDate)
-  const hasPrevData    = Object.keys(logs).some(d => (logs[d] || []).includes(habitId) && d < windowStartStr)
-  const canGoBack      = hasPrevData
-  const canGoForward   = windowOffset < 0
-  const showNav        = canGoBack || canGoForward
+  // Navigation bounds (B9).
+  // Right: disabled when already showing current month at the right edge.
+  const canGoForward = windowEndMonth < currentMonthYM
+  // Left: disabled when sliding one more month left would put the habit's entire
+  // life off the right edge of the new window (i.e. firstLogMonth > new right edge).
+  const proposedRightEdge = addMonths(windowEndMonth, -1)
+  const canGoBack = firstLogMonth ? firstLogMonth <= proposedRightEdge : false
+  const showNav   = canGoBack || canGoForward
 
-  // DOW label column width (px) — must match the inline style below
+  // DOW label column width (px) — must match the inline style below.
   const DOW_W = 10
 
   return (
     <div className="space-y-1">
-      {/* Navigation row — only rendered when there's a previous window with data */}
+      {/* Navigation row — shown whenever forward or backward navigation is possible */}
       {showNav && (
         <div className="flex items-center justify-between">
           <button
-            onClick={() => canGoBack && setWindowOffset(o => o - 1)}
+            onClick={() => canGoBack && setWindowEndMonth(m => addMonths(m, -1))}
             className={`p-0.5 rounded ${canGoBack ? 'text-app-tertiary hover:text-app-secondary active:text-app-text' : 'text-app-elevated cursor-default'}`}
           >
             <ChevronLeft className="w-3.5 h-3.5" />
           </button>
           <span className="text-[9px] text-app-tertiary font-medium">{rangeLabel}</span>
           <button
-            onClick={() => canGoForward && setWindowOffset(o => o + 1)}
+            onClick={() => canGoForward && setWindowEndMonth(m => addMonths(m, 1))}
             className={`p-0.5 rounded ${canGoForward ? 'text-app-tertiary hover:text-app-secondary active:text-app-text' : 'text-app-elevated cursor-default'}`}
           >
             <ChevronRight className="w-3.5 h-3.5" />
@@ -198,7 +226,7 @@ function SixMonthGrid({ habitId, logs, restDayDates = new Set(), onRestDayTap })
         ))}
       </div>
 
-      {/* DOW labels + full-width 26-column grid */}
+      {/* DOW labels + full-width variable-column grid */}
       <div className="flex items-start" style={{ gap: 3 }}>
         {/* Day-of-week labels */}
         <div className="flex flex-col" style={{ gap: 2, width: DOW_W, flexShrink: 0 }}>
@@ -213,7 +241,7 @@ function SixMonthGrid({ habitId, logs, restDayDates = new Set(), onRestDayTap })
           ))}
         </div>
 
-        {/* repeat(26, 1fr) → columns fill the available width exactly */}
+        {/* repeat(WEEKS, 1fr) → columns fill the available width exactly */}
         <div
           style={{
             flex: 1,
@@ -227,18 +255,21 @@ function SixMonthGrid({ habitId, logs, restDayDates = new Set(), onRestDayTap })
         >
           {weeks.flatMap((week, wi) =>
             week.map((dateStr, di) => {
+              // Months before the habit existed are "pre-habit" — render as
+              // upcoming-style, not as missed days (B9).
+              const isPreHabit = firstLogDate ? dateStr < firstLogDate : false
               const isFuture   = dateStr > todayStr
-              const logged     = !isFuture && (logs[dateStr] || []).includes(habitId)
+              const logged     = !isFuture && !isPreHabit && (logs[dateStr] || []).includes(habitId)
               const isToday    = dateStr === todayStr
-              const isRestDay  = !logged && !isFuture && !isToday && restDayDates.has(dateStr)
+              const isRestDay  = !logged && !isFuture && !isPreHabit && !isToday && restDayDates.has(dateStr)
               // Cell colors (B7):
-              //   logged     → solid teal
-              //   rest day   → dark background + dim teal outline ring (distinct from today ring)
-              //   missed past → #2C2C2E
-              //   upcoming   → #1C1C1E
+              //   logged          → solid teal
+              //   rest day        → dark bg + centred dim-teal dot
+              //   missed past     → app-cell-past
+              //   future/pre-habit → app-cell-future (lighter, "upcoming" look)
               const bgColor = logged
                 ? 'var(--app-accent-color)'
-                : isFuture
+                : (isFuture || isPreHabit)
                 ? 'var(--app-cell-future)'
                 : 'var(--app-cell-past)'
               return (
