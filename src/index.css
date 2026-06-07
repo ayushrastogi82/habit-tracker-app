@@ -1,16 +1,165 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-body {
-  margin: 0;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background-color: #f9fafb; /* gray-50 — matches app wrapper, keeps iOS status bar consistent */
+/* ── Apple iOS design tokens ────────────────────────────────────────────────── */
+/* Light mode = default (:root). Dark mode overrides in html.dark.              */
+/* Mirrors tailwind.config.js — keep in sync.                                   */
+
+:root {
+  /* Apple iOS light mode system colors */
+  --app-bg:            #F2F2F7;   /* systemGroupedBackground */
+  --app-surface:       #FFFFFF;   /* secondarySystemGroupedBackground */
+  --app-elevated:      #E5E5EA;   /* opaqueSeparator / tertiary fill */
+  --app-secondary:     #6C6C70;   /* secondaryLabel */
+  --app-tertiary:      #AEAEB2;   /* tertiaryLabel */
+  --app-green:         #34C759;   /* systemGreen (same both modes) */
+  --app-green-surface: #EBF9F0;   /* tinted green fill */
+  --app-red:           #FF3B30;   /* systemRed (same both modes) */
+  --app-text:          #000000;   /* label */
+  /* Accent — teal in light mode */
+  --app-accent-rgb:     20 184 166;   /* teal-500 */
+  --app-accent-dim-rgb: 45 212 191;   /* teal-400 */
+  --app-accent-color:   #14B8A6;      /* teal-500 hex — for inline styles */
+  /* Grid cells */
+  --app-cell-past:   #E5E5EA;
+  --app-cell-future: #D1D1D6;
 }
 
-html.dark body {
-  background-color: #030712; /* gray-950 */
+/* ── Scheme 1: iOS Dark (default) ────────────────────────────────────────────── */
+html.dark {
+  /* Apple iOS dark mode system colors */
+  --app-bg:            #000000;
+  --app-surface:       #1C1C1E;
+  --app-elevated:      #2C2C2E;
+  --app-secondary:     #8E8E93;
+  --app-tertiary:      #636366;
+  --app-green:         #34C759;
+  --app-green-surface: #1A3A2A;
+  --app-red:           #FF3B30;
+  --app-text:          #FFFFFF;
+  /* Accent — teal */
+  --app-accent-rgb:     20 184 166;   /* teal-500 */
+  --app-accent-dim-rgb: 45 212 191;   /* teal-400 */
+  --app-accent-color:   #14B8A6;      /* teal-500 hex — for inline styles */
+  /* Grid cells */
+  --app-cell-past:   #2C2C2E;
+  --app-cell-future: #3A3A3C;
+}
+
+/* ── Scheme 2: Charcoal + Cyan ────────────────────────────────────────────────── */
+html.dark.dark-scheme-2 {
+  --app-bg:            #1C1C1C;
+  --app-surface:       #262626;
+  --app-elevated:      #333333;
+  --app-secondary:     #9A9A9A;
+  --app-tertiary:      #6A6A6A;
+  --app-green:         #34C759;
+  --app-green-surface: #1A3A2A;
+  --app-red:           #FF3B30;
+  --app-text:          #F2F2F2;
+  /* Accent — cyan */
+  --app-accent-rgb:     6 182 212;    /* cyan-500 */
+  --app-accent-dim-rgb: 34 211 238;   /* cyan-400 */
+  --app-accent-color:   #06B6D4;      /* cyan-500 hex — for inline styles */
+  /* Grid cells */
+  --app-cell-past:   #333333;
+  --app-cell-future: #3D3D3D;
+}
+
+/* ── Scheme 3: Navy + Gold ────────────────────────────────────────────────────── */
+html.dark.dark-scheme-3 {
+  --app-bg:            #0D1520;
+  --app-surface:       #152030;
+  --app-elevated:      #1E2D40;
+  --app-secondary:     #7A8FA8;
+  --app-tertiary:      #4E6275;
+  --app-green:         #34C759;
+  --app-green-surface: #0F2B1A;
+  --app-red:           #FF3B30;
+  --app-text:          #E8EEF5;
+  /* Accent — gold */
+  --app-accent-rgb:     251 191 36;   /* amber-400 */
+  --app-accent-dim-rgb: 252 211 77;   /* amber-300 */
+  --app-accent-color:   #FBBF24;      /* amber-400 hex — for inline styles */
+  /* Grid cells */
+  --app-cell-past:   #1E2D40;
+  --app-cell-future: #243344;
+}
+
+/* ── Scheme 4: Midnight Iris ──────────────────────────────────────────────────── */
+html.dark.dark-scheme-4 {
+  --app-bg:            #1B1A3A;   /* Dark Velvet Indigo */
+  --app-surface:       #2E2B5F;   /* Midnight Purple-Blue */
+  --app-elevated:      #4A3E8C;   /* Royal Indigo */
+  --app-secondary:     #9B94D4;   /* muted lavender — readable secondary text */
+  --app-tertiary:      #6E67A8;   /* deeper muted — tertiary labels */
+  --app-green:         #34C759;
+  --app-green-surface: #1A1F3A;   /* deep indigo-tinted green surface */
+  --app-red:           #FF3B30;
+  --app-text:          #F3F1FF;   /* Icy Off-White */
+  /* Accent — Soft Lavender */
+  --app-accent-rgb:     183 176 230;  /* #B7B0E6 */
+  --app-accent-dim-rgb: 206 201 240;  /* #CEC9F0 — lighter for dim/ring */
+  --app-accent-color:   #B7B0E6;      /* hex — for inline styles */
+  /* Grid cells */
+  --app-cell-past:   #3A3570;   /* between surface and elevated */
+  --app-cell-future: #4A4585;   /* slightly lighter purple */
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--app-bg);
+  color: var(--app-text);
+}
+
+/* ── Beacon micro-animations ────────────────────────────────────────────────── */
+
+/* Check circle — spring bounce on fill */
+@keyframes spring-check {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.2); }
+  60%  { transform: scale(0.9); }
+  80%  { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+
+/* Checkmark icon — draws in from small */
+@keyframes check-draw {
+  0%   { opacity: 0; transform: scale(0.4); }
+  60%  { opacity: 1; transform: scale(1.15); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* Status pill — fade + drift up on first appearance */
+@keyframes banner-rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Section content — fade in on expand */
+@keyframes section-fade {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-spring-check {
+  animation: spring-check 350ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+.animate-check-draw {
+  animation: check-draw 220ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+.animate-banner-rise {
+  animation: banner-rise 300ms ease-out 150ms both;
+}
+.animate-section-fade {
+  animation: section-fade 180ms ease-out both;
+}
+
+/* iOS PWA safe area — top padding = base pt-5 + status bar height */
+.safe-top {
+  padding-top: calc(1.25rem + env(safe-area-inset-top));
 }

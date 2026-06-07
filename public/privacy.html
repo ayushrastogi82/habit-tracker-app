@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy Policy · Beacon</title>
+  <meta name="description" content="Beacon habit tracker privacy policy. Your data stays on your device." />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0a0f0d;
+      --surface:  #111a16;
+      --elevated: #1c2922;
+      --border:   #243028;
+      --text:     #e8f0ec;
+      --secondary:#7a9a88;
+      --tertiary: #4a6355;
+      --accent:   #2FD9B8;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      min-height: 100vh;
+      padding: 0 0 64px;
+    }
+
+    /* Header */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo {
+      width: 36px;
+      height: 36px;
+      flex-shrink: 0;
+    }
+
+    header h1 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      flex: 1;
+    }
+
+    header a {
+      font-size: 13px;
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 500;
+    }
+    header a:hover { text-decoration: underline; }
+
+    /* Main content */
+    main {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 40px 24px 0;
+    }
+
+    .page-title {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .page-subtitle {
+      font-size: 14px;
+      color: var(--secondary);
+      margin-bottom: 36px;
+    }
+
+    /* Summary chips */
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 40px;
+    }
+
+    .chip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+    }
+
+    .chip-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: rgba(47, 217, 184, 0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+    }
+
+    .chip-icon svg {
+      width: 18px;
+      height: 18px;
+      stroke: var(--accent);
+      fill: none;
+      stroke-width: 1.75;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .chip-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 3px;
+    }
+
+    .chip-desc {
+      font-size: 12px;
+      color: var(--secondary);
+      line-height: 1.45;
+    }
+
+    /* Sections */
+    section {
+      margin-bottom: 32px;
+    }
+
+    .section-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--tertiary);
+      margin-bottom: 10px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .card-row {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+    .card-row:last-child { border-bottom: none; }
+
+    .card-row h3 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .card-row p {
+      font-size: 13px;
+      color: var(--secondary);
+      line-height: 1.5;
+    }
+
+    .tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      background: rgba(47, 217, 184, 0.12);
+      color: var(--accent);
+      border-radius: 6px;
+      padding: 2px 8px;
+      margin-bottom: 8px;
+    }
+
+    .tag.neutral {
+      background: var(--elevated);
+      color: var(--secondary);
+    }
+
+    /* Footer */
+    footer {
+      max-width: 680px;
+      margin: 40px auto 0;
+      padding: 0 24px;
+      border-top: 1px solid var(--border);
+      padding-top: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    footer p {
+      font-size: 12px;
+      color: var(--tertiary);
+    }
+
+    footer a {
+      font-size: 12px;
+      color: var(--secondary);
+      text-decoration: none;
+    }
+    footer a:hover { color: var(--accent); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <!-- Beacon mark SVG inline -->
+    <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+      <rect width="1024" height="1024" fill="#0E1A16" rx="220" />
+      <circle cx="512" cy="512" r="330" fill="#2FD9B8" fill-opacity="0.08" />
+      <circle cx="512" cy="512" r="268" fill="none" stroke="#2FD9B8" stroke-width="16" opacity="0.25" />
+      <circle cx="512" cy="512" r="160" fill="none" stroke="#2FD9B8" stroke-width="22" opacity="0.55" />
+      <circle cx="512" cy="512" r="48"  fill="#2FD9B8" />
+    </svg>
+    <h1>Beacon</h1>
+  </header>
+
+  <main>
+
+    <h2 class="page-title">Privacy Policy</h2>
+    <p class="page-subtitle">Last updated: June 2026</p>
+
+    <!-- Summary chips -->
+    <div class="summary">
+      <div class="chip">
+        <div class="chip-icon">
+          <!-- Smartphone / on-device -->
+          <svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><circle cx="12" cy="17.5" r="1" fill="var(--accent)" stroke="none"/></svg>
+        </div>
+        <p class="chip-title">Stays on your device</p>
+        <p class="chip-desc">All habit and log data is stored locally. Nothing is sent to a server.</p>
+      </div>
+      <div class="chip">
+        <div class="chip-icon">
+          <!-- User with X / no accounts -->
+          <svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4"/><line x1="17" y1="14" x2="23" y2="20"/><line x1="23" y1="14" x2="17" y2="20"/></svg>
+        </div>
+        <p class="chip-title">No accounts</p>
+        <p class="chip-desc">No sign-in, no email, no password. Ever.</p>
+      </div>
+      <div class="chip">
+        <div class="chip-icon">
+          <!-- Bar chart / analytics -->
+          <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6"  y1="20" x2="6"  y2="14"/></svg>
+        </div>
+        <p class="chip-title">Anonymous analytics</p>
+        <p class="chip-desc">Aggregate page views only. You are never identified.</p>
+      </div>
+      <div class="chip">
+        <div class="chip-icon">
+          <!-- Shield / no tracking -->
+          <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="9" y1="12" x2="15" y2="12" stroke-opacity="0.4"/><line x1="12" y1="9"  x2="12" y2="15" stroke-opacity="0.4"/></svg>
+        </div>
+        <p class="chip-title">No ads, no tracking</p>
+        <p class="chip-desc">No third-party trackers, ad networks, or profiling.</p>
+      </div>
+    </div>
+
+    <!-- On-device data -->
+    <section>
+      <p class="section-label">Data stored on your device</p>
+      <div class="card">
+        <div class="card-row">
+          <span class="tag">Local only · never transmitted</span>
+          <h3>Habit data</h3>
+          <p>Your habit names, schedules, and completion logs are stored exclusively in your browser's local storage. This data never leaves your device and is not accessible to Beacon or any third party.</p>
+        </div>
+        <div class="card-row">
+          <span class="tag">Local only · never transmitted</span>
+          <h3>Your name</h3>
+          <p>If you enter your name during setup, it is stored locally on your device only — used to personalise your greeting. It is not collected, shared, or stored elsewhere.</p>
+        </div>
+        <div class="card-row">
+          <h3>Deleting your data</h3>
+          <p>You can delete all data at any time from Settings → Delete all data. Clearing your browser storage or uninstalling the app also removes everything completely.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Analytics -->
+    <section>
+      <p class="section-label">Analytics</p>
+      <div class="card">
+        <div class="card-row">
+          <span class="tag neutral">Anonymous · aggregate only</span>
+          <h3>Vercel Analytics</h3>
+          <p>Beacon is hosted on Vercel and uses Vercel Analytics to understand general usage patterns — such as how many people open the app. This data is anonymous and aggregate. No personal information is collected, and no individual user is identified or tracked across sessions.</p>
+        </div>
+        <div class="card-row">
+          <h3>What Vercel may collect</h3>
+          <p>Anonymous page views, general geographic region (country level), and device type. Vercel does not use cookies or fingerprinting for this purpose. See <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener" style="color: var(--accent);">Vercel's Privacy Policy</a> for full details.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- What we don't do -->
+    <section>
+      <p class="section-label">What we will never do</p>
+      <div class="card">
+        <div class="card-row">
+          <h3>No selling of data</h3>
+          <p>Your data is never sold, rented, or shared with any third party for commercial purposes.</p>
+        </div>
+        <div class="card-row">
+          <h3>No advertising</h3>
+          <p>Beacon contains no advertising and uses no ad networks or tracking pixels.</p>
+        </div>
+        <div class="card-row">
+          <h3>No behavioural profiling</h3>
+          <p>We do not build profiles of individual users, track your habits across sessions, or use your data to infer personal characteristics.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Changes -->
+    <section>
+      <p class="section-label">Changes to this policy</p>
+      <div class="card">
+        <div class="card-row">
+          <p>If this policy changes in a meaningful way, the "Last updated" date at the top of this page will reflect the revision. Continued use of Beacon after a change constitutes acceptance of the updated policy.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact -->
+    <section>
+      <p class="section-label">Contact</p>
+      <div class="card">
+        <div class="card-row">
+          <h3>Questions?</h3>
+          <p>If you have any questions about this privacy policy, reach out at <a href="mailto:hello@beaconapp.com" style="color: var(--accent);">hello@beaconapp.com</a>.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>© 2026 Beacon. All rights reserved.</p>
+    <a href="/">← Back to app</a>
+  </footer>
+
+</body>
+</html>

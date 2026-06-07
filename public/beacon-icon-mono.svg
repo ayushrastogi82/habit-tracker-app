@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <!--
+    Beacon — monochrome mark
+    Transparent background. White mark (or system tint applied on top).
+    Use for: iOS 18 tinted icons, monochrome contexts, favicon mask layer.
+    Rings at 35% / 70%, dot 100% — same hierarchy, lighter opacities.
+    Grid: 1024 × 1024, mark centered at 512 512
+    No glow in mono variant.
+  -->
+
+  <!-- No background — transparent -->
+
+  <!-- Outer ring — r 268, stroke 16, 35% white -->
+  <circle cx="512" cy="512" r="268" fill="none"
+          stroke="white" stroke-width="16" opacity="0.35"/>
+
+  <!-- Inner ring — r 160, stroke 22, 70% white -->
+  <circle cx="512" cy="512" r="160" fill="none"
+          stroke="white" stroke-width="22" opacity="0.70"/>
+
+  <!-- Core dot — r 48, 100% white -->
+  <circle cx="512" cy="512" r="48" fill="white"/>
+</svg>

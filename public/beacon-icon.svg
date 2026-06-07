@@ -1,21 +1,23 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
   <!--
-    Beacon — master app icon (alias of beacon-icon.svg for PWA/manifest use)
+    Beacon — master app icon
     Grid: 1024 × 1024, mark centered at 512 512
     Signal teal: #2FD9B8  |  Tile dark: #0E1A16
+    Opacity hierarchy: dot 100% → inner 55% → outer 25% → glow 40→0%
+    Export full-bleed square — OS applies squircle mask at render time.
   -->
   <defs>
     <radialGradient id="glow" gradientUnits="userSpaceOnUse"
-      cx="512" cy="512" r="330">
+                    cx="512" cy="512" r="330">
       <stop offset="0%"   stop-color="#2FD9B8" stop-opacity="0.40"/>
       <stop offset="100%" stop-color="#2FD9B8" stop-opacity="0"/>
     </radialGradient>
   </defs>
 
-  <!-- Dark tile background -->
+  <!-- Dark tile background — full bleed -->
   <rect width="1024" height="1024" fill="#0E1A16"/>
 
-  <!-- Soft decorative glow -->
+  <!-- Soft decorative glow — r 330, 40→0% -->
   <circle cx="512" cy="512" r="330" fill="url(#glow)"/>
 
   <!-- Outer ring — r 268, stroke 16, 25% -->

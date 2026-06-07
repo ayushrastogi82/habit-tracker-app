@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <!--
+    Beacon — small-size fallback icon
+    Use at ≤ 40 px (favicon, 16/32/40 px slots).
+    Outer ring is dropped — only single ring + dot, so the mark stays
+    legible at tiny sizes without the faint outer ring muddying the read.
+    Glow is also omitted (flattens to noise below ~64 px).
+    Grid: 1024 × 1024, mark centered at 512 512
+    Signal teal: #2FD9B8  |  Tile dark: #0E1A16
+  -->
+
+  <!-- Dark tile background -->
+  <rect width="1024" height="1024" fill="#0E1A16"/>
+
+  <!-- Single ring — r 210, stroke 26, 60% -->
+  <circle cx="512" cy="512" r="210" fill="none"
+          stroke="#2FD9B8" stroke-width="26" opacity="0.60"/>
+
+  <!-- Core dot — r 64, 100% -->
+  <circle cx="512" cy="512" r="64" fill="#2FD9B8"/>
+</svg>

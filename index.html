@@ -3,17 +3,34 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/icon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Habit Tracker</title>
-    <meta name="theme-color" content="#f9fafb" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>Beacon</title>
+    <meta name="theme-color" content="#0E1A16" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Habit Tracker" />
+    <meta name="apple-mobile-web-app-title" content="Beacon" />
     <link rel="apple-touch-icon" href="/icon.svg" />
     <link rel="manifest" href="/manifest.json" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Blocking theme + color scheme script — runs before any paint so there is no flash.
+       Applies html.dark and dark-scheme-N immediately from localStorage. -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('beacon-theme') || 'system';
+        var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (t === 'dark' || (t === 'system' && prefersDark)) {
+          document.documentElement.classList.add('dark');
+        }
+        var s = localStorage.getItem('beacon-color-scheme') || '1';
+        if (s === '2') document.documentElement.classList.add('dark-scheme-2');
+        else if (s === '3') document.documentElement.classList.add('dark-scheme-3');
+        else if (s === '4') document.documentElement.classList.add('dark-scheme-4');
+      } catch (e) {}
+    })();
+  </script>
   </head>
   <body>
     <div id="root"></div>

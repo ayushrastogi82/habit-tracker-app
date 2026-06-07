@@ -1,13 +1,30 @@
 {
-  "name": "Habit Tracker",
-  "short_name": "Habit Tracker",
-  "description": "Track your daily habits and build streaks",
+  "name": "Beacon",
+  "short_name": "Beacon",
+  "description": "Your light is always on.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#6366f1",
-  "theme_color": "#6366f1",
+  "background_color": "#0E1A16",
+  "theme_color": "#0E1A16",
   "orientation": "portrait",
   "icons": [
-    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/beacon-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/beacon-icon-mono.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "monochrome"
+    }
   ]
 }
