@@ -168,7 +168,7 @@ function SplashScreen({ onNext, dotActive }) {
     <div className="h-screen flex flex-col items-center justify-center bg-app-bg px-6" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
       <div className="flex flex-col items-center gap-6 text-center">
         {/* Free-floating mark — no tile, glow shows on dark bg, breathes slowly */}
-        <BeaconMark size={160} tile={false} pulse={true} ripple={true} />
+        <div className="rounded-3xl overflow-hidden"><BeaconMark size={160} tile={true} pulse={true} ripple={true} /></div>
 
         <div className="space-y-2">
           <h1 className="text-4xl font-bold text-app-text tracking-tight">Beacon</h1>
@@ -267,7 +267,7 @@ function InstallScreen({ deferredPrompt, onNext, onSkip }) {
     <div className="h-screen flex flex-col items-center justify-center bg-app-bg px-6" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
       <div className="w-full max-w-sm space-y-8 text-center">
         {/* Small mark — no tile */}
-        <BeaconMark size={60} tile={false} className="mx-auto" />
+        <div className="rounded-2xl overflow-hidden mx-auto w-fit"><BeaconMark size={60} tile={true} /></div>
 
         <div className="space-y-2">
           <h2 className="text-2xl font-bold text-app-text">Keep your light on</h2>
@@ -334,7 +334,7 @@ function PhilosophyScreen({ onNext, onBack, dotActive }) {
       <div className="flex-1 overflow-y-auto px-6 py-8 space-y-8">
         {/* Kicker + mark */}
         <div className="flex flex-col items-center gap-3">
-          <BeaconMark size={60} tile={false} />
+          <div className="rounded-2xl overflow-hidden"><BeaconMark size={60} tile={true} /></div>
           <p className="text-[13px] font-semibold uppercase tracking-widest text-app-accent-dim">
             Our philosophy
           </p>
@@ -631,7 +631,7 @@ function NameScreen({ name, setName, onNext, onSkip, onBack, dotActive }) {
       <div className="flex-1 overflow-y-auto px-6 py-8 space-y-6">
         {/* Small mark above heading */}
         <div className="flex flex-col items-center gap-3 mb-2">
-          <BeaconMark size={60} tile={false} />
+          <div className="rounded-2xl overflow-hidden"><BeaconMark size={60} tile={true} /></div>
         </div>
 
         <div className="space-y-2">
@@ -693,7 +693,7 @@ function ConfirmScreen({ name, onComplete }) {
     <div className="h-screen flex flex-col items-center justify-center bg-app-bg px-6" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
       <div className="flex flex-col items-center gap-6 text-center max-w-sm w-full">
         {/* Hero mark — the light turning on */}
-        <BeaconMark size={140} tile={false} pulse={true} ripple={true} />
+        <div className="rounded-3xl overflow-hidden"><BeaconMark size={140} tile={true} pulse={true} ripple={true} /></div>
 
         <div className="space-y-2">
           <h1 className="text-3xl font-bold text-app-text">

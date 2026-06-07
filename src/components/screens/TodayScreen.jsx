@@ -462,7 +462,7 @@ export default function TodayScreen({
       <div className="sticky top-0 z-10 bg-app-bg px-4 safe-top pb-2">
         {/* Zone 1 — greeting only (C0) */}
         <p className="flex items-center gap-1.5 text-[13px] font-medium text-app-secondary mb-0.5">
-          <BeaconMark size={28} tile={false} className="flex-shrink-0 opacity-90" />
+          <div className="rounded-md overflow-hidden flex-shrink-0 opacity-90"><BeaconMark size={28} tile={true} /></div>
           {greeting}{userProfile.name ? `, ${userProfile.name.charAt(0).toUpperCase() + userProfile.name.slice(1)}` : ''}
         </p>
         {/* Date H1 */}
