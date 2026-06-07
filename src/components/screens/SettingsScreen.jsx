@@ -289,7 +289,7 @@ export default function SettingsScreen({ userProfile, onUpdateProfile, theme, on
       </div>
 
       {/* Nav */}
-      <nav className="border-t border-white/10 bg-black flex items-center safe-area-inset-bottom px-2 py-3">
+      <nav className="border-t border-app-elevated dark:border-white/10 bg-app-surface dark:bg-black flex items-center safe-area-inset-bottom px-2 py-3">
         <NavButton icon={Home}       active={false} onClick={() => onNavigate('today')} />
         <NavButton icon={TrendingUp} active={false} onClick={() => onNavigate('progress')} />
         <NavButton icon={PlusCircle}  active={false} onClick={onAddHabit} />
@@ -355,7 +355,7 @@ function NavButton({ icon: Icon, active, onClick }) {
   return (
     <button onClick={onClick}
       className={`flex-1 flex items-center justify-center py-1 transition-colors ${
-        active ? 'text-white' : 'text-white/40 hover:text-white/70'
+        active ? 'text-app-text' : 'text-app-secondary hover:text-app-text'
       }`}>
       <Icon className="w-7 h-7" style={{ minWidth: 28, minHeight: 28 }} strokeWidth={2} />
     </button>

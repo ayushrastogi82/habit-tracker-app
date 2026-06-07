@@ -13,17 +13,17 @@
   --app-elevated:      #E5E5EA;   /* opaqueSeparator / tertiary fill */
   --app-secondary:     #6C6C70;   /* secondaryLabel */
   --app-tertiary:      #AEAEB2;   /* tertiaryLabel */
-  --app-green:         #34C759;   /* systemGreen (same both modes) */
-  --app-green-surface: #EBF9F0;   /* tinted green fill */
+  --app-green:         #28A745;   /* slightly darker systemGreen — border contrast on white */
+  --app-green-surface: #34C759;   /* solid green fill — white text readable on it */
   --app-red:           #FF3B30;   /* systemRed (same both modes) */
   --app-text:          #000000;   /* label */
-  /* Accent — teal in light mode */
-  --app-accent-rgb:     20 184 166;   /* teal-500 */
-  --app-accent-dim-rgb: 45 212 191;   /* teal-400 */
-  --app-accent-color:   #14B8A6;      /* teal-500 hex — for inline styles */
-  /* Grid cells */
-  --app-cell-past:   #E5E5EA;
-  --app-cell-future: #D1D1D6;
+  /* Accent — teal-700/600 so text is readable on white bg (~4.7:1 contrast) */
+  --app-accent-rgb:     15 118 110;   /* teal-700 */
+  --app-accent-dim-rgb: 13 148 136;   /* teal-600 */
+  --app-accent-color:   #0F766E;      /* teal-700 hex — for inline styles */
+  /* Grid cells — visible against #F2F2F7 page bg */
+  --app-cell-past:   #C7C7CC;   /* iOS systemGray3 — clearly visible */
+  --app-cell-future: #E9E9EF;   /* lighter than past, distinct */
 }
 
 /* ── Scheme 1: iOS Dark (default) ────────────────────────────────────────────── */

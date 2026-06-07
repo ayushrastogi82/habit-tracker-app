@@ -156,7 +156,7 @@ export default function MainApp({ state, setState, updateTheme, theme, colorSche
   }
 
   return (
-    <div className="bg-black">
+    <div className="bg-app-bg">
       {currentScreen === 'today' && (
         <TodayScreen {...screenProps} />
       )}

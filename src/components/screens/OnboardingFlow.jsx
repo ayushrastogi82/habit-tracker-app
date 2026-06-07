@@ -87,7 +87,7 @@ export default function OnboardingFlow({ onComplete, migrated }) {
     return (
       <div className="h-screen flex items-center justify-center bg-app-bg px-6" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
         <div className="text-center space-y-4">
-          <h2 className="text-2xl font-semibold text-white">Welcome back!</h2>
+          <h2 className="text-2xl font-semibold text-app-text">Welcome back!</h2>
           <p className="text-app-secondary">Your data is safe. Continue logging with Beacon.</p>
           <button
             onClick={() => setScreen(5)}
@@ -171,7 +171,7 @@ function SplashScreen({ onNext, dotActive }) {
         <BeaconMark size={160} tile={false} pulse={true} ripple={true} />
 
         <div className="space-y-2">
-          <h1 className="text-4xl font-bold text-white tracking-tight">Beacon</h1>
+          <h1 className="text-4xl font-bold text-app-text tracking-tight">Beacon</h1>
           <p className="text-lg text-app-secondary">Your light is always on.</p>
         </div>
 
@@ -270,7 +270,7 @@ function InstallScreen({ deferredPrompt, onNext, onSkip }) {
         <BeaconMark size={60} tile={false} className="mx-auto" />
 
         <div className="space-y-2">
-          <h2 className="text-2xl font-bold text-white">Keep your light on</h2>
+          <h2 className="text-2xl font-bold text-app-text">Keep your light on</h2>
           <p className="text-app-secondary text-[15px]">
             Add Beacon to your home screen for the best experience. Your habits live on this device — the home screen keeps them one tap away.
           </p>
@@ -340,7 +340,7 @@ function PhilosophyScreen({ onNext, onBack, dotActive }) {
           </p>
         </div>
 
-        <h2 className="text-[26px] font-bold text-white leading-tight">
+        <h2 className="text-[26px] font-bold text-app-text leading-tight">
           Life happens. Beacon keeps your light on.
         </h2>
 
@@ -351,7 +351,7 @@ function PhilosophyScreen({ onNext, onBack, dotActive }) {
                 <Icon className="w-5 h-5 text-app-accent-dim" />
               </div>
               <div className="flex-1 space-y-1">
-                <h3 className="font-semibold text-white text-[15px]">{title}</h3>
+                <h3 className="font-semibold text-app-text text-[15px]">{title}</h3>
                 <p className="text-[14px] text-app-secondary leading-relaxed">{copy}</p>
               </div>
             </div>
@@ -386,7 +386,7 @@ function OneTapScreen({ onNext, onBack, dotActive }) {
       <BackButton onBack={onBack} />
       <div className="flex-1 overflow-y-auto px-6 py-8 space-y-6">
         <div>
-          <h2 className="text-[26px] font-bold text-white mb-1">One tap to log.</h2>
+          <h2 className="text-[26px] font-bold text-app-text mb-1">One tap to log.</h2>
           <p className="text-app-secondary">That's the whole app.</p>
         </div>
 
@@ -401,7 +401,7 @@ function OneTapScreen({ onNext, onBack, dotActive }) {
               />
               <span className="text-[13px] text-app-secondary">{greeting}</span>
             </div>
-            <p className="text-[22px] font-bold text-white">Today, {dateStr}</p>
+            <p className="text-[22px] font-bold text-app-text">Today, {dateStr}</p>
           </div>
 
           {/* Section label */}
@@ -437,7 +437,7 @@ function OneTapScreen({ onNext, onBack, dotActive }) {
               <Moon className="w-5 h-5 text-purple-400" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-white text-[15px] leading-tight">Prayer</p>
+              <p className="font-semibold text-app-text text-[15px] leading-tight">Prayer</p>
               <p className="text-[12px] text-app-secondary mt-0.5">Daily</p>
             </div>
             {/* Empty teal ring */}
@@ -510,7 +510,7 @@ function WatchItScreen({ onNext, onBack, dotActive }) {
       <BackButton onBack={onBack} />
       <div className="flex-1 overflow-y-auto px-6 py-8 space-y-6">
         <div>
-          <h2 className="text-[26px] font-bold text-white mb-1">Watch your progress add up.</h2>
+          <h2 className="text-[26px] font-bold text-app-text mb-1">Watch your progress add up.</h2>
           <p className="text-app-secondary">Six months, at a glance.</p>
         </div>
 
@@ -522,7 +522,7 @@ function WatchItScreen({ onNext, onBack, dotActive }) {
               <Sunrise className="w-5 h-5 text-app-accent-dim" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-white text-[15px] leading-tight">Morning walk</p>
+              <p className="font-semibold text-app-text text-[15px] leading-tight">Morning walk</p>
               <p className="text-[12px] text-app-accent-dim mt-0.5">Daily · on a run 28 days</p>
             </div>
           </div>
@@ -635,7 +635,7 @@ function NameScreen({ name, setName, onNext, onSkip, onBack, dotActive }) {
         </div>
 
         <div className="space-y-2">
-          <h2 className="text-[26px] font-bold text-white">What should we call you?</h2>
+          <h2 className="text-[26px] font-bold text-app-text">What should we call you?</h2>
           <p className="text-app-secondary text-[15px]">
             Beacon will use it to greet you — nothing else.
           </p>
@@ -648,7 +648,7 @@ function NameScreen({ name, setName, onNext, onSkip, onBack, dotActive }) {
           onKeyDown={(e) => e.key === 'Enter' && !disabled && onNext()}
           placeholder="Your name"
           autoFocus
-          className="w-full px-4 py-3.5 rounded-xl border border-app-elevated bg-app-surface text-white placeholder-app-secondary focus:outline-none focus:border-app-accent text-[15px]"
+          className="w-full px-4 py-3.5 rounded-xl border border-app-elevated bg-app-surface text-app-text placeholder-app-secondary focus:outline-none focus:border-app-accent text-[15px]"
           style={{ caretColor: 'var(--app-accent-color)' }}
         />
       </div>
@@ -696,7 +696,7 @@ function ConfirmScreen({ name, onComplete }) {
         <BeaconMark size={140} tile={false} pulse={true} ripple={true} />
 
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-white">
+          <h1 className="text-3xl font-bold text-app-text">
             {displayName ? `${displayName}, you're all set.` : "You're all set."}
           </h1>
           <p className="text-app-secondary text-[15px] leading-relaxed">
