@@ -1024,23 +1024,24 @@ export default function ProgressScreen({ habits, logs, onNavigate, onAddHabit })
       </div>
 
       <nav className="border-t border-app-elevated dark:border-white/10 bg-app-surface dark:bg-black flex items-center safe-area-inset-bottom px-2 py-3">
-        <NavButton icon={Home}       active={false} onClick={() => onNavigate('today')} />
-        <NavButton icon={TrendingUp} active={true}  onClick={() => onNavigate('progress')} />
-        <NavButton icon={PlusCircle} active={false} onClick={onAddHabit} />
-        <NavButton icon={ListChecks} active={false} onClick={() => onNavigate('log')} />
-        <NavButton icon={Settings}   active={false} onClick={() => onNavigate('settings')} />
+        <NavButton icon={Home}       label="Today"    active={false} onClick={() => onNavigate('today')} />
+        <NavButton icon={TrendingUp} label="Progress" active={true}  onClick={() => onNavigate('progress')} />
+        <NavButton icon={PlusCircle} label="Add"      active={false} onClick={onAddHabit} />
+        <NavButton icon={ListChecks} label="Log"      active={false} onClick={() => onNavigate('log')} />
+        <NavButton icon={Settings}   label="Settings" active={false} onClick={() => onNavigate('settings')} />
       </nav>
     </div>
   )
 }
 
-function NavButton({ icon: Icon, active, onClick }) {
+function NavButton({ icon: Icon, label, active, onClick }) {
   return (
     <button onClick={onClick}
-      className={`flex-1 flex items-center justify-center py-1 transition-colors ${
+      className={`flex-1 flex flex-col items-center justify-center py-1 gap-0.5 transition-colors ${
         active ? 'text-app-text' : 'text-app-secondary hover:text-app-text'
       }`}>
-      <Icon className="w-7 h-7" style={{ minWidth: 28, minHeight: 28 }} strokeWidth={2} />
+      <Icon className="w-6 h-6" style={{ minWidth: 24, minHeight: 24 }} strokeWidth={2} />
+      <span className="text-[10px] font-medium leading-none">{label}</span>
     </button>
   )
 }
