@@ -96,9 +96,9 @@ export default function MainApp({ state, setState, updateTheme, theme, colorSche
       userProfile: state.userProfile,
     }
 
-    // Clear localStorage + reset React state, navigate to today
+    // Clear localStorage + reset React state, navigate to today (name is preserved)
     deleteAllData()
-    setState((prev) => ({ ...prev, habits: [], logs: {}, userProfile: { name: '' } }))
+    setState((prev) => ({ ...prev, habits: [], logs: {}, userProfile: { name: prev.userProfile?.name || '' } }))
     setCurrentScreen('today')
 
     // Clear any existing timer

@@ -256,15 +256,21 @@ export const importBackup = (file) => {
   })
 }
 
-// Delete all data
+// Delete all data — preserves the user's name
 export const deleteAllData = () => {
-  localStorage.removeItem(STORAGE_KEYS.userProfile);
+  // Preserve name so the user doesn't have to re-enter it
+  const existingProfile = getUserProfile();
+  const name = existingProfile?.name || '';
+
   localStorage.removeItem(STORAGE_KEYS.habits);
   localStorage.removeItem(STORAGE_KEYS.logs);
   localStorage.removeItem(STORAGE_KEYS.onboardingComplete);
   localStorage.removeItem(STORAGE_KEYS.theme);
   localStorage.removeItem(STORAGE_KEYS.progressViewMode);
   localStorage.removeItem(STORAGE_KEYS.installPromptSeen);
+
+  // Write back a clean profile that only retains the name
+  localStorage.setItem(STORAGE_KEYS.userProfile, JSON.stringify({ name }));
 };
 
 // Initialize app state (with migration if needed)
