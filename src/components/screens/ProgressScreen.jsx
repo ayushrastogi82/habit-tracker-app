@@ -218,10 +218,10 @@ function SixMonthGrid({ habitId, logs, restDayDates = new Set(), onRestDayTap })
         {monthSpans.map(({ mo, label, count }, idx) => (
           <div
             key={mo}
-            className={`text-[9px] text-app-tertiary leading-none whitespace-nowrap ${idx === monthSpans.length - 1 ? 'overflow-visible' : 'overflow-hidden'}`}
+            className="text-[9px] text-app-tertiary leading-none overflow-hidden"
             style={{ flex: count }}
           >
-            {count >= 2 || idx === monthSpans.length - 1 ? label : ''}
+            {(count >= 2 || idx === monthSpans.length - 1) && mo >= windowStartMonth && mo <= windowEndMonth ? label : ''}
           </div>
         ))}
       </div>
