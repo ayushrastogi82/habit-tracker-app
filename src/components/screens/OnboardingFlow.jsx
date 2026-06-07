@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import {
   ChevronLeft, ChevronRight, Check, Leaf, Sunrise, Moon,
-  Share2, PlusSquare, MoreVertical, Download,
+  PlusSquare, MoreVertical, Download,
   Infinity as InfinityIcon
 } from 'lucide-react'
 import BeaconMark from '../modules/BeaconMark'
@@ -229,7 +229,13 @@ function InstallScreen({ deferredPrompt, onNext, onSkip }) {
   const iosSteps = [
     {
       n: '1',
-      icon: <Share2 className="w-5 h-5 text-app-accent-dim flex-shrink-0" />,
+      icon: (
+        <svg className="w-5 h-5 text-app-accent-dim flex-shrink-0" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 3v13M7 8l5-5 5 5"/>
+          <path d="M5 14v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-5"/>
+        </svg>
+      ),
       text: <>Tap the <span className="text-app-accent-dim font-semibold">Share</span> button below</>
     },
     {
