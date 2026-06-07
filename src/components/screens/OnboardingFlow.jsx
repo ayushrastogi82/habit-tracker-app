@@ -36,17 +36,19 @@ function seededRandom(seed) {
   }
 }
 
-// ── Back button — subtle top-left chevron, only on middle screens ──────────────
+// ── Back button — in-flow (not absolute) so safe-area padding on the parent works ─
 function BackButton({ onBack }) {
   if (!onBack) return null
   return (
-    <button
-      onClick={onBack}
-      className="absolute top-0 left-0 p-4 text-app-tertiary hover:text-app-secondary transition-colors active:scale-95"
-      aria-label="Go back"
-    >
-      <ChevronLeft className="w-5 h-5" />
-    </button>
+    <div className="flex-shrink-0 px-2 pt-1">
+      <button
+        onClick={onBack}
+        className="p-3 text-app-tertiary hover:text-app-secondary transition-colors active:scale-95"
+        aria-label="Go back"
+      >
+        <ChevronLeft className="w-5 h-5" />
+      </button>
+    </div>
   )
 }
 
@@ -83,7 +85,7 @@ export default function OnboardingFlow({ onComplete, migrated }) {
   // Migrated users (had data before Beacon) — welcome back, skip to name
   if (migrated && screen === 0) {
     return (
-      <div className="h-screen flex items-center justify-center bg-app-bg px-6">
+      <div className="h-screen flex items-center justify-center bg-app-bg px-6" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
         <div className="text-center space-y-4">
           <h2 className="text-2xl font-semibold text-white">Welcome back!</h2>
           <p className="text-app-secondary">Your data is safe. Continue logging with Beacon.</p>
@@ -163,7 +165,7 @@ export default function OnboardingFlow({ onComplete, migrated }) {
 // Bookend #1 — "the light is always on."
 function SplashScreen({ onNext, dotActive }) {
   return (
-    <div className="h-screen flex flex-col items-center justify-center bg-app-bg px-6">
+    <div className="h-screen flex flex-col items-center justify-center bg-app-bg px-6" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
       <div className="flex flex-col items-center gap-6 text-center">
         {/* Free-floating mark — no tile, glow shows on dark bg, breathes slowly */}
         <BeaconMark size={160} tile={false} pulse={true} ripple={true} />
@@ -262,13 +264,13 @@ function InstallScreen({ deferredPrompt, onNext, onSkip }) {
   ]
 
   return (
-    <div className="h-screen flex flex-col items-center justify-center bg-app-bg px-6">
+    <div className="h-screen flex flex-col items-center justify-center bg-app-bg px-6" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
       <div className="w-full max-w-sm space-y-8 text-center">
         {/* Small mark — no tile */}
         <BeaconMark size={60} tile={false} className="mx-auto" />
 
         <div className="space-y-2">
-          <h2 className="text-2xl font-bold text-white">Keep your light close</h2>
+          <h2 className="text-2xl font-bold text-white">Keep your light on</h2>
           <p className="text-app-secondary text-[15px]">
             Add Beacon to your home screen so it's always one tap away.
           </p>
@@ -327,7 +329,7 @@ function PhilosophyScreen({ onNext, onBack, dotActive }) {
   ]
 
   return (
-    <div className="h-screen flex flex-col bg-app-bg relative">
+    <div className="h-screen flex flex-col bg-app-bg" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
       <BackButton onBack={onBack} />
       <div className="flex-1 overflow-y-auto px-6 py-8 space-y-8">
         {/* Kicker + mark */}
@@ -380,7 +382,7 @@ function OneTapScreen({ onNext, onBack, dotActive }) {
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening'
 
   return (
-    <div className="h-screen flex flex-col bg-app-bg relative">
+    <div className="h-screen flex flex-col bg-app-bg" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
       <BackButton onBack={onBack} />
       <div className="flex-1 overflow-y-auto px-6 py-8 space-y-6">
         <div>
@@ -504,7 +506,7 @@ function WatchItScreen({ onNext, onBack, dotActive }) {
   const DOW_W = 10
 
   return (
-    <div className="h-screen flex flex-col bg-app-bg relative">
+    <div className="h-screen flex flex-col bg-app-bg" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
       <BackButton onBack={onBack} />
       <div className="flex-1 overflow-y-auto px-6 py-8 space-y-6">
         <div>
@@ -624,7 +626,7 @@ function NameScreen({ name, setName, onNext, onSkip, onBack, dotActive }) {
   const disabled = !name.trim()
 
   return (
-    <div className="h-screen flex flex-col bg-app-bg relative">
+    <div className="h-screen flex flex-col bg-app-bg" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
       <BackButton onBack={onBack} />
       <div className="flex-1 overflow-y-auto px-6 py-8 space-y-6">
         {/* Small mark above heading */}
@@ -688,7 +690,7 @@ function ConfirmScreen({ name, onComplete }) {
     : ''
 
   return (
-    <div className="h-screen flex flex-col items-center justify-center bg-app-bg px-6">
+    <div className="h-screen flex flex-col items-center justify-center bg-app-bg px-6" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
       <div className="flex flex-col items-center gap-6 text-center max-w-sm w-full">
         {/* Hero mark — the light turning on */}
         <BeaconMark size={140} tile={false} pulse={true} ripple={true} />
