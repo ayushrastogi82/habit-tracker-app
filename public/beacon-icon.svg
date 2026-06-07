@@ -8,26 +8,32 @@
   -->
   <defs>
     <radialGradient id="glow" gradientUnits="userSpaceOnUse"
-                    cx="512" cy="512" r="330">
-      <stop offset="0%"   stop-color="#2FD9B8" stop-opacity="0.40"/>
+                    cx="512" cy="512" r="380">
+      <stop offset="0%"   stop-color="#2FD9B8" stop-opacity="0.75"/>
+      <stop offset="60%"  stop-color="#2FD9B8" stop-opacity="0.25"/>
       <stop offset="100%" stop-color="#2FD9B8" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="dotglow" gradientUnits="userSpaceOnUse"
+                    cx="512" cy="512" r="100">
+      <stop offset="0%"   stop-color="#7FFCE8" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#2FD9B8" stop-opacity="0.6"/>
     </radialGradient>
   </defs>
 
   <!-- Dark tile background — full bleed -->
   <rect width="1024" height="1024" fill="#0E1A16"/>
 
-  <!-- Soft decorative glow — r 330, 40→0% -->
-  <circle cx="512" cy="512" r="330" fill="url(#glow)"/>
+  <!-- Soft decorative glow — boosted to 75→0% -->
+  <circle cx="512" cy="512" r="380" fill="url(#glow)"/>
 
-  <!-- Outer ring — r 268, stroke 16, 25% -->
+  <!-- Outer ring — r 268, stroke 20, 65% -->
   <circle cx="512" cy="512" r="268" fill="none"
-          stroke="#2FD9B8" stroke-width="16" opacity="0.25"/>
+          stroke="#2FD9B8" stroke-width="20" opacity="0.65"/>
 
-  <!-- Inner ring — r 160, stroke 22, 55% -->
+  <!-- Inner ring — r 160, stroke 28, 90% -->
   <circle cx="512" cy="512" r="160" fill="none"
-          stroke="#2FD9B8" stroke-width="22" opacity="0.55"/>
+          stroke="#2FD9B8" stroke-width="28" opacity="0.90"/>
 
-  <!-- Core dot — r 48, 100% -->
-  <circle cx="512" cy="512" r="48" fill="#2FD9B8"/>
+  <!-- Core dot — r 52, bright gradient -->
+  <circle cx="512" cy="512" r="52" fill="url(#dotglow)"/>
 </svg>
