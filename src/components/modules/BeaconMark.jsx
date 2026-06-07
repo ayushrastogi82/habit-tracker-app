@@ -31,19 +31,20 @@ export default function BeaconMark({ size = 64, tile = true, pulse = false, ripp
       className={className}
       aria-label="Beacon"
       role="img"
+      style={{ color: 'var(--app-accent-color)' }}
     >
       <defs>
         <radialGradient id={glowId} gradientUnits="userSpaceOnUse"
                         cx="512" cy="512" r="330">
-          <stop offset="0%"   stopColor="#2FD9B8" stopOpacity="0.40" />
-          <stop offset="100%" stopColor="#2FD9B8" stopOpacity="0" />
+          <stop offset="0%"   stopColor="var(--app-accent-color)" stopOpacity="0.55" />
+          <stop offset="100%" stopColor="var(--app-accent-color)" stopOpacity="0" />
         </radialGradient>
       </defs>
 
       {/* Dark tile — only when tile=true */}
       {tile && <rect width="1024" height="1024" fill="#0E1A16" />}
 
-      {/* Soft glow — r 330, 40→0% — breathes when pulse=true */}
+      {/* Soft glow — breathes when pulse=true */}
       <circle cx="512" cy="512" r="330" fill={`url(#${glowId})`}>
         {pulse && (
           <animate
@@ -61,7 +62,7 @@ export default function BeaconMark({ size = 64, tile = true, pulse = false, ripp
       {/* Sonar-ping ripple rings — 3 staggered waves expanding from core */}
       {ripple && [0, 1, 2].map(i => (
         <circle key={i} cx="512" cy="512" r="48" fill="none"
-                stroke="#2FD9B8" strokeWidth="18">
+                stroke="currentColor" strokeWidth="18">
           <animate
             attributeName="r"
             values="48;400"
@@ -95,16 +96,16 @@ export default function BeaconMark({ size = 64, tile = true, pulse = false, ripp
         </circle>
       ))}
 
-      {/* Outer ring — r 268, stroke 16, 25% */}
+      {/* Outer ring — r 268, stroke 16, boosted opacity */}
       <circle cx="512" cy="512" r="268" fill="none"
-              stroke="#2FD9B8" strokeWidth="16" opacity="0.25" />
+              stroke="currentColor" strokeWidth="16" opacity="0.55" />
 
-      {/* Inner ring — r 160, stroke 22, 55% */}
+      {/* Inner ring — r 160, stroke 22, boosted opacity */}
       <circle cx="512" cy="512" r="160" fill="none"
-              stroke="#2FD9B8" strokeWidth="22" opacity="0.55" />
+              stroke="currentColor" strokeWidth="22" opacity="0.85" />
 
-      {/* Core dot — r 48, 100% */}
-      <circle cx="512" cy="512" r="48" fill="#2FD9B8" />
+      {/* Core dot — r 48, full */}
+      <circle cx="512" cy="512" r="48" fill="currentColor" />
     </svg>
   )
 }
