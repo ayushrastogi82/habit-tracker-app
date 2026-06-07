@@ -364,7 +364,7 @@ export default function ManageHabitsScreen({ habits, logs, onUpdateHabits, onNav
                         <button
                           onClick={() => setEditForm(p => ({ ...p, frequency: freq }))}
                           className={`flex-1 py-1.5 text-[11px] font-semibold transition-all ${
-                            isSelected ? 'bg-app-green-surface text-app-text' : 'bg-app-elevated text-app-secondary'
+                            isSelected ? 'bg-app-green-surface text-white' : 'bg-app-elevated text-app-secondary'
                           }`}
                         >{centerLabel}</button>
                         <button

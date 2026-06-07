@@ -50,7 +50,7 @@ export default function AddHabitScreen({
           <div className="flex flex-col gap-2 pt-4">
             <button
               onClick={() => { setHabitName(''); setHabitTime(''); onAdd(true) }}
-              className="w-full font-semibold py-3 px-4 rounded-xl text-sm text-app-text transition-opacity hover:opacity-90 bg-app-green-surface border border-app-green"
+              className="w-full font-semibold py-3 px-4 rounded-xl text-sm text-white transition-opacity hover:opacity-90 bg-app-green-surface border border-app-green"
             >
               {brand.addHabit.confirmation.ctaPrimary}
             </button>
@@ -129,14 +129,15 @@ export default function AddHabitScreen({
                     <div className="flex flex-col items-start gap-2">
                       <Icon
                         className="w-5 h-5"
-                        style={{ color: isSelected ? 'var(--app-green)' : 'var(--app-text)' }}
+                        style={{ color: isSelected ? 'white' : 'var(--app-text)' }}
                       />
                       <div>
-                        <p className="text-[15px] font-semibold text-app-text capitalize leading-snug">
+                        <p className="text-[15px] font-semibold capitalize leading-snug"
+                          style={{ color: isSelected ? 'white' : 'var(--app-text)' }}>
                           {time}
                         </p>
                         <p className="text-[12px] mt-0.5 capitalize"
-                          style={{ color: isSelected ? 'var(--app-green)' : 'var(--app-secondary)' }}>
+                          style={{ color: isSelected ? 'rgba(255,255,255,0.75)' : 'var(--app-secondary)' }}>
                           {timeDescriptions[time]}
                         </p>
                       </div>
@@ -215,7 +216,7 @@ export default function AddHabitScreen({
             className="w-full font-semibold py-3 px-4 rounded-xl text-[15px] transition-all active:scale-[0.98]"
             style={{
               backgroundColor: canSubmit ? 'var(--app-green-surface)' : 'var(--app-surface)',
-              color:           canSubmit ? 'var(--app-text)'         : 'var(--app-tertiary)',
+              color:           canSubmit ? 'white'                   : 'var(--app-tertiary)',
               cursor:          canSubmit ? 'pointer'                  : 'not-allowed',
               border:          canSubmit ? '1px solid var(--app-green)' : '1px solid var(--app-elevated)',
             }}
