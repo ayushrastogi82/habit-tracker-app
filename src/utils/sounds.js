@@ -20,11 +20,12 @@ const getCtx = () => {
   return _ctx
 }
 
-const playTone = ({ startFreq, endFreq, duration, volume = 0.25, type = 'sine' }) => {
+const playTone = async ({ startFreq, endFreq, duration, volume = 0.5, type = 'sine' }) => {
   try {
     const ctx = getCtx()
     if (!ctx) return
-    if (ctx.state === 'suspended') ctx.resume()
+    // await resume — iOS starts AudioContext suspended until user gesture
+    if (ctx.state === 'suspended') await ctx.resume()
 
     const osc  = ctx.createOscillator()
     const gain = ctx.createGain()
@@ -48,7 +49,7 @@ const playTone = ({ startFreq, endFreq, duration, volume = 0.25, type = 'sine' }
 
 export const sounds = {
   // Short ascending ping — rewarding "done" feel
-  log:   () => playTone({ startFreq: 600, endFreq: 900, duration: 0.08, volume: 0.22 }),
+  log:   () => playTone({ startFreq: 600, endFreq: 900, duration: 0.1, volume: 0.5 }),
   // Softer descending tick — quiet "undone" acknowledgement
-  unlog: () => playTone({ startFreq: 480, endFreq: 340, duration: 0.07, volume: 0.13 }),
+  unlog: () => playTone({ startFreq: 480, endFreq: 340, duration: 0.08, volume: 0.35 }),
 }
