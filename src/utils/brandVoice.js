@@ -14,7 +14,7 @@ export const brand = {
       cta: 'Get started'
     },
     install: {
-      headline: 'Add Beacon to your home screen first',
+      headline: 'Add Beacon to your home screen for the best experience',
       copy: 'Beacon stores your habits on this device. Adding it to your home screen keeps your progress safe — even when you close the browser.',
       ios: {
         title: 'iOS steps (Safari)',
