@@ -32,7 +32,6 @@ import { today, getGreeting, formatDate } from '../../utils/dateUtils'
 import BeaconMark from '../modules/BeaconMark'
 import { importBackup } from '../../utils/storageUtils'
 import { brand, pick } from '../../utils/brandVoice'
-import { sounds } from '../../utils/sounds'
 import { computeRunState } from '../../utils/streakUtils'
 
 const getHabitIcon = (habitName) => {
@@ -318,13 +317,12 @@ export default function TodayScreen({
     if (!newLogs[todayStr]) newLogs[todayStr] = []
     if (wasChecked) {
       newLogs[todayStr] = newLogs[todayStr].filter(id => id !== habitId)
-      sounds.unlog()
     } else {
       newLogs[todayStr] = [...newLogs[todayStr], habitId]
-      // Sound + check animation
-      sounds.log()
+      // Haptic + check animation
       setJustCheckedId(habitId)
       setTimeout(() => setJustCheckedId(null), 400)
+      if (window.navigator?.vibrate) window.navigator.vibrate(10)
       // Compute and show celebration flash
       const msg = computeCelebration(habitId, logs, newLogs)
       if (msg) {
