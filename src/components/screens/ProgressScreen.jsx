@@ -117,7 +117,7 @@ const addMonths = (ym, delta) => {
 // habit's entire life off-screen (don't show all-empty pre-start grids).
 // Months before the habit's first log render as upcoming-style (not missed).
 // Cell states (B7): logged | rest-day | missed-past | upcoming/pre-habit
-function SixMonthGrid({ habitId, logs, restDayDates = new Set(), onRestDayTap }) {
+function SixMonthGrid({ habitId, logs, createdAt, restDayDates = new Set(), onRestDayTap }) {
   const todayStr       = today()
   const currentMonthYM = todayStr.substring(0, 7)
 
@@ -255,9 +255,11 @@ function SixMonthGrid({ habitId, logs, restDayDates = new Set(), onRestDayTap })
         >
           {weeks.flatMap((week, wi) =>
             week.map((dateStr, di) => {
-              // Months before the habit existed are "pre-habit" — render as
-              // upcoming-style, not as missed days (B9).
-              const isPreHabit = firstLogDate ? dateStr < firstLogDate : false
+              // Days before the habit was created are "pre-habit" — render as
+              // upcoming-style, not as missed days (B9). Use createdAt (when the
+              // habit was added) so unlogged habits don't show all past days as missed.
+              const preHabitBoundary = createdAt || firstLogDate
+              const isPreHabit = preHabitBoundary ? dateStr < preHabitBoundary : false
               const isFuture   = dateStr > todayStr
               const logged     = !isFuture && !isPreHabit && (logs[dateStr] || []).includes(habitId)
               const isToday    = dateStr === todayStr
@@ -934,7 +936,7 @@ function HabitDetailCard({ habit, logs }) {
           </div>
 
           {/* 6-month grid */}
-          <SixMonthGrid habitId={habit.id} logs={logs} restDayDates={restDayDates} onRestDayTap={handleRestDayTap} />
+          <SixMonthGrid habitId={habit.id} logs={logs} createdAt={habit.createdAt} restDayDates={restDayDates} onRestDayTap={handleRestDayTap} />
 
           {/* Motivational line */}
           <p className="text-[12px] text-app-secondary text-center italic">{motivLine}</p>
