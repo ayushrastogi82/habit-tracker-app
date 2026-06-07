@@ -272,7 +272,7 @@ function InstallScreen({ deferredPrompt, onNext, onSkip }) {
         <div className="space-y-2">
           <h2 className="text-2xl font-bold text-white">Keep your light on</h2>
           <p className="text-app-secondary text-[15px]">
-            Add Beacon to your home screen so it's always one tap away.
+            Add Beacon to your home screen for the best experience. Your habits live on this device — the home screen keeps them one tap away.
           </p>
         </div>
 
