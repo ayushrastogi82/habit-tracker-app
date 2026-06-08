@@ -178,24 +178,14 @@ export default function AddHabitScreen({
             <div className="flex-1 h-px bg-app-elevated" />
           </div>
 
-          {/* Expandable — content always rendered, only height + opacity animate.
-              This avoids the "render then slide" jank that happens when content
-              mounts mid-animation. visibility:hidden when closed keeps it out of
-              the tab order and accessibility tree. */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateRows: moreOptionsOpen ? '1fr' : '0fr',
-              opacity: moreOptionsOpen ? 1 : 0,
-              transition: 'grid-template-rows 0.28s ease, opacity 0.22s ease',
-              marginTop: 0,
-            }}
-          >
-            <div style={{ overflow: 'hidden' }}>
-              <div
-                className="space-y-3 pt-0.5 pb-1"
-                style={{ visibility: moreOptionsOpen ? 'visible' : 'hidden' }}
-              >
+          {/* Expandable — mount/unmount only, no height animation.
+              CTA lives in a sticky footer so nothing shifts when this appears.
+              A simple fade is all that's needed. */}
+          {moreOptionsOpen && (
+            <div
+              className="space-y-3 pb-1"
+              style={{ animation: 'section-fade 0.18s ease both' }}
+            >
 
                 {/* Frequency */}
                 <div className="space-y-1.5">
@@ -279,9 +269,8 @@ export default function AddHabitScreen({
                   <p className="text-[10px] text-app-tertiary">YYYY-MM-DD · tap away to confirm</p>
                 </div>
 
-              </div>
             </div>
-          </div>
+          )}
 
         </div>
       </div>
