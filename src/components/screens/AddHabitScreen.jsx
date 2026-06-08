@@ -211,7 +211,7 @@ export default function AddHabitScreen({
                   className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-app-elevated transition-opacity duration-200"
                   style={{
                     backgroundColor: 'var(--app-surface)',
-                    opacity:        frequency === 'daily' ? 0.35 : 1,
+                    opacity:        frequency === 'daily' ? 0.15 : 1,
                     pointerEvents:  frequency === 'daily' ? 'none' : 'auto',
                   }}
                 >
