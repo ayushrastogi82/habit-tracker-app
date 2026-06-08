@@ -227,20 +227,34 @@ function SixMonthGrid({ habitId, logs, createdAt, restDayDates = new Set(), onRe
       )}
 
       {/* Month labels — left-padded by DOW column so they align with grid columns */}
+      {/* Every month reserves two lines (name + count/dash) so all headers sit at the same height. */}
       <div className="flex" style={{ paddingLeft: DOW_W + 3 }}>
         {monthSpans.map(({ mo, label, count }, idx) => {
           const showLabel = (count >= 2 || idx === monthSpans.length - 1) && mo >= windowStartMonth && mo <= windowEndMonth
           const loggedCount = loggedCountByMonth[mo] || 0
-          const text = showLabel
-            ? loggedCount > 0 ? `${label} (${loggedCount}d)` : label
-            : ''
+          // A month is pre-habit when it ends before the habit's boundary month.
+          const boundaryMonth = preHabitBoundary ? preHabitBoundary.substring(0, 7) : null
+          const isPreHabit = boundaryMonth ? mo < boundaryMonth : false
           return (
             <div
               key={mo}
-              className="text-[9px] text-app-tertiary leading-none overflow-hidden"
+              className="flex flex-col overflow-hidden"
               style={{ flex: count }}
             >
-              {text}
+              {/* Name line — slightly dimmed for pre-habit months */}
+              <span
+                className="text-[9px] leading-none"
+                style={{ color: showLabel ? (isPreHabit ? 'var(--app-elevated)' : 'var(--app-tertiary)') : 'transparent' }}
+              >
+                {showLabel ? label : 'x'/* placeholder keeps height */}
+              </span>
+              {/* Count / dash line — always present to anchor every header at the same height */}
+              <span
+                className="text-[8px] leading-none mt-px"
+                style={{ color: showLabel ? '#6E6E73' : 'transparent' }}
+              >
+                {showLabel ? (loggedCount > 0 ? `${loggedCount}d` : '—') : 'x'}
+              </span>
             </div>
           )
         })}
