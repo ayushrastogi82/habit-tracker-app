@@ -988,9 +988,15 @@ function DetailedProgress({ habits, logs }) {
     )
   }
 
-  const daily   = habits.filter(h => (h.frequency || 'daily') === 'daily')
-  const weekly  = habits.filter(h => h.frequency === 'weekly')
-  const monthly = habits.filter(h => h.frequency === 'monthly')
+  // Shared habit order — the position in state.habits set by the user
+  // on the Edit screen. Every screen must honour this order; Progress
+  // applies it within each frequency group (C5).
+  const habitOrder = Object.fromEntries(habits.map((h, i) => [h.id, i]))
+  const byUserOrder = (a, b) => habitOrder[a.id] - habitOrder[b.id]
+
+  const daily   = habits.filter(h => (h.frequency || 'daily') === 'daily').sort(byUserOrder)
+  const weekly  = habits.filter(h => h.frequency === 'weekly').sort(byUserOrder)
+  const monthly = habits.filter(h => h.frequency === 'monthly').sort(byUserOrder)
 
   const renderGroup = (label, groupHabits) => {
     if (groupHabits.length === 0) return null
