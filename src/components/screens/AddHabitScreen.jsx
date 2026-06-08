@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { ChevronLeft, ChevronDown, Check, Minus, Plus, Sunrise, Sun, Moon, Leaf } from 'lucide-react'
 import { brand } from '../../utils/brandVoice'
 import { today } from '../../utils/dateUtils'
@@ -25,13 +25,12 @@ export default function AddHabitScreen({
   onCreateHabit
 }) {
   const todayISO = today()
-  const [habitName, setHabitName]           = useState('')
-  const [habitTime, setHabitTime]           = useState('')
-  const [startDate, setStartDate]           = useState(todayISO)
+  const [habitName, setHabitName]             = useState('')
+  const [habitTime, setHabitTime]             = useState('')
+  const [startDate, setStartDate]             = useState(todayISO)
   const [moreOptionsOpen, setMoreOptionsOpen] = useState(false)
-  const [frequency, setFrequency]           = useState('daily')
+  const [frequency, setFrequency]             = useState('daily')
   const [frequencyTarget, setFrequencyTarget] = useState(1)
-  const dateInputRef = useRef(null)
 
   if (!isOpen) return null
 
@@ -87,11 +86,15 @@ export default function AddHabitScreen({
     ? brand.addHabit.hints.nameOnly
     : ''
 
-  const maxTarget = frequency === 'weekly' ? 7 : 31
+  const maxTarget = frequency === 'weekly' ? 6 : 30
 
-  const startDateLabel = startDate === todayISO
-    ? 'Today'
-    : new Date(startDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  const handleStartDateBlur = () => {
+    // Validate: must be a real date and not in the future
+    const parsed = new Date((startDate || '') + 'T00:00:00')
+    if (isNaN(parsed.getTime()) || startDate > todayISO) {
+      setStartDate(todayISO)
+    }
+  }
 
   return (
     <div className="fixed inset-0 bg-app-bg z-50 flex flex-col">
@@ -105,8 +108,8 @@ export default function AddHabitScreen({
         <h2 className="text-[22px] font-bold text-app-text">Add a habit</h2>
       </div>
 
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto px-4 py-5 flex flex-col">
+      {/* Scrollable content */}
+      <div className="flex-1 overflow-y-auto px-4 py-5">
         <div className="space-y-5 max-w-md mx-auto w-full">
 
           {/* Habit Name Input */}
@@ -166,14 +169,14 @@ export default function AddHabitScreen({
             </div>
           </div>
 
-          {/* ── More Options ─────────────────────────────────────────────── */}
+          {/* ── More Options ─────────────────────────────────────── */}
 
           {/* Toggle row */}
           <div className="flex items-center gap-3">
             <div className="flex-1 h-px bg-app-elevated" />
             <button
               onClick={() => setMoreOptionsOpen(o => !o)}
-              className="flex items-center gap-1.5 py-1 text-[12px] font-medium text-app-secondary active:text-app-text transition-colors"
+              className="flex items-center gap-1.5 py-0.5 text-[12px] font-medium text-app-secondary active:text-app-text transition-colors"
             >
               More Options
               <ChevronDown
@@ -184,140 +187,135 @@ export default function AddHabitScreen({
             <div className="flex-1 h-px bg-app-elevated" />
           </div>
 
-          {/* Expandable section */}
+          {/* Expandable body */}
           <div
             className="overflow-hidden transition-all duration-300"
             style={{
-              maxHeight: moreOptionsOpen ? '280px' : '0px',
-              opacity: moreOptionsOpen ? 1 : 0,
+              maxHeight: moreOptionsOpen ? '260px' : '0px',
+              opacity:   moreOptionsOpen ? 1 : 0,
+              marginTop: moreOptionsOpen ? undefined : '0px',
             }}
           >
-            <div className="space-y-4 pb-1">
+            <div className="space-y-3">
 
-              {/* Frequency toggle + stepper */}
-              <div className="space-y-2">
+              {/* ── Frequency ── */}
+              <div className="space-y-1.5">
                 <label className="text-[11px] font-semibold uppercase tracking-widest text-app-secondary">
                   Frequency
                 </label>
+
+                {/* Segmented control + stepper in one row */}
                 <div className="flex items-center gap-2">
-                  {/* Daily / Weekly / Monthly pills */}
-                  <div className="flex gap-1.5 flex-1">
-                    {['daily', 'weekly', 'monthly'].map(f => (
-                      <button
-                        key={f}
-                        onClick={() => {
-                          setFrequency(f)
-                          if (f === 'daily') setFrequencyTarget(1)
-                          else setFrequencyTarget(prev => Math.min(prev, f === 'weekly' ? 7 : 31))
-                        }}
-                        className="flex-1 py-2 rounded-xl text-[13px] font-semibold capitalize transition-all active:scale-[0.97]"
-                        style={{
-                          backgroundColor: frequency === f ? 'var(--app-green-surface)' : 'var(--app-surface)',
-                          color: frequency === f ? 'white' : 'var(--app-secondary)',
-                          border: `1px solid ${frequency === f ? 'var(--app-green)' : 'var(--app-elevated)'}`,
-                        }}
-                      >
-                        {f}
-                      </button>
-                    ))}
+                  {/* Segmented control */}
+                  <div
+                    className="flex flex-1 rounded-xl overflow-hidden border border-app-elevated"
+                    style={{ backgroundColor: 'var(--app-surface)' }}
+                  >
+                    {['daily', 'weekly', 'monthly'].map((f, i) => {
+                      const active = frequency === f
+                      return (
+                        <button
+                          key={f}
+                          onClick={() => {
+                            setFrequency(f)
+                            if (f === 'daily') setFrequencyTarget(1)
+                            else setFrequencyTarget(prev => Math.min(prev, f === 'weekly' ? 6 : 30))
+                          }}
+                          className="flex-1 py-2 text-[13px] font-semibold capitalize transition-colors active:opacity-80"
+                          style={{
+                            backgroundColor: active ? 'var(--app-green-surface)' : 'transparent',
+                            color:           active ? 'white' : 'var(--app-secondary)',
+                            borderLeft:      i > 0 ? '1px solid var(--app-elevated)' : 'none',
+                          }}
+                        >
+                          {f}
+                        </button>
+                      )
+                    })}
                   </div>
 
-                  {/* Stepper — only visible for weekly / monthly */}
+                  {/* Stepper — fades out for Daily */}
                   <div
-                    className="flex items-center gap-1 bg-app-surface border border-app-elevated rounded-xl px-2 py-2 transition-all duration-200"
+                    className="flex items-center gap-1 rounded-xl border border-app-elevated px-2 py-1.5 transition-opacity duration-200"
                     style={{
-                      opacity: frequency === 'daily' ? 0 : 1,
-                      pointerEvents: frequency === 'daily' ? 'none' : 'auto',
-                      minWidth: 92,
+                      backgroundColor: 'var(--app-surface)',
+                      opacity:        frequency === 'daily' ? 0 : 1,
+                      pointerEvents:  frequency === 'daily' ? 'none' : 'auto',
                     }}
                   >
                     <button
                       onClick={() => setFrequencyTarget(t => Math.max(1, t - 1))}
-                      className="w-6 h-6 flex items-center justify-center rounded-lg bg-app-elevated text-app-secondary active:text-app-text transition-colors"
+                      className="w-6 h-6 flex items-center justify-center rounded-lg bg-app-elevated text-app-secondary active:text-app-text"
                     >
                       <Minus className="w-3 h-3" />
                     </button>
-                    <span className="text-[14px] font-bold text-app-text w-5 text-center flex-shrink-0">
+                    <span className="text-[14px] font-bold text-app-text w-5 text-center">
                       {frequencyTarget}
                     </span>
                     <button
                       onClick={() => setFrequencyTarget(t => Math.min(maxTarget, t + 1))}
-                      className="w-6 h-6 flex items-center justify-center rounded-lg bg-app-elevated text-app-secondary active:text-app-text transition-colors"
+                      className="w-6 h-6 flex items-center justify-center rounded-lg bg-app-elevated text-app-secondary active:text-app-text"
                     >
                       <Plus className="w-3 h-3" />
                     </button>
-                    <span className="text-[11px] text-app-tertiary ml-0.5 flex-shrink-0">
+                    <span className="text-[11px] text-app-tertiary ml-0.5">
                       {frequency === 'weekly' ? 'x/wk' : 'x/mo'}
                     </span>
                   </div>
                 </div>
               </div>
 
-              {/* Start date row */}
-              <div className="space-y-2">
+              {/* ── Start date ── */}
+              <div className="space-y-1">
                 <label className="text-[11px] font-semibold uppercase tracking-widest text-app-secondary">
                   Start date
                 </label>
-                {/* Hidden native date input */}
+                {/* Text input — same pattern as edit page, T00:00:00 for local tz */}
                 <input
-                  ref={dateInputRef}
-                  type="date"
-                  max={todayISO}
+                  type="text"
                   value={startDate}
-                  onChange={e => {
-                    if (e.target.value && e.target.value <= todayISO) setStartDate(e.target.value)
-                  }}
-                  className="sr-only"
+                  onChange={e => setStartDate(e.target.value)}
+                  onBlur={handleStartDateBlur}
+                  placeholder="YYYY-MM-DD"
+                  className="w-full bg-transparent text-app-text text-[14px] focus:outline-none placeholder-app-tertiary pb-1"
+                  style={{ borderBottom: '1px solid var(--app-accent-color)' }}
                 />
-                <button
-                  onClick={() => {
-                    if (dateInputRef.current?.showPicker) dateInputRef.current.showPicker()
-                    else dateInputRef.current?.click()
-                  }}
-                  className="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-app-surface border border-app-elevated active:bg-app-elevated transition-colors"
-                >
-                  <span className="text-[14px] text-app-text">{startDateLabel}</span>
-                  <span className="text-[12px] text-app-accent-dim font-medium">Change</span>
-                </button>
-                {startDate !== todayISO && (
-                  <p className="text-[11px] text-app-tertiary text-center leading-snug">
-                    Already doing this? Backdating lets the grid show your real history.
-                  </p>
-                )}
+                <p className="text-[10px] text-app-tertiary">YYYY-MM-DD · tap away to confirm</p>
               </div>
 
             </div>
           </div>
 
         </div>
+      </div>
 
-        {/* Bottom area — CTA only */}
-        <div className="mt-auto pt-5 max-w-md mx-auto w-full space-y-2">
-          <button
-            onClick={() => {
-              if (canSubmit) {
-                onCreateHabit(habitName, habitTime, startDate, frequency, frequencyTarget)
-                resetForm()
-              }
-            }}
-            disabled={!canSubmit}
-            className="w-full font-semibold py-3 px-4 rounded-xl text-[15px] transition-all active:scale-[0.98]"
-            style={{
-              backgroundColor: canSubmit ? 'var(--app-green-surface)' : 'var(--app-surface)',
-              color:           canSubmit ? 'white'                    : 'var(--app-tertiary)',
-              cursor:          canSubmit ? 'pointer'                   : 'not-allowed',
-              border:          canSubmit ? '1px solid var(--app-green)' : '1px solid var(--app-elevated)',
-            }}
-          >
-            {brand.addHabit.ctaPrimary}
-          </button>
+      {/* ── Sticky CTA footer — never moves ── */}
+      <div className="px-4 pt-3 pb-4 border-t border-app-elevated bg-app-bg max-w-md mx-auto w-full space-y-2"
+           style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom))' }}>
+        <button
+          onClick={() => {
+            if (canSubmit) {
+              onCreateHabit(habitName, habitTime, startDate, frequency, frequencyTarget)
+              resetForm()
+            }
+          }}
+          disabled={!canSubmit}
+          className="w-full font-semibold py-3 px-4 rounded-xl text-[15px] transition-all active:scale-[0.98]"
+          style={{
+            backgroundColor: canSubmit ? 'var(--app-green-surface)' : 'var(--app-surface)',
+            color:           canSubmit ? 'white'                    : 'var(--app-tertiary)',
+            cursor:          canSubmit ? 'pointer'                   : 'not-allowed',
+            border:          canSubmit ? '1px solid var(--app-green)' : '1px solid var(--app-elevated)',
+          }}
+        >
+          {brand.addHabit.ctaPrimary}
+        </button>
 
-          {hint && (
-            <p className="text-[12px] text-center text-app-tertiary">
-              {hint}
-            </p>
-          )}
-        </div>
+        {hint && (
+          <p className="text-[12px] text-center text-app-tertiary">
+            {hint}
+          </p>
+        )}
       </div>
     </div>
   )
