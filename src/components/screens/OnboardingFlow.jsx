@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import {
   ChevronLeft, ChevronRight, Check, Leaf, Sunrise, Moon,
-  PlusSquare, MoreVertical, Download,
+  PlusSquare, MoreHorizontal, MoreVertical, Download,
   Infinity as InfinityIcon
 } from 'lucide-react'
 import BeaconMark from '../modules/BeaconMark'
@@ -210,7 +210,7 @@ function InstallSteps({ steps }) {
 
 // ── D-Install: PWA install prompt (browser only, outside page dots) ───────────
 // Platform-aware:
-//   iOS Safari  → 3-step manual (Share → Add to Home Screen → Add)
+//   iOS Safari  → 4-step manual (··· → Share → Add to Home Screen → Add)
 //   Android     → native prompt if available, otherwise 3-step manual (Menu → Add to Home Screen → Add)
 //   Other       → generic nudge to open on mobile
 // "Maybe later" is always visible — no nag.
@@ -225,10 +225,15 @@ function InstallScreen({ deferredPrompt, onNext, onSkip }) {
     }
   }
 
-  // iOS Safari — 3-step Share sheet flow
+  // iOS Safari — 4-step Share sheet flow
   const iosSteps = [
     {
       n: '1',
+      icon: <MoreHorizontal className="w-5 h-5 text-app-accent-dim flex-shrink-0" />,
+      text: <>Tap the <span className="text-app-accent-dim font-semibold">···</span> button at the bottom of Safari</>
+    },
+    {
+      n: '2',
       icon: (
         <svg className="w-5 h-5 text-app-accent-dim flex-shrink-0" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
@@ -236,15 +241,15 @@ function InstallScreen({ deferredPrompt, onNext, onSkip }) {
           <path d="M5 14v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-5"/>
         </svg>
       ),
-      text: <>Tap the <span className="text-app-accent-dim font-semibold">Share</span> button below</>
+      text: <>Tap the <span className="text-app-accent-dim font-semibold">Share</span> button in the menu</>
     },
     {
-      n: '2',
+      n: '3',
       icon: <PlusSquare className="w-5 h-5 text-app-accent-dim flex-shrink-0" />,
       text: <>Choose <span className="text-app-accent-dim font-semibold">Add to Home Screen</span></>
     },
     {
-      n: '3',
+      n: '4',
       icon: <Check className="w-5 h-5 text-app-accent-dim flex-shrink-0" />,
       text: <>Tap <span className="text-app-accent-dim font-semibold">Add</span> — and you're set</>
     },
