@@ -211,7 +211,7 @@ export default function AddHabitScreen({
                   className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-app-elevated transition-opacity duration-200"
                   style={{
                     backgroundColor: 'var(--app-surface)',
-                    opacity:        frequency === 'daily' ? 0.15 : 1,
+                    opacity:        frequency === 'daily' ? 0.25 : 1,
                     pointerEvents:  frequency === 'daily' ? 'none' : 'auto',
                   }}
                 >
@@ -221,7 +221,7 @@ export default function AddHabitScreen({
                   >
                     <Minus className="w-3 h-3" />
                   </button>
-                  <div className="text-center">
+                  <div className="text-center" style={{ opacity: frequency === 'daily' ? 0.6 : 1 }}>
                     <div className="text-[15px] font-bold text-app-text leading-tight">{frequencyTarget}</div>
                     <div className="text-[9px] text-app-tertiary leading-tight">
                       {frequency === 'weekly' ? 'days/wk' : 'days/mo'}
