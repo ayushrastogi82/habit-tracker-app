@@ -60,7 +60,7 @@ export default function MainApp({ state, setState, updateTheme, theme, colorSche
     }
   }
 
-  const handleCreateHabit = (habitName, habitTime, startDate) => {
+  const handleCreateHabit = (habitName, habitTime, startDate, frequency = 'daily', frequencyTarget = 1) => {
     const habitId = `habit-${Date.now()}`
     const today   = localToday()
     const newHabits = [
@@ -69,8 +69,8 @@ export default function MainApp({ state, setState, updateTheme, theme, colorSche
         id: habitId,
         name: habitName,
         time: habitTime,
-        frequency: 'daily',
-        frequencyTarget: 1,
+        frequency: frequency || 'daily',
+        frequencyTarget: frequencyTarget || 1,
         createdAt: startDate || today,
         icon: null,
         color: null,

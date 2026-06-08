@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { ChevronLeft, Check, Sunrise, Sun, Moon, Leaf } from 'lucide-react'
+import { useState, useRef } from 'react'
+import { ChevronLeft, ChevronDown, Check, Minus, Plus, Sunrise, Sun, Moon, Leaf } from 'lucide-react'
 import { brand } from '../../utils/brandVoice'
 import { today } from '../../utils/dateUtils'
 
@@ -28,9 +28,21 @@ export default function AddHabitScreen({
   const [habitName, setHabitName]           = useState('')
   const [habitTime, setHabitTime]           = useState('')
   const [startDate, setStartDate]           = useState(todayISO)
-  const [showDatePicker, setShowDatePicker] = useState(false)
+  const [moreOptionsOpen, setMoreOptionsOpen] = useState(false)
+  const [frequency, setFrequency]           = useState('daily')
+  const [frequencyTarget, setFrequencyTarget] = useState(1)
+  const dateInputRef = useRef(null)
 
   if (!isOpen) return null
+
+  const resetForm = () => {
+    setHabitName('')
+    setHabitTime('')
+    setStartDate(todayISO)
+    setMoreOptionsOpen(false)
+    setFrequency('daily')
+    setFrequencyTarget(1)
+  }
 
   if (confirmation) {
     return (
@@ -49,7 +61,7 @@ export default function AddHabitScreen({
           </div>
           <div className="flex flex-col gap-2 pt-4">
             <button
-              onClick={() => { setHabitName(''); setHabitTime(''); onAdd(true) }}
+              onClick={() => { resetForm(); onAdd(true) }}
               className="w-full font-semibold py-3 px-4 rounded-xl text-sm text-white transition-opacity hover:opacity-90 bg-app-green-surface border border-app-green"
             >
               {brand.addHabit.confirmation.ctaPrimary}
@@ -74,6 +86,12 @@ export default function AddHabitScreen({
     : !habitTime
     ? brand.addHabit.hints.nameOnly
     : ''
+
+  const maxTarget = frequency === 'weekly' ? 7 : 31
+
+  const startDateLabel = startDate === todayISO
+    ? 'Today'
+    : new Date(startDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 
   return (
     <div className="fixed inset-0 bg-app-bg z-50 flex flex-col">
@@ -147,77 +165,147 @@ export default function AddHabitScreen({
               })}
             </div>
           </div>
-        </div>
 
-        {/* Bottom area */}
-        <div className="mt-auto pt-5 max-w-md mx-auto w-full space-y-2">
+          {/* ── More Options ─────────────────────────────────────────────── */}
 
-          {/* Start date line */}
-          <div className="text-center pb-1">
-            {startDate === todayISO ? (
-              <button
-                type="button"
-                onClick={() => setShowDatePicker(p => !p)}
-                className="text-[12px] transition-opacity hover:opacity-80"
-              >
-                <span className="text-app-secondary">Already doing this? · </span>
-                <span className="underline underline-offset-2 text-app-text">
-                  Change start date
-                </span>
-              </button>
-            ) : (
-              <span className="text-[12px] text-app-secondary">
-                Started {new Date(startDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                {' · '}
-                <button
-                  type="button"
-                  onClick={() => setShowDatePicker(p => !p)}
-                  className="underline underline-offset-2 text-app-text"
-                >
-                  change
-                </button>
-              </span>
-            )}
+          {/* Toggle row */}
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-px bg-app-elevated" />
+            <button
+              onClick={() => setMoreOptionsOpen(o => !o)}
+              className="flex items-center gap-1.5 py-1 text-[12px] font-medium text-app-secondary active:text-app-text transition-colors"
+            >
+              More Options
+              <ChevronDown
+                className="w-3.5 h-3.5 transition-transform duration-200"
+                style={{ transform: moreOptionsOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
+              />
+            </button>
+            <div className="flex-1 h-px bg-app-elevated" />
           </div>
 
-          {showDatePicker && (
-            <div className="space-y-1">
-              <input
-                type="text"
-                value={startDate}
-                onChange={e => setStartDate(e.target.value)}
-                onBlur={() => {
-                  const parsed = new Date(startDate + 'T00:00:00')
-                  if (isNaN(parsed.getTime()) || startDate > todayISO) setStartDate(todayISO)
-                  setShowDatePicker(false)
-                }}
-                placeholder="YYYY-MM-DD"
-                autoFocus
-                className="w-full px-4 py-2.5 rounded-xl text-app-text text-sm focus:outline-none focus:ring-1 focus:ring-app-green/50 bg-app-surface border border-app-elevated"
-              />
-              <p className="text-[11px] text-center text-app-tertiary">
-                Format: YYYY-MM-DD · tap away to confirm
-              </p>
-            </div>
-          )}
+          {/* Expandable section */}
+          <div
+            className="overflow-hidden transition-all duration-300"
+            style={{
+              maxHeight: moreOptionsOpen ? '280px' : '0px',
+              opacity: moreOptionsOpen ? 1 : 0,
+            }}
+          >
+            <div className="space-y-4 pb-1">
 
-          {/* CTA */}
+              {/* Frequency toggle + stepper */}
+              <div className="space-y-2">
+                <label className="text-[11px] font-semibold uppercase tracking-widest text-app-secondary">
+                  Frequency
+                </label>
+                <div className="flex items-center gap-2">
+                  {/* Daily / Weekly / Monthly pills */}
+                  <div className="flex gap-1.5 flex-1">
+                    {['daily', 'weekly', 'monthly'].map(f => (
+                      <button
+                        key={f}
+                        onClick={() => {
+                          setFrequency(f)
+                          if (f === 'daily') setFrequencyTarget(1)
+                          else setFrequencyTarget(prev => Math.min(prev, f === 'weekly' ? 7 : 31))
+                        }}
+                        className="flex-1 py-2 rounded-xl text-[13px] font-semibold capitalize transition-all active:scale-[0.97]"
+                        style={{
+                          backgroundColor: frequency === f ? 'var(--app-green-surface)' : 'var(--app-surface)',
+                          color: frequency === f ? 'white' : 'var(--app-secondary)',
+                          border: `1px solid ${frequency === f ? 'var(--app-green)' : 'var(--app-elevated)'}`,
+                        }}
+                      >
+                        {f}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Stepper — only visible for weekly / monthly */}
+                  <div
+                    className="flex items-center gap-1 bg-app-surface border border-app-elevated rounded-xl px-2 py-2 transition-all duration-200"
+                    style={{
+                      opacity: frequency === 'daily' ? 0 : 1,
+                      pointerEvents: frequency === 'daily' ? 'none' : 'auto',
+                      minWidth: 92,
+                    }}
+                  >
+                    <button
+                      onClick={() => setFrequencyTarget(t => Math.max(1, t - 1))}
+                      className="w-6 h-6 flex items-center justify-center rounded-lg bg-app-elevated text-app-secondary active:text-app-text transition-colors"
+                    >
+                      <Minus className="w-3 h-3" />
+                    </button>
+                    <span className="text-[14px] font-bold text-app-text w-5 text-center flex-shrink-0">
+                      {frequencyTarget}
+                    </span>
+                    <button
+                      onClick={() => setFrequencyTarget(t => Math.min(maxTarget, t + 1))}
+                      className="w-6 h-6 flex items-center justify-center rounded-lg bg-app-elevated text-app-secondary active:text-app-text transition-colors"
+                    >
+                      <Plus className="w-3 h-3" />
+                    </button>
+                    <span className="text-[11px] text-app-tertiary ml-0.5 flex-shrink-0">
+                      {frequency === 'weekly' ? 'x/wk' : 'x/mo'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Start date row */}
+              <div className="space-y-2">
+                <label className="text-[11px] font-semibold uppercase tracking-widest text-app-secondary">
+                  Start date
+                </label>
+                {/* Hidden native date input */}
+                <input
+                  ref={dateInputRef}
+                  type="date"
+                  max={todayISO}
+                  value={startDate}
+                  onChange={e => {
+                    if (e.target.value && e.target.value <= todayISO) setStartDate(e.target.value)
+                  }}
+                  className="sr-only"
+                />
+                <button
+                  onClick={() => {
+                    if (dateInputRef.current?.showPicker) dateInputRef.current.showPicker()
+                    else dateInputRef.current?.click()
+                  }}
+                  className="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-app-surface border border-app-elevated active:bg-app-elevated transition-colors"
+                >
+                  <span className="text-[14px] text-app-text">{startDateLabel}</span>
+                  <span className="text-[12px] text-app-accent-dim font-medium">Change</span>
+                </button>
+                {startDate !== todayISO && (
+                  <p className="text-[11px] text-app-tertiary text-center leading-snug">
+                    Already doing this? Backdating lets the grid show your real history.
+                  </p>
+                )}
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+        {/* Bottom area — CTA only */}
+        <div className="mt-auto pt-5 max-w-md mx-auto w-full space-y-2">
           <button
             onClick={() => {
               if (canSubmit) {
-                onCreateHabit(habitName, habitTime, startDate)
-                setHabitName('')
-                setHabitTime('')
-                setStartDate(todayISO)
-                setShowDatePicker(false)
+                onCreateHabit(habitName, habitTime, startDate, frequency, frequencyTarget)
+                resetForm()
               }
             }}
             disabled={!canSubmit}
             className="w-full font-semibold py-3 px-4 rounded-xl text-[15px] transition-all active:scale-[0.98]"
             style={{
               backgroundColor: canSubmit ? 'var(--app-green-surface)' : 'var(--app-surface)',
-              color:           canSubmit ? 'white'                   : 'var(--app-tertiary)',
-              cursor:          canSubmit ? 'pointer'                  : 'not-allowed',
+              color:           canSubmit ? 'white'                    : 'var(--app-tertiary)',
+              cursor:          canSubmit ? 'pointer'                   : 'not-allowed',
               border:          canSubmit ? '1px solid var(--app-green)' : '1px solid var(--app-elevated)',
             }}
           >
