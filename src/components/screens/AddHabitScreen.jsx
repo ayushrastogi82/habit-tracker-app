@@ -31,7 +31,6 @@ export default function AddHabitScreen({
   const [moreOptionsOpen, setMoreOptionsOpen] = useState(false)
   const [frequency, setFrequency]             = useState('daily')
   const [frequencyTarget, setFrequencyTarget] = useState(1)
-  const [editingDate, setEditingDate]         = useState(false)
 
   if (!isOpen) return null
 
@@ -42,7 +41,6 @@ export default function AddHabitScreen({
     setMoreOptionsOpen(false)
     setFrequency('daily')
     setFrequencyTarget(1)
-    setEditingDate(false)
   }
 
   if (confirmation) {
@@ -178,95 +176,85 @@ export default function AddHabitScreen({
         {moreOptionsOpen && (
           <div className="space-y-3" style={{ animation: 'section-fade 0.15s ease both' }}>
 
-            {/* Frequency — pills row, then stepper row below */}
-            <div className="space-y-2">
+            {/* Frequency — toggle + stepper side by side, 50/50 */}
+            <div className="space-y-1.5">
               <label className="text-[11px] font-semibold uppercase tracking-widest text-app-secondary">
                 Frequency
               </label>
-              {/* Segmented control — full width */}
-              <div
-                className="flex rounded-xl overflow-hidden border border-app-elevated"
-                style={{ backgroundColor: 'var(--app-surface)' }}
-              >
-                {['daily', 'weekly', 'monthly'].map((f, i) => (
-                  <button
-                    key={f}
-                    onClick={() => {
-                      setFrequency(f)
-                      if (f === 'daily') setFrequencyTarget(1)
-                      else setFrequencyTarget(t => Math.min(t || 1, f === 'weekly' ? 6 : 30))
-                    }}
-                    className="flex-1 py-2 text-[13px] font-semibold capitalize transition-colors active:opacity-80"
-                    style={{
-                      backgroundColor: frequency === f ? 'var(--app-green-surface)' : 'transparent',
-                      color:           frequency === f ? 'white' : 'var(--app-secondary)',
-                      borderLeft:      i > 0 ? '1px solid var(--app-elevated)' : 'none',
-                    }}
-                  >
-                    {f}
-                  </button>
-                ))}
-              </div>
-              {/* Stepper — appears below pills for weekly/monthly */}
-              {frequency !== 'daily' && (
-                <div className="flex items-center justify-center gap-3"
-                  style={{ animation: 'section-fade 0.12s ease both' }}>
+              <div className="flex gap-2">
+                {/* Segmented control — 50% */}
+                <div
+                  className="flex flex-1 rounded-xl overflow-hidden border border-app-elevated"
+                  style={{ backgroundColor: 'var(--app-surface)' }}
+                >
+                  {['daily', 'weekly', 'monthly'].map((f, i) => (
+                    <button
+                      key={f}
+                      onClick={() => {
+                        setFrequency(f)
+                        if (f === 'daily') setFrequencyTarget(1)
+                        else setFrequencyTarget(t => Math.min(t || 1, f === 'weekly' ? 6 : 30))
+                      }}
+                      className="flex-1 py-2 text-[12px] font-semibold capitalize transition-colors active:opacity-80"
+                      style={{
+                        backgroundColor: frequency === f ? 'var(--app-green-surface)' : 'transparent',
+                        color:           frequency === f ? 'white' : 'var(--app-secondary)',
+                        borderLeft:      i > 0 ? '1px solid var(--app-elevated)' : 'none',
+                      }}
+                    >
+                      {f}
+                    </button>
+                  ))}
+                </div>
+                {/* Stepper — 50%, always present, dims when Daily */}
+                <div
+                  className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-app-elevated transition-opacity duration-200"
+                  style={{
+                    backgroundColor: 'var(--app-surface)',
+                    opacity:        frequency === 'daily' ? 0.35 : 1,
+                    pointerEvents:  frequency === 'daily' ? 'none' : 'auto',
+                  }}
+                >
                   <button
                     onClick={() => setFrequencyTarget(t => Math.max(1, t - 1))}
-                    className="w-8 h-8 flex items-center justify-center rounded-xl bg-app-elevated text-app-secondary active:text-app-text"
+                    className="w-7 h-7 flex items-center justify-center rounded-lg bg-app-elevated text-app-secondary active:text-app-text"
                   >
-                    <Minus className="w-3.5 h-3.5" />
+                    <Minus className="w-3 h-3" />
                   </button>
-                  <span className="text-[15px] font-bold text-app-text w-6 text-center">
-                    {frequencyTarget}
-                  </span>
+                  <div className="text-center">
+                    <div className="text-[15px] font-bold text-app-text leading-tight">{frequencyTarget}</div>
+                    <div className="text-[9px] text-app-tertiary leading-tight">
+                      {frequency === 'weekly' ? 'days/wk' : 'days/mo'}
+                    </div>
+                  </div>
                   <button
                     onClick={() => setFrequencyTarget(t => Math.min(maxTarget, t + 1))}
-                    className="w-8 h-8 flex items-center justify-center rounded-xl bg-app-elevated text-app-secondary active:text-app-text"
+                    className="w-7 h-7 flex items-center justify-center rounded-lg bg-app-elevated text-app-secondary active:text-app-text"
                   >
-                    <Plus className="w-3.5 h-3.5" />
+                    <Plus className="w-3 h-3" />
                   </button>
-                  <span className="text-[12px] text-app-secondary">
-                    {frequency === 'weekly' ? 'days / week' : 'days / month'}
-                  </span>
                 </div>
-              )}
+              </div>
             </div>
 
-            {/* Start date — shows "Today"/formatted label, tapping reveals YYYY-MM-DD input */}
-            <div className="space-y-1">
+            {/* Start date — plain text input, always visible, consistent with habit name */}
+            <div className="space-y-1.5">
               <label className="text-[11px] font-semibold uppercase tracking-widest text-app-secondary">
                 Start date
               </label>
-              {!editingDate ? (
-                <button
-                  onClick={() => setEditingDate(true)}
-                  className="w-full text-left pb-1 text-[14px] text-app-text"
-                  style={{ borderBottom: '1px solid var(--app-elevated)' }}
-                >
-                  {startDate === todayISO
-                    ? 'Today'
-                    : new Date(startDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                </button>
-              ) : (
-                <>
-                  <input
-                    autoFocus
-                    type="text"
-                    value={startDate}
-                    onChange={e => setStartDate(e.target.value)}
-                    onBlur={() => {
-                      const parsed = new Date((startDate || '') + 'T00:00:00')
-                      if (isNaN(parsed.getTime()) || startDate > todayISO) setStartDate(todayISO)
-                      setEditingDate(false)
-                    }}
-                    placeholder="YYYY-MM-DD"
-                    className="w-full bg-transparent text-app-text text-[14px] focus:outline-none placeholder-app-tertiary pb-1"
-                    style={{ borderBottom: '1px solid var(--app-accent-color)' }}
-                  />
-                  <p className="text-[10px] text-app-tertiary">YYYY-MM-DD · tap away to confirm</p>
-                </>
-              )}
+              <input
+                type="text"
+                value={startDate}
+                onChange={e => setStartDate(e.target.value)}
+                onBlur={() => {
+                  const parsed = new Date((startDate || '') + 'T00:00:00')
+                  if (isNaN(parsed.getTime()) || startDate > todayISO) setStartDate(todayISO)
+                }}
+                placeholder="YYYY-MM-DD"
+                className="w-full px-3 py-2.5 rounded-xl text-[15px] text-app-text focus:outline-none focus:ring-1 focus:ring-app-green/50 transition-all bg-app-surface border border-app-elevated"
+                style={{ caretColor: 'var(--app-green)' }}
+              />
+              <p className="text-[10px] text-app-tertiary">YYYY-MM-DD · tap away to confirm</p>
             </div>
 
           </div>
