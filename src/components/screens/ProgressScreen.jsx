@@ -170,6 +170,19 @@ function SixMonthGrid({ habitId, logs, createdAt, restDayDates = new Set(), onRe
     }
   })
 
+  // Logged-day count per month in the visible window — used by month-header labels.
+  // Excludes future dates and pre-habit dates so the count only reflects real logged days.
+  const preHabitBoundary = createdAt || firstLogDate
+  const loggedCountByMonth = {}
+  for (const dateStr of Object.keys(logs)) {
+    if (!(logs[dateStr] || []).includes(habitId)) continue
+    if (dateStr > todayStr) continue
+    if (preHabitBoundary && dateStr < preHabitBoundary) continue
+    const mo = dateStr.substring(0, 7)
+    if (mo < windowStartMonth || mo > windowEndMonth) continue
+    loggedCountByMonth[mo] = (loggedCountByMonth[mo] || 0) + 1
+  }
+
   // Range label — "Jan – Jun 2026" or "Nov 2025 – Apr 2026" across year boundary.
   const startYr = parseInt(windowStartMonth.substring(0, 4))
   const endYr2  = parseInt(windowEndMonth.substring(0, 4))
@@ -215,15 +228,26 @@ function SixMonthGrid({ habitId, logs, createdAt, restDayDates = new Set(), onRe
 
       {/* Month labels — left-padded by DOW column so they align with grid columns */}
       <div className="flex" style={{ paddingLeft: DOW_W + 3 }}>
-        {monthSpans.map(({ mo, label, count }, idx) => (
-          <div
-            key={mo}
-            className="text-[9px] text-app-tertiary leading-none overflow-hidden"
-            style={{ flex: count }}
-          >
-            {(count >= 2 || idx === monthSpans.length - 1) && mo >= windowStartMonth && mo <= windowEndMonth ? label : ''}
-          </div>
-        ))}
+        {monthSpans.map(({ mo, label, count }, idx) => {
+          const showLabel = (count >= 2 || idx === monthSpans.length - 1) && mo >= windowStartMonth && mo <= windowEndMonth
+          const loggedCount = loggedCountByMonth[mo] || 0
+          return (
+            <div
+              key={mo}
+              className="flex flex-col overflow-hidden"
+              style={{ flex: count }}
+            >
+              <span className="text-[9px] text-app-tertiary leading-none">
+                {showLabel ? label : ''}
+              </span>
+              {showLabel && loggedCount > 0 && (
+                <span className="text-[8px] leading-none mt-px" style={{ color: '#6E6E73' }}>
+                  {loggedCount}d
+                </span>
+              )}
+            </div>
+          )
+        })}
       </div>
 
       {/* DOW labels + full-width variable-column grid */}
@@ -256,9 +280,8 @@ function SixMonthGrid({ habitId, logs, createdAt, restDayDates = new Set(), onRe
           {weeks.flatMap((week, wi) =>
             week.map((dateStr, di) => {
               // Days before the habit was created are "pre-habit" — render as
-              // upcoming-style, not as missed days (B9). Use createdAt (when the
-              // habit was added) so unlogged habits don't show all past days as missed.
-              const preHabitBoundary = createdAt || firstLogDate
+              // upcoming-style, not as missed days (B9). preHabitBoundary is
+              // computed above and reused here.
               const isPreHabit = preHabitBoundary ? dateStr < preHabitBoundary : false
               const isFuture   = dateStr > todayStr
               const logged     = !isFuture && !isPreHabit && (logs[dateStr] || []).includes(habitId)
