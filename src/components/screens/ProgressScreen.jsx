@@ -988,15 +988,20 @@ function DetailedProgress({ habits, logs }) {
     )
   }
 
-  // Shared habit order — the position in state.habits set by the user
-  // on the Edit screen. Every screen must honour this order; Progress
-  // applies it within each frequency group (C5).
+  // Sort to match Today screen: time-of-day order first, then user position within
+  // each time group. This way Progress mirrors the visual order the user sees on Today.
+  const TIME_ORDER = { morning: 0, afternoon: 1, evening: 2, anytime: 3 }
   const habitOrder = Object.fromEntries(habits.map((h, i) => [h.id, i]))
-  const byUserOrder = (a, b) => habitOrder[a.id] - habitOrder[b.id]
+  const byTodayOrder = (a, b) => {
+    const tA = TIME_ORDER[a.time || 'anytime']
+    const tB = TIME_ORDER[b.time || 'anytime']
+    if (tA !== tB) return tA - tB
+    return habitOrder[a.id] - habitOrder[b.id]
+  }
 
-  const daily   = habits.filter(h => (h.frequency || 'daily') === 'daily').sort(byUserOrder)
-  const weekly  = habits.filter(h => h.frequency === 'weekly').sort(byUserOrder)
-  const monthly = habits.filter(h => h.frequency === 'monthly').sort(byUserOrder)
+  const daily   = habits.filter(h => (h.frequency || 'daily') === 'daily').sort(byTodayOrder)
+  const weekly  = habits.filter(h => h.frequency === 'weekly').sort(byTodayOrder)
+  const monthly = habits.filter(h => h.frequency === 'monthly').sort(byTodayOrder)
 
   const renderGroup = (label, groupHabits) => {
     if (groupHabits.length === 0) return null
