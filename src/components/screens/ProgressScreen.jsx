@@ -231,20 +231,16 @@ function SixMonthGrid({ habitId, logs, createdAt, restDayDates = new Set(), onRe
         {monthSpans.map(({ mo, label, count }, idx) => {
           const showLabel = (count >= 2 || idx === monthSpans.length - 1) && mo >= windowStartMonth && mo <= windowEndMonth
           const loggedCount = loggedCountByMonth[mo] || 0
+          const text = showLabel
+            ? loggedCount > 0 ? `${label} (${loggedCount}d)` : label
+            : ''
           return (
             <div
               key={mo}
-              className="flex flex-col overflow-hidden"
+              className="text-[9px] text-app-tertiary leading-none overflow-hidden"
               style={{ flex: count }}
             >
-              <span className="text-[9px] text-app-tertiary leading-none">
-                {showLabel ? label : ''}
-              </span>
-              {showLabel && loggedCount > 0 && (
-                <span className="text-[8px] leading-none mt-px" style={{ color: '#6E6E73' }}>
-                  {loggedCount}d
-                </span>
-              )}
+              {text}
             </div>
           )
         })}
