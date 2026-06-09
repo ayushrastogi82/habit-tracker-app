@@ -405,21 +405,21 @@ export default function TodayScreen({
                   key={habit.id}
                   onClick={() => handleToggle(habit.id)}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl transition-colors ${
-                    isExtraMile      ? 'bg-app-surface border border-amber-500/25 opacity-100 active:bg-app-elevated'
-                    : isNormalChecked ? 'bg-app-surface opacity-[0.70] active:bg-app-elevated'
+                    isExtraMile      ? 'bg-app-surface border border-amber-500/25 active:bg-app-elevated'
+                    : isNormalChecked ? 'bg-app-surface active:bg-app-elevated'
                     : isPeriodUnchecked? 'bg-app-surface opacity-[0.65] active:bg-app-elevated'
                     :                    'bg-app-surface active:bg-app-elevated'
                   }`}
                 >
                   {/* Icon tile */}
-                  <div className={`flex-shrink-0 w-10 h-10 rounded-xl ${bg} flex items-center justify-center`}>
+                  <div className={`flex-shrink-0 w-10 h-10 rounded-xl ${bg} flex items-center justify-center ${isNormalChecked ? 'opacity-60' : ''}`}>
                     <HabitIcon className={`w-5 h-5 ${color}`} />
                   </div>
 
                   {/* Text */}
                   <div className="flex-1 min-w-0 text-left">
                     <p className={`text-sm font-semibold leading-snug transition-colors ${
-                      (isNormalChecked || isExtraMile) ? 'text-app-tertiary line-through decoration-1' :
+                      (isNormalChecked || isExtraMile) ? 'text-app-secondary line-through decoration-1' :
                       isPeriodUnchecked                ? 'text-app-tertiary' :
                                                          'text-app-text'
                     }`}>
